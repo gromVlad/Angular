@@ -9,3 +9,31 @@
 //используем декоратор - функция которая принимает какой то класс и возврощает обратно модифицированный как хоок в реакте
 
 //с каким префиксом написанно через такой и создаем новую компоненту
+
+//test.component.ts
+@Component({
+  selector: 'app-test1',
+  imports: [CommonModule],
+  standalone: true,
+  templateUrl: './test.component.html',
+  styleUrl: './test.component.css',
+})
+export class Test1Module { }
+
+//app.component.ts
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css',
+  imports: [Test1Module],
+})
+export class AppComponent {
+  title = 'app';
+}
+
+//main.ts
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));
+
+//можно создавать компоненту через терминал спец команда ng generate component ...
