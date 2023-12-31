@@ -59,5 +59,6 @@ export class AppComponent {
 }
 
 //Подключение SCSS Миграция приложения с CSS на SCSS
-//npm i--save - dev schematics - scss - migrate
+//ng add schematics-scss-migrate
 //ng g schematics-scss-migrate:scss-migrate
+
