@@ -62,3 +62,5 @@ export class AppComponent {
 //ng add schematics-scss-migrate
 //ng g schematics-scss-migrate:scss-migrate
 
+//Настройки Prettier, Eslint, editorСonfig
+
