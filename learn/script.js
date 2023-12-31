@@ -37,3 +37,27 @@ bootstrapApplication(AppComponent, appConfig)
   .catch((err) => console.error(err));
 
 //можно создавать компоненту через терминал спец команда ng generate component ...
+
+//Варианты работы с Component prefix- меняем на необходимое название
+
+//можно сразу писать разметку - плохая практика
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  template: `
+    <h1>hello<h1/>
+  `,
+  styles: [
+  `
+    .title{}
+  `
+  ],
+  imports: [Test1Module],
+})
+export class AppComponent {
+  title = 'app';
+}
+
+//Подключение SCSS Миграция приложения с CSS на SCSS
+//npm i--save - dev schematics - scss - migrate
+//ng g schematics-scss-migrate:scss-migrate
