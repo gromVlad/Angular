@@ -161,7 +161,7 @@ export class ServerComponent {
     this.whatThisInput = event.target.value
   }
 }
-////server.component.html
+//server.component.html
 /* 
 <p>{{isServer}}</p>
 <button (click) = 'setServer()'>click</button>
@@ -201,6 +201,38 @@ export class ServerComponent {
 //server.component.html
 //<p>{{whatThisInput}}</p>
 //<input type="text" [(ngModel)] = "whatThisInput" >
-//<button [disabled] = 'whatThisInput === ""'(click) = 'whatThisInput = ""' > Click</button >
+//<button [disabled] = 'whatThisInput === ""' (click) = 'whatThisInput = ""' > Click</button >
 
-//___
+//___Дериктивы
+//добовляються как отрибуты обычно в тэги (но также можно создовать как компоненты)
+//типо как декораторы берем добовляем в тэг этот атрибут сделанный и получаем видоизмененный тэг
+
+//_структурная деректива *ngIf - если true то покажет тэг если нет то не покажет / выполняет проверку между ковычками может быть переменная а может быть событие
+//<h2 *ngIf="whatThisInput">Hello</h2> ->>> Hello
+
+//_также если нам нужно не только if но else
+//elseNotvalue - придуманное название дерективый / ng-template в них обязательно
+//<h2 * ngIf="whatThisInput; else elseNotvalue" > Hello</h2 >
+//<ng-template #elseNotvalue>Not value</ng-template>
+
+//_изменение динамический стилей - деректива ngStyle / пишем в [] т.к. ей приравниваем какие то свойства не путать с атрибутам
+//server.component.ts
+@Component({
+  selector: 'app-server',
+  templateUrl: './server.component.html',
+  styleUrls: ['./server.component.scss']
+})
+export class ServerComponent {
+  isOnline: string = 'online'
+
+  constructor() {
+    this.isOnline = Math.random() > 0.5 ? "online" : "offline"
+  }
+
+  setColor() {
+    return this.isOnline === 'online' ? 'blue' : 'red'
+  }
+}
+//server.component.html
+//<h2 [ngStyle] = "{color: setColor()}" > what online!!!!</h2 >
+
