@@ -42,7 +42,7 @@ export class AppModule { }
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'] // может бытьмножество стилей подключено поэтому в []
 })
 export class AppComponent {
   title = 'app';
@@ -80,5 +80,66 @@ export class AppComponent {
   title = 'app';
 }
 
+//__мы можем также добовляь и создавать компоненты как атрибуты и стили но лучше это не использовать
+@Component({
+  //selector: `[app-root]`,
+  //selector: '.app-root',
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'] // может бытьмножество стилей подключено поэтому в []
+})
+export class AppComponent {
+  title = 'app';
+}
+/* 
+app.component.html
+<div app-root></div>
+<div class='app-root'></div>
+<app-root></app-root> 
+*/
 
+//__привязка данных
+//{{..}} - просто переменную
+//[...] = '..' - атрибут
+//(...) = " " событие
+//(ngModel) = '..' - реагирует сразу в двух напрвлениях
 
+//__строкавая интерполяция
+@Component({
+  selector: 'app-server',
+  templateUrl: './server.component.html',
+  styleUrls: ['./server.component.scss']
+})
+export class ServerComponent {
+  userId: number = 10
+  error: boolean = true
+
+  getHello() {
+    return 'hello!!!'
+  }
+}
+{/* <p>server works!</p>
+<p>{{userId}} , error - {{error}}, {{getHello()}}</p> */}
+// >> 10 , error - true, hello!!!
+
+//__динамический привязать некоторые свойства к атрибуту
+//server.component.ts
+@Component({
+  selector: 'app-server',
+  templateUrl: './server.component.html',
+  styleUrls: ['./server.component.scss']
+})
+export class ServerComponent {
+  isclick: boolean = true
+
+  constructor() {
+    setTimeout(() => {
+      this.isclick = false
+    }, 3000);
+  }
+}
+//server.component.html
+//<button [disabled] = "!isclick" > click</button >
+//<p [innerText] ='isclick'></p> - то же самое что и {{}} только добовляем значение через свойства
+
+//__
