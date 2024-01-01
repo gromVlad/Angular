@@ -6,13 +6,15 @@ import { Component } from '@angular/core';
   styleUrls: ['./server.component.scss']
 })
 export class ServerComponent {
-  isOnline:string = 'online'
+  isOnline:number = 0
+  isArray = [0.5,0.6,0.8]
+
 
   constructor(){
-    this.isOnline = Math.random() > 0.5 ? "online" : "offline"
+    this.isOnline = Math.random() 
   }
 
-  setColor(){
-    return this.isOnline === 'online' ? 'blue' : 'red' 
+  pushArray(){
+     this.isArray.push(Math.random());
   }
 }

@@ -1,1 +1,2 @@
-<h2 [ngStyle]="{color: setColor()}" >what online!!!!</h2>
+<button (click)="pushArray()">Click</button>
+<div [ngStyle]="{'background-color': 'red', 'width': '20px', 'height': '15px'}" *ngFor="let item of isArray; let i = index">{{i}} : {{item}}</div>

@@ -236,3 +236,38 @@ export class ServerComponent {
 //server.component.html
 //<h2 [ngStyle] = "{color: setColor()}" > what online!!!!</h2 >
 
+//_ngClass почти то же самое что и с классом только передаем сам класс в качесте ключа и значения true или false
+//<h2 [ngClass] = "{online:isOnline === 'online'}" > what online!!!!</h2 >
+
+//_деректива for добовляем как через цикл компоненты
+//server.component.ts
+@Component({
+  selector: 'app-server',
+  templateUrl: './server.component.html',
+  styleUrls: ['./server.component.scss']
+})
+export class ServerComponent {
+  isOnline: number = 0
+  isArray = [0.5, 0.6, 0.8]
+
+
+  constructor() {
+    this.isOnline = Math.random()
+  }
+
+  pushArray() {
+    this.isArray.push(Math.random());
+  }
+}
+//server.component.html
+//<button (click) = "pushArray()" > Click</button >
+//item - дальше можем использовать в дерективах в шаблонный строках и т.д. / let i = index - получить индекс
+//<div [ngStyle]="{'background-color': 'red', 'width': '20px', 'height': '15px'}" *ngFor="let item of isArray; let i = index">{{i}} : {{item}}</div>
+
+
+
+
+
+
+
+
