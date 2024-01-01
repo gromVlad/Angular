@@ -80,7 +80,7 @@ export class AppComponent {
   title = 'app';
 }
 
-//__мы можем также добовляь и создавать компоненты как атрибуты и стили но лучше это не использовать
+//___мы можем также добовляь и создавать компоненты как атрибуты и стили но лучше это не использовать
 @Component({
   //selector: `[app-root]`,
   //selector: '.app-root',
@@ -98,13 +98,13 @@ app.component.html
 <app-root></app-root> 
 */
 
-//__привязка данных
+//___привязка данных
 //{{..}} - просто переменную
 //[...] = '..' - атрибут
 //(...) = " " событие
 //(ngModel) = '..' - реагирует сразу в двух напрвлениях
 
-//__строкавая интерполяция
+//___строкавая интерполяция
 @Component({
   selector: 'app-server',
   templateUrl: './server.component.html',
@@ -118,11 +118,11 @@ export class ServerComponent {
     return 'hello!!!'
   }
 }
-{/* <p>server works!</p>
-<p>{{userId}} , error - {{error}}, {{getHello()}}</p> */}
+//<p>server works!</p>
+//<p>{{userId}} , error - {{error}}, {{getHello()}}</p> 
 // >> 10 , error - true, hello!!!
 
-//__динамический привязать некоторые свойства к атрибуту
+//___динамический привязать некоторые свойства к атрибуту
 //server.component.ts
 @Component({
   selector: 'app-server',
@@ -142,4 +142,65 @@ export class ServerComponent {
 //<button [disabled] = "!isclick" > click</button >
 //<p [innerText] ='isclick'></p> - то же самое что и {{}} только добовляем значение через свойства
 
-//__
+//___взаимодействия с событиями клик и т.д...
+//server.component.ts
+@Component({
+  selector: 'app-server',
+  templateUrl: './server.component.html',
+  styleUrls: ['./server.component.scss']
+})
+export class ServerComponent {
+  isServer: string = 'not server'
+  whatThisInput: string = ''
+
+  setServer() {
+    this.isServer = 'server add!!!'
+  }
+
+  setInput(event: any) {
+    this.whatThisInput = event.target.value
+  }
+}
+////server.component.html
+/* 
+<p>{{isServer}}</p>
+<button (click) = 'setServer()'>click</button>
+
+<p>{{whatThisInput}}</p>
+<input type="text" (input) ='setInput($event)'>
+*/
+
+//___двухсторонняя привязка
+//типо как мы связали выше input только без функции и событий через определенный модуль
+//server.component.ts
+@Component({
+  selector: 'app-server',
+  templateUrl: './server.component.html',
+  styleUrls: ['./server.component.scss']
+})
+export class ServerComponent {
+  whatThisInput: string = ''
+
+}
+//server.component.html
+//<p>{{whatThisInput}}</p>
+//<input type="text" [(ngModel)] = "whatThisInput" >
+
+//___упражнение
+//сделать input с привязкой и внизу кнопку очистки данных
+//очитска если input не пустой
+//server.component.ts
+@Component({
+  selector: 'app-server',
+  templateUrl: './server.component.html',
+  styleUrls: ['./server.component.scss']
+})
+export class ServerComponent {
+  whatThisInput: string = ''
+}
+//server.component.html
+//<p>{{whatThisInput}}</p>
+//<input type="text" [(ngModel)] = "whatThisInput" >
+//<button [disabled] = 'whatThisInput === ""'(click) = 'whatThisInput = ""' > Click</button >
+
+//___

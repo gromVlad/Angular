@@ -6,11 +6,5 @@ import { Component } from '@angular/core';
   styleUrls: ['./server.component.scss']
 })
 export class ServerComponent {
-  isclick:boolean = true
-
-  constructor (){
-    setTimeout(() => {
-      this.isclick = false
-    }, 3000);
-  }
+  whatThisInput:string = ''
 }
