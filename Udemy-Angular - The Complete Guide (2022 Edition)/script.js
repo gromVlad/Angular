@@ -264,6 +264,51 @@ export class ServerComponent {
 //item - дальше можем использовать в дерективах в шаблонный строках и т.д. / let i = index - получить индекс
 //<div [ngStyle]="{'background-color': 'red', 'width': '20px', 'height': '15px'}" *ngFor="let item of isArray; let i = index">{{i}} : {{item}}</div>
 
+//__coздаем модуль
+//на основе его будет строить другие компоненты
+//recipe.model.ts
+export class Recipe {
+  public name: string;
+  public description: string;
+  public imagePath: string;
+
+  constructor(name: string, desc: string, imagePath: string) {
+    this.name = name;
+    this.description = desc;
+    this.imagePath = imagePath;
+  }
+}
+//recipe-list.component.ts
+@Component({
+  selector: 'app-recipe-list',
+  templateUrl: './recipe-list.component.html',
+  styleUrls: ['./recipe-list.component.css']
+})
+export class RecipeListComponent  {
+  recipes: Recipe[] = [
+    new Recipe('A Test Recipe', 'This is simply a test', 'https://upload.wikimedia.org/wikipedia/commons/1/15/Recipe_logo.jpeg'),
+  ];
+  constructor() { }
+}
+//recipe-list.component.html
+/* 
+    <a
+      href="#"
+      class="list-group-item clearfix"
+      *ngFor="let recipe of recipes">
+      <div class="pull-left">
+        <h4 class="list-group-item-heading">{{ recipe.name }}</h4>
+        <p class="list-group-item-text">{{ recipe.description }}</p>
+      </div>
+      <span class="pull-right">
+        <img
+          [src]="recipe.imagePath"
+          alt="{{ recipe.name }}"
+          class="img-responsive"
+          style="max-height: 50px;">
+      </span>
+    </a>
+*/
 
 
 
