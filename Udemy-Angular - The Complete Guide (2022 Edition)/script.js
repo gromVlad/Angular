@@ -167,7 +167,7 @@ export class ServerComponent {
 <button (click) = 'setServer()'>click</button>
 
 <p>{{whatThisInput}}</p>
-<input type="text" (input) ='setInput($event)'>
+<input type="text" (input) ='setInput($event)'> - > $ - дает доступ к данным по этому событию
 */
 
 //___двухсторонняя привязка
@@ -319,9 +319,271 @@ export class RecipeListComponent  {
 //angular делает инкапсуляцию стилей чтобы они не перебивали друг друга добовляя в тег специальный атрибут самостоятельно ,можно отключить инкапсуляцию или добавить режим по умолчанию только с совместимыми браузерами который подерживает теневой DOM
 //получить ссылку на элемент при связывании в тэге делаем ссылку #... а дальше при клике передаем эту ссылку получая тем самым весль наш элемент с его атрибутами значением и т.д, только не перезаписывать данные с помощью  ref и ссылок только получать, напрямую лучше не изменять DOM
 //чтобы не передовать через длинную цепочку можем сразу получить доступ в html файле к компоненту добавив <ng-content> это как бы крючок который связывает наши данные
-//Также существют хуки жизненные циклы сомпоненты
+//Также существют хуки жизненные циклы:
+/* 
+gOnChange()
+Выполняется много раз при изменении компоненты.
+Используется для реагирования на изменения входных свойств компоненты.
+Например, если у компоненты есть входное свойство name, метод gOnChange() будет вызван каждый раз, когда значение свойства name изменяется.
+
+ngOnInit()
+Выполняется после инициализации компоненты (запущен после конструктора).
+Используется для инициализации компоненты и ее свойств.
+Например, метод ngOnInit() можно использовать для загрузки данных из сервера или для установки начального состояния компоненты.
+
+ngDoCheck()
+Запускается каждый раз при изменении.
+Используется для обнаружения изменений в компоненте и ее свойствах.
+Например, метод ngDoCheck() можно использовать для обновления пользовательского интерфейса компоненты в соответствии с изменениями в ее свойствах.
+
+ngAfterContentInit()
+Вызывается после того, как родительская компонента инициализирована, в частности, та часть, где находится наша компонента.
+Используется для инициализации компоненты и ее свойств, которые зависят от родительской компоненты.
+Например, метод ngAfterContentInit() можно использовать для доступа к свойствам родительской компоненты или для подписки на события, генерируемые родительской компонентой.
+
+ngAfterContentChecked()
+Обнаружение изменений.
+Используется для обнаружения изменений в компоненте и ее свойствах, которые зависят от родительской компоненты.
+Например, метод ngAfterContentChecked() можно использовать для обновления пользовательского интерфейса компоненты в соответствии с изменениями в свойствах родительской компоненты.
+
+ngAfterViewInit()
+После завершения и инициализации нашего компонента, как только отрендерит компонент.
+Используется для инициализации компоненты и ее свойств, которые зависят от представления компонента.
+Например, метод ngAfterViewInit() можно использовать для доступа к элементам DOM компонента или для подписки на события, генерируемые элементами DOM компонента.
+
+ngAfterViewChecked()
+Всякий раз когда наш вид будет проверен.
+Используется для обнаружения изменений в компоненте и ее свойствах, которые зависят от представления компонента.
+Например, метод ngAfterViewChecked() можно использовать для обновления пользовательского интерфейса компоненты в соответствии с изменениями в элементах DOM компонента.
+
+ngOnDestroy()
+Удаляется компонента, работа по очистке.
+Используется для очистки ресурсов, которые были выделены компонентой.
+Например, метод ngOnDestroy() можно использовать для отмены подписок на события или для освобождения памяти, которая была выделена компонентой.
+*/
+
+//app.component.ts
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  serverElements = [{ type: 'server', name: 'Testserver', content: 'Just a test!' }];
+
+  onServerAdded(serverData: { serverName: string, serverContent: string }) {
+    this.serverElements.push({
+      type: 'server',
+      name: serverData.serverName,
+      content: serverData.serverContent
+    });
+  }
+
+  onBlueprintAdded(blueprintData: { serverName: string, serverContent: string }) {
+    this.serverElements.push({
+      type: 'blueprint',
+      name: blueprintData.serverName,
+      content: blueprintData.serverContent
+    });
+  }
+
+  onChangeFirst() {
+    this.serverElements[0].name = 'Changed!';
+  }
+
+  onDestroyFirst() {
+    this.serverElements.splice(0, 1);
+  }
+}
+//app.component.html
+/* 
+<div class="container">
+  <app-cockpit
+    (serverCreated)="onServerAdded($event)"
+    (bpCreated)="onBlueprintAdded($event)"
+  ></app-cockpit>
+  <hr>
+  <div class="row">
+    <div class="col-xs-12">
+      <button class="btn btn-primary" (click)="onChangeFirst()">Change first Element</button>
+      <button class="btn btn-danger" (click)="onDestroyFirst()">Destroy first Component</button>
+      <app-server-element
+        *ngFor="let serverElement of serverElements"
+        [srvElement]="serverElement"
+        [name]="serverElement.name">
+        <p #contentParagraph>
+          <strong *ngIf="serverElement.type === 'server'" style="color: red">{{ serverElement.content }}</strong>
+          <em *ngIf="serverElement.type === 'blueprint'">{{ serverElement.content }}</em>
+        </p>
+      </app-server-element>
+    </div>
+  </div>
+</div>
+*/
+
+//server-element /server-element.component.ts
+@Component({
+  selector: 'app-server-element',
+  templateUrl: './server-element.component.html',
+  styleUrls: ['./server-element.component.css'],
+  encapsulation: ViewEncapsulation.Emulated // None, Native
+})
+export class ServerElementComponent implements
+  OnInit,
+  OnChanges,
+  DoCheck,
+  AfterContentInit,
+  AfterContentChecked,
+  AfterViewInit,
+  AfterViewChecked,
+  OnDestroy {
+  @Input('srvElement') element: { type: string, name: string, content: string };
+  @Input() name: string;
+  @ViewChild('heading', { static: true }) header: ElementRef;
+  @ContentChild('contentParagraph', { static: true }) paragraph: ElementRef;
+
+  constructor() {
+    console.log('constructor called!');
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    console.log('ngOnChanges called!');
+    console.log(changes);
+  }
+
+  ngOnInit() {
+    console.log('ngOnInit called!');
+    console.log('Text Content: ' + this.header.nativeElement.textContent);
+    console.log('Text Content of paragraph: ' + this.paragraph.nativeElement.textContent);
+  }
+
+  ngDoCheck() {
+    console.log('ngDoCheck called!');
+  }
+
+  ngAfterContentInit() {
+    console.log('ngAfterContentInit called!');
+    console.log('Text Content of paragraph: ' + this.paragraph.nativeElement.textContent);
+  }
+
+  ngAfterContentChecked() {
+    console.log('ngAfterContentChecked called!');
+  }
+
+  ngAfterViewInit() {
+    console.log('ngAfterViewInit called!');
+    console.log('Text Content: ' + this.header.nativeElement.textContent);
+  }
+
+  ngAfterViewChecked() {
+    console.log('ngAfterViewChecked called!');
+  }
+
+  ngOnDestroy() {
+    console.log('ngOnDestroy called!');
+  }
+
+}
+//server-element.component.html
+/* 
+<div
+  class="panel panel-default">
+  <!--<div class="panel-heading">{{ element.name }}</div>-->
+  <div class="panel-heading" #heading>{{ name }}</div>
+  <div class="panel-body">
+    <ng-content></ng-content>
+  </div>
+</div>
+*/
+
+//server/server.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-server',
+  templateUrl: './server.component.html',
+  styleUrls: ['./server.component.scss']
+})
+export class ServerComponent {
+  isOnline: number = 0
+  isArray = [0.5, 0.6, 0.8]
 
 
+  constructor() {
+    this.isOnline = Math.random()
+  }
+
+  pushArray() {
+    this.isArray.push(Math.random());
+  }
+}
+//server.component.html
+/* 
+<button (click)="pushArray()">Click</button>
+<div [ngStyle]="{'background-color': 'red', 'width': '20px', 'height': '15px'}" *ngFor="let item of isArray; let i = index">{{i}} : {{item}}</div>
+*/
+
+//cockpit/cockpit.component.ts
+@Component({
+  selector: 'app-cockpit',
+  templateUrl: './cockpit.component.html',
+  styleUrls: ['./cockpit.component.css']
+})
+export class CockpitComponent implements OnInit {
+  @Output() serverCreated = new EventEmitter < { serverName: string, serverContent: string } > ();
+  @Output('bpCreated') blueprintCreated = new EventEmitter < { serverName: string, serverContent: string } > ();
+  // newServerName = '';
+  // newServerContent = '';
+  @ViewChild('serverContentInput', { static: false }) serverContentInput: ElementRef;
+
+  constructor() { }
+
+  ngOnInit() {
+  }
+
+  onAddServer(nameInput: HTMLInputElement) {
+    this.serverCreated.emit({
+      //2 способа получения ссылки и ref элемента
+      serverName: nameInput.value,
+      serverContent: this.serverContentInput.nativeElement.value
+    });
+  }
+
+  onAddBlueprint(nameInput: HTMLInputElement) {
+    this.blueprintCreated.emit({
+      serverName: nameInput.value,
+      serverContent: this.serverContentInput.nativeElement.value
+    });
+  }
+
+}
+//cockpit.component.html
+/* 
+<div class="row">
+  <div class="col-xs-12">
+    <p>Add new Servers or blueprints!</p>
+    <label>Server Name</label>
+    <!--<input type="text" class="form-control" [(ngModel)]="newServerName">-->
+    <input
+      type="text"
+      class="form-control"
+      #serverNameInput  cсылка>
+    <label>Server Content</label>
+    <!--<input type="text" class="form-control" [(ngModel)]="newServerContent">-->
+    <input
+      type="text"
+      class="form-control"
+      #serverContentInput>
+    <br>
+    <button
+      class="btn btn-primary"
+      (click)="onAddServer(serverNameInput) - передаем ее">Add Server</button>
+    <button
+      class="btn btn-primary"
+      (click)="onAddBlueprint(serverNameInput)">Add Server Blueprint</button>
+  </div>
+</div>
+*/
 
 
 

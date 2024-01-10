@@ -1,2 +1,3 @@
-<button (click)="pushArray()">Click</button>
-<div [ngStyle]="{'background-color': 'red', 'width': '20px', 'height': '15px'}" *ngFor="let item of isArray; let i = index">{{i}} : {{item}}</div>
+<p>{{whatThisInput}}</p>
+<input type="text" [(ngModel)]="whatThisInput">
+<button [disabled] = 'whatThisInput === ""' (click) = 'whatThisInput = ""'>Click</button>
