@@ -698,3 +698,163 @@ export class ShoppingListComponent implements OnInit {
   </div>
 </div>
 */
+
+//-------------------------
+//__Дериктивы__//
+//могут идти с коробки можем создавать свои
+//есть дериктивы структурные и локальные на тэге или элементе
+//angular сначало проверяет наши дерективы а после уже идет к родным стилям и свойствам
+//* -указывает что это структурная деректива
+
+//создаем свою дериктиву базовый уровень - меняем стили сразу напрямую так делать не рекомендуеться
+//basic - highlight.directive.ts
+@Directive({
+  selector: '[appBasicHighlight]'
+})
+export class BasicHighlightDirective implements OnInit {
+  constructor(private elementRef: ElementRef) {
+  }
+
+  ngOnInit() {
+    this.elementRef.nativeElement.style.backgroundColor = 'green';
+  }
+}
+
+//правильная работа со своей дерективой
+//better - highlight.directive.ts
+@Directive({
+  selector: '[appBetterHighlight]'
+})
+export class BetterHighlightDirective implements OnInit {
+  //можем вводить разные данные для правильной конфигурации
+  @Input() defaultColor: string = 'transparent';
+  @Input('appBetterHighlight') highlightColor: string = 'blue';
+
+  //использовать вместо модуля Renderer2
+  @HostBinding('style.backgroundColor') backgroundColor: string;
+
+  constructor(private elRef: ElementRef, private renderer: Renderer2) { }
+
+  ngOnInit() {
+    this.backgroundColor = this.defaultColor;
+
+    //Renderer2 - можно использовать модуль
+    // this.renderer.setStyle(this.elRef.nativeElement, 'background-color', 'blue');
+  }
+
+  //взаимодействия с определенными событиями
+  @HostListener('mouseenter') mouseover(eventData: Event) {
+    // this.renderer.setStyle(this.elRef.nativeElement, 'background-color', 'blue');
+    this.backgroundColor = this.highlightColor;
+  }
+
+  @HostListener('mouseleave') mouseleave(eventData: Event) {
+    // this.renderer.setStyle(this.elRef.nativeElement, 'background-color', 'transparent');
+    this.backgroundColor = this.defaultColor;
+  }
+
+}
+
+//создаем свою структурную дириктиву
+//unless.directive.ts
+@Directive({
+  selector: '[appUnless]'
+})
+export class UnlessDirective {
+  @Input() set appUnless(condition: boolean) {
+    if (!condition) {
+      this.vcRef.createEmbeddedView(this.templateRef);
+    } else {
+      this.vcRef.clear();
+    }
+  }
+
+  //ViewContainerRef  - вид элемента в контейнере
+  //TemplateRef - cам элемент
+  constructor(private templateRef: TemplateRef<any>, private vcRef: ViewContainerRef) { }
+
+}
+
+//app.component.ts
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  // numbers = [1, 2, 3, 4, 5];
+  oddNumbers = [1, 3, 5];
+  evenNumbers = [2, 4];
+  onlyOdd = false;
+  value = 5;
+}
+//app.component.html
+/* 
+<div class="container">
+  <div class="row">
+    <div class="col-xs-12">
+      <button
+        class="btn btn-primary"
+        (click)="onlyOdd = !onlyOdd">Only show odd numbers</button>
+      <br><br>
+      <ul class="list-group">
+        <div *ngIf="onlyOdd">
+          <li
+            class="list-group-item"
+            [ngClass]="{odd: odd % 2 !== 0}"
+            [ngStyle]="{backgroundColor: odd % 2 !== 0 ? 'yellow' : 'transparent'}"
+            *ngFor="let odd of oddNumbers">
+            {{ odd }}
+          </li>
+        </div>
+        <!--<div *ngIf="!onlyOdd">-->
+          <!--<li-->
+            <!--class="list-group-item"-->
+            <!--[ngClass]="{odd: even % 2 !== 0}"-->
+            <!--[ngStyle]="{backgroundColor: even % 2 !== 0 ? 'yellow' : 'transparent'}"-->
+            <!--*ngFor="let even of evenNumbers">-->
+            <!--{{ even }}-->
+          <!--</li>-->
+        <!--</div>-->
+
+        <!-- если не использовать * по умолчанию надо добовлять  ng-template при добовлении используем обычный div-->
+        <!--<ng-template [ngIf]="!onlyOdd">-->
+          <!--<div>-->
+            <!--<li-->
+              <!--class="list-group-item"-->
+              <!--[ngClass]="{odd: even % 2 !== 0}"-->
+              <!--[ngStyle]="{backgroundColor: even % 2 !== 0 ? 'yellow' : 'transparent'}"-->
+              <!--*ngFor="let even of evenNumbers">-->
+              <!--{{ even }}-->
+            <!--</li>-->
+          <!--</div>-->
+        <!--</ng-template>-->
+
+        <!-- структурная деректива -->
+        <div *appUnless="onlyOdd">
+          <li
+            class="list-group-item"
+            [ngClass]="{odd: even % 2 !== 0}"
+            [ngStyle]="{backgroundColor: even % 2 !== 0 ? 'yellow' : 'transparent'}"
+            *ngFor="let even of evenNumbers">
+            {{ even }}
+          </li>
+        </div>
+      </ul>
+
+      <p appBasicHighlight>Style me with basic directive!</p>
+      <p [appBetterHighlight]="'red'" defaultColor="yellow">Style me with a better directive!</p>
+
+      <!-- использование switch -->
+      <div [ngSwitch]="value">
+        <p *ngSwitchCase="5">Value is 5</p>
+        <p *ngSwitchCase="10">Value is 10</p>
+        <p *ngSwitchCase="100">Value is 100</p>
+        <p *ngSwitchDefault>Value is Default</p>
+      </div>
+    </div>
+  </div>
+</div>
+*/
+
+//----------------------
