@@ -982,7 +982,7 @@ export class NewAccountComponent {
   constructor(private loggingService: LoggingService,
     private accountsService: AccountsService) {
 
-    //пример подписки из EventEmitter
+    //пример подписки из EventEmitter / уведомления о изменениях
     this.accountsService.statusUpdated.subscribe(
       (status: string) => alert('New Status: ' + status)
     );
