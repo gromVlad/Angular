@@ -857,4 +857,141 @@ export class AppComponent {
 </div>
 */
 
+//dropdown.directive.ts
+@Directive({
+  selector: '[appDropdown]'
+})
+export class DropdownDirective {
+  @HostBinding('class.open') isOpen = false;
+
+  @HostListener('click') toggleOpen() {
+    this.isOpen = !this.isOpen;
+  }
+}
+/* 
+<div class="col-xs-12">
+    <div
+      class="btn-group"
+      appDropdown>
+      <button
+        type="button"
+        class="btn btn-primary dropdown-toggle">
+        Manage Recipe <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li><a href="#">To Shopping List</a></li>
+        <li><a href="#">Edit Recipe</a></li>
+        <li><a href="#">Delete Recipe</a></li>
+      </ul>
+    </div>
+  </div>
+*/
+
 //----------------------
+//__Сервис(store)___//
+//чтобы не грамоздить бесконечное число цепочек
+//помогают придерживаться DRY кода
+//можно использовать где хотим
+//сервисы наследуеться от высоко уровня к низкому и если хотим использовать один и тот же сервис то добовлять provider каждый раз сервис в каждый элемент не неадо надо добавить в главный компонент а дальше дети родительского компонента будут наследовать этот сервис
+
+//logging.service.ts
+export class LoggingService {
+  logStatusChange(status: string) {
+    console.log('A server status changed, new status: ' + status);
+  }
+}
+
+//accounts.service.ts
+@Injectable()//прослушиваем все другие сервисы
+export class AccountsService {
+  accounts = [
+    {
+      name: 'Master Account',
+      status: 'active'
+    },
+    {
+      name: 'Testaccount',
+      status: 'inactive'
+    },
+    {
+      name: 'Hidden Account',
+      status: 'unknown'
+    }
+  ];
+
+  //также наследовали EventEmitter
+  statusUpdated = new EventEmitter < string > ();
+
+  constructor(private loggingService: LoggingService) { }
+
+  addAccount(name: string, status: string) {
+    this.accounts.push({ name: name, status: status });
+    this.loggingService.logStatusChange(status);
+  }
+
+  updateStatus(id: number, status: string) {
+    this.accounts[id].status = status;
+    this.loggingService.logStatusChange(status);
+  }
+}
+
+//подлючаем на вершину всех компонент и далее распростроняем по всему приложению
+//app.module.ts
+@NgModule({
+  declarations: [
+    AppComponent,
+    AccountComponent,
+    NewAccountComponent
+  ],
+  imports: [
+    BrowserModule,
+    FormsModule,
+  ],
+  providers: [AccountsService, LoggingService], // подлючили
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+//app.component.ts
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+  //providers: [AccountsService, LoggingService] - не надо везде добовлять так как наследуеться от родительской компоненты а мы поместили сервисы на вершину приложения
+})
+export class AppComponent implements OnInit {
+  accounts: { name: string, status: string }[] = [];
+
+  //получаем сервис и далее используем
+  constructor(private accountsService: AccountsService) { }
+
+  ngOnInit() {
+    this.accounts = this.accountsService.accounts;
+  }
+}
+
+//../new-account.component.ts
+@Component({
+  selector: 'app-new-account',
+  templateUrl: './new-account.component.html',
+  styleUrls: ['./new-account.component.css'],
+  // providers: [LoggingService]
+})
+export class NewAccountComponent {
+
+  constructor(private loggingService: LoggingService,
+    private accountsService: AccountsService) {
+
+    //пример подписки из EventEmitter
+    this.accountsService.statusUpdated.subscribe(
+      (status: string) => alert('New Status: ' + status)
+    );
+  }
+
+  onCreateAccount(accountName: string, accountStatus: string) {
+    this.accountsService.addAccount(accountName, accountStatus);
+    // this.loggingService.logStatusChange(accountStatus);
+  }
+}
+
+//-----------------------
