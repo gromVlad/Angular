@@ -6,11 +6,19 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  isDisabled:boolean = true
+  title: string = '';
+  inputValue: string = '';
+  inputKey: string = '';
 
-  constructor (){
-    setTimeout(() => {
-      this.isDisabled = false
-    }, 5000);
+  onClick() {
+    this.title = 'hello';
+  }
+
+  onInputEvent(event: Event) {
+    this.inputValue = (event.currentTarget as HTMLInputElement).value;
+  }
+
+  onInputKey(event: Event){
+    this.inputKey = (event.currentTarget as HTMLInputElement).value;
   }
 }

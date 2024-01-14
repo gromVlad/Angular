@@ -1,1 +1,8 @@
-<button [disabled]="isDisabled">Send</button>
+<h2>{{title}}</h2>
+<button (click)="onClick()" >Send</button>
+<hr/>
+<h2>{{inputValue}}</h2>
+<input type="text" (input)="onInputEvent($event)">
+<hr/>
+<h2>{{inputKey}}</h2>
+<input type="text" (keydown.enter)="onInputKey($event)">

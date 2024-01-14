@@ -111,4 +111,36 @@ export class AppComponent {
 <button [disabled]="isDisabled">Send</button>
 */
 
+//___Event binding__//
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent {
+  title: string = '';
+  inputValue: string = '';
+  inputKey: string = '';
 
+  onClick() {
+    this.title = 'hello';
+  }
+
+  onInputEvent(event: Event) {
+    this.inputValue = (event.currentTarget as HTMLInputElement).value;
+  }
+
+  onInputKey(event: Event) {
+    this.inputKey = (event.currentTarget as HTMLInputElement).value;
+  }
+}
+/* 
+<h2>{{title}}</h2>
+<button (click)="onClick()" >Send</button>
+<hr/>
+<h2>{{inputValue}}</h2>
+<input type="text" (input)="onInputEvent($event)">
+<hr/>
+<h2>{{inputKey}}</h2>
+<input type="text" (keydown.enter)="onInputKey($event)">
+*/
