@@ -1,1 +1,9 @@
-<h1 [ngStyle]="{color:'blue'}">hell!!!</h1>
+<div *ngFor="let fr of fruits; index as i; even as ev; odd as od" [ngClass]="{
+  'default': fr.price > 15,
+  'success': ev ,
+  'error': od 
+}">
+  <ng-container *ngIf="fr.price > 7">
+    {{ fr.name }} {{ fr.price }}
+  </ng-container>
+</div>
