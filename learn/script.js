@@ -64,3 +64,30 @@ export class AppComponent {
 
 //Настройки Prettier, Eslint, editorСonfig
 
+//___Интерполяция__//
+//помещаем текст в скобочки
+
+interface ObjType {
+  age: number;
+  name: string;
+}
+
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent {
+  title = 'my-first-project';
+  obj: ObjType = {
+    age: 23,
+    name: 'vlad',
+  };
+}
+/* 
+<h1>{{title}}</h1>
+<p>{{obj.age}}</p>
+<p>{{obj.name}}</p>
+*/
+
+//___
