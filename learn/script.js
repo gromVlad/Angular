@@ -546,4 +546,27 @@ export class AppComponent {
 </div>
 */
 
+//----------
+//__Pipe__//
+//коснтрукции которые помогают преобразовывать код в разные форматы
+//также можно создавать собственные пайпы
 
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent {
+  title: string = 'hello';
+  url: string = 'https://www.npmjs.com/package/@angular/cli';
+  date: Date = new Date()
+}
+/* 
+<h2>{{title | uppercase}}</h2>
+<h2>{{url | slice:-8}}</h2>
+<h2>{{date |  date:'fullDate'}}</h2>
+
+HELLO
+ular/cli
+Sunday, January 14, 2024
+*/
