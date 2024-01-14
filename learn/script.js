@@ -421,4 +421,29 @@ Child 2.1
 Child 2.2
 */
 
-//__
+//----------------------------------
+//__NgIf, elseBlock, ng template__//
+
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent {
+  isLoading: boolean = true
+  nestedValue: string = 'hello'
+
+  constructor() {
+    setTimeout(() => {
+      this.isLoading = false
+    }, 5000);
+  }
+}
+/* 
+<div *ngIf="isLoading; else elseBlock">loading</div>
+<ng-template #elseBlock>Content to render when condition is false.</ng-template>
+*/
+
+//---------------------------------------------------------------------------
+//__Как на один тег повесить несколько структурных директив, ng container__//
+
