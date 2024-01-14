@@ -475,5 +475,31 @@ export class AppComponent {
 </div>
 */
 
-//---------------
+//-------------
+//__NgClass__//
+//динамический влияет на классы
+
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent {
+  isError: boolean = false
+
+  constructor() {
+    setTimeout(() => {
+      this.isError = true
+    }, 3000);
+  }
+}
+/* 
+.red{
+  color: red;
+}
+
+<h1 [ngClass]="{red: isError}">hell!!!</h1>
+*/
+
+//---------
 //__

@@ -6,5 +6,11 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  value:string = ''
+  isError:boolean = false
+
+  constructor (){
+    setTimeout(() => {
+      this.isError = true
+    }, 3000);
+  }
 }
