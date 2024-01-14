@@ -1,10 +1,5 @@
 import { Component } from '@angular/core';
-
-export interface IObject {
-  name:string
-  age:number
-  address?:string
-}
+import { IValues } from './child/child.component';
 
 @Component({
   selector: 'main-root',
@@ -12,9 +7,9 @@ export interface IObject {
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  title: string = 'hello';
-  object: IObject = {
-    name:'vlad',
-    age:25,
+  title:string = ''
+
+  sendvalue (value:IValues){
+    this.title = value.name
   }
 }

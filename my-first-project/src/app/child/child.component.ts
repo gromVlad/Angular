@@ -1,5 +1,9 @@
-import { Component, Input } from '@angular/core';
-import { IObject } from '../app.component';
+import { Component, EventEmitter, Output } from '@angular/core';
+
+export interface IValues {
+  age:string,
+  name:string
+}
 
 @Component({
   selector: 'main-child',
@@ -7,6 +11,11 @@ import { IObject } from '../app.component';
   styleUrls: ['./child.component.scss'],
 })
 export class ChildComponent {
-  @Input() title?: string;
-  @Input() object?: IObject;
+  @Output() sendEventValue = new EventEmitter<IValues>();
+
+  sendhandlervalue(){
+    const myName = 'vlad'
+    const myAge = 24
+    this.sendEventValue.emit({ name: myName,age: myAge + ""});
+  }
 }

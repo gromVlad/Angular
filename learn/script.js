@@ -191,6 +191,7 @@ export class AppComponent {
 
 //------------
 //__@Input__//
+//передача от родителя к ребенку
 //лучше при передаче не менять имя пропсов
 //также при типизации использовать interface
 
@@ -231,3 +232,52 @@ export class ChildComponent {
 <p>{{title}}</p>
 <p>{{object?.name}} {{object?.age}} {{object?.address}}</p>
 */
+
+//-------------
+//__@Output__//
+//передача от ребенка к родителю
+
+//app.component.ts
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent {
+  title: string = ''
+
+  sendvalue(value: IValues) {
+    this.title = value.name
+  }
+}
+/* 
+$event - принимает только один аргумент поэтому завернули все в объект
+<main-child (sendEventValue)="sendvalue($event)"></main-child>
+<h1>{{title}}</h1>
+*/
+
+//child.component.ts
+export interface IValues {
+  age: string,
+  name: string
+}
+
+@Component({
+  selector: 'main-child',
+  templateUrl: './child.component.html',
+  styleUrls: ['./child.component.scss'],
+})
+export class ChildComponent {
+  @Output() sendEventValue = new EventEmitter < IValues > ();
+
+  sendhandlervalue() {
+    const myName = 'vlad'
+    const myAge = 24
+    this.sendEventValue.emit({ name: myName, age: myAge + "" });
+  }
+}
+/* 
+<button (click)="sendhandlervalue()">Send</button>
+*/
+
+//__
