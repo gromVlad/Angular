@@ -1,2 +1,6 @@
-<div *ngIf="isLoading; else elseBlock">loading</div>
-<ng-template #elseBlock>Content to render when condition is false.</ng-template>
+<input type="text" [(ngModel)]="value">
+<div [ngSwitch]="value">
+  <p *ngSwitchCase="1">One</p>
+  <p *ngSwitchCase="2">Two</p>
+  <p *ngSwitchDefault>not correct values</p>
+</div>

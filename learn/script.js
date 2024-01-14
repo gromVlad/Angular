@@ -454,3 +454,26 @@ export class AppComponent {
   <p *ngFor="let item of items">{{ item }}</p>
 </ng-container>
 */
+
+//--------------
+//__NgSwitch__//
+
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent {
+  value: string = ''
+}
+/* 
+<input type="text" [(ngModel)]="value">
+<div [ngSwitch]="value">
+  <p *ngSwitchCase="1">One</p>
+  <p *ngSwitchCase="2">Two</p>
+  <p *ngSwitchDefault>not correct values</p>
+</div>
+*/
+
+//---------------
+//__

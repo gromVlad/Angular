@@ -6,12 +6,5 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  isLoading:boolean = true
-  nestedValue: string= 'hello'
-
-  constructor (){
-    setTimeout(() => {
-      this.isLoading = false
-    }, 5000);
-  }
+  value:string = ''
 }
