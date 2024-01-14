@@ -1,8 +1,6 @@
-<h2>{{title}}</h2>
-<button (click)="onClick()" >Send</button>
-<hr/>
 <h2>{{inputValue}}</h2>
-<input type="text" (input)="onInputEvent($event)">
+<input type="text" (input)="onInputEvent($event)" [value] ="inputValue" >
 <hr/>
-<h2>{{inputKey}}</h2>
-<input type="text" (keydown.enter)="onInputKey($event)">
+<!-- то же самое двусторонее связывание только с помощью дерективы ngModel -->
+<h2>{{inputNGModule}}</h2>
+<input type="text" [(ngModel)]="inputNGModule">

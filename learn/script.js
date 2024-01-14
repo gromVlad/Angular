@@ -144,3 +144,45 @@ export class AppComponent {
 <h2>{{inputKey}}</h2>
 <input type="text" (keydown.enter)="onInputKey($event)">
 */
+
+//__Two way binding__//
+//двусторонее связывание 
+
+//app.module.ts
+@NgModule({
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    BrowserModule,
+    FormsModule // NGModule подключаем
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+//app.component.ts
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent {
+  inputValue: string = '';
+  inputNGModule: string = 'hello';
+
+  onInputEvent(event: Event) {
+    this.inputValue = (event.currentTarget as HTMLInputElement).value;
+  }
+}
+/* 
+<h2>{{inputValue}}</h2>
+<input type="text" (input)="onInputEvent($event)" [value] ="inputValue" >
+<hr/>
+<!-- то же самое двусторонее связывание только с помощью дерективы ngModel -->
+<h2>{{inputNGModule}}</h2>
+<input type="text" [(ngModel)]="inputNGModule">
+*/
+
+//__

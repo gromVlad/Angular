@@ -6,19 +6,10 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  title: string = '';
   inputValue: string = '';
-  inputKey: string = '';
-
-  onClick() {
-    this.title = 'hello';
-  }
+  inputNGModule: string = 'hello';
 
   onInputEvent(event: Event) {
     this.inputValue = (event.currentTarget as HTMLInputElement).value;
-  }
-
-  onInputKey(event: Event){
-    this.inputKey = (event.currentTarget as HTMLInputElement).value;
   }
 }
