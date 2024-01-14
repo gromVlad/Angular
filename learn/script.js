@@ -280,4 +280,46 @@ export class ChildComponent {
 <button (click)="sendhandlervalue()">Send</button>
 */
 
+//-------------------------------------
+//__@Output закрепление на практике__//
+
+//app.component.ts
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent {
+  arr: string[] = []
+
+  sendvalue(value: string) {
+    this.arr.push(value);
+  }
+}
+/* 
+<main-child (sendEventValue)="sendvalue($event)"></main-child>
+//pipe - | json -> преобразует в json формат 
+<h1>{{arr | json}}</h1>
+*/
+
+//child.component.ts
+@Component({
+  selector: 'main-child',
+  templateUrl: './child.component.html',
+  styleUrls: ['./child.component.scss'],
+})
+export class ChildComponent {
+  @Output() sendEventValue = new EventEmitter < string > ();
+  info: string = ''
+
+  sendhandlervalue() {
+    this.sendEventValue.emit(this.info);
+    this.info = ''
+  }
+}
+/* 
+<button (click)="sendhandlervalue()">Send</button>
+<input type="text" [(ngModel)]="info">
+*/
+
 //__

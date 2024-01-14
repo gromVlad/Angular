@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { IValues } from './child/child.component';
 
 @Component({
   selector: 'main-root',
@@ -7,9 +6,9 @@ import { IValues } from './child/child.component';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  title:string = ''
+  arr:string[]= []
 
-  sendvalue (value:IValues){
-    this.title = value.name
+  sendvalue (value:string){
+    this.arr.push(value);
   }
 }

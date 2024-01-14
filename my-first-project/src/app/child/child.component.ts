@@ -1,9 +1,5 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 
-export interface IValues {
-  age:string,
-  name:string
-}
 
 @Component({
   selector: 'main-child',
@@ -11,11 +7,11 @@ export interface IValues {
   styleUrls: ['./child.component.scss'],
 })
 export class ChildComponent {
-  @Output() sendEventValue = new EventEmitter<IValues>();
+  @Output() sendEventValue = new EventEmitter<string>();
+  info:string = ''
 
   sendhandlervalue(){
-    const myName = 'vlad'
-    const myAge = 24
-    this.sendEventValue.emit({ name: myName,age: myAge + ""});
+    this.sendEventValue.emit(this.info);
+    this.info = ''
   }
 }
