@@ -322,4 +322,32 @@ export class ChildComponent {
 <input type="text" [(ngModel)]="info">
 */
 
-//__
+//-----------
+//__NgFor__//
+//деректива - класс который добовляет к нашим элементам дополнительное поведение
+//деляться на компонентные, атрибутные и структурные (изменяют DOM элементы)
+
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent {
+  arr: string[] = []
+
+  sendvalue(value: string) {
+    this.arr.push(value);
+  }
+}
+/* 
+<main-child (sendEventValue)="sendvalue($event)"></main-child>
+//кроме index и count есть и другие совйства...
+<div *ngFor="let element of arr; index as i; count as lenght">
+  <p>
+    {{i }} --- {{element}}
+  <br>
+  count:{{lenght}}
+  </p>
+</div>
+*/
+

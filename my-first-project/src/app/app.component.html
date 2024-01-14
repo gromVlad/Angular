@@ -1,2 +1,8 @@
 <main-child (sendEventValue)="sendvalue($event)"></main-child>
-<h1>{{arr | json}}</h1>
+<div *ngFor="let element of arr; index as i; count as lenght">
+  <p>
+    {{i }} --- {{element}}
+  <br>
+  count:{{lenght}}
+  </p>
+</div>
