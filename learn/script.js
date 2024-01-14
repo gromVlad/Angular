@@ -501,5 +501,11 @@ export class AppComponent {
 <h1 [ngClass]="{red: isError}">hell!!!</h1>
 */
 
-//---------
+//-------------
+//__NgStyle__//
+//динамический влияет на стили
+
+//<h1 [ngStyle]="{color:'blue'}">hell!!!</h1>
+
+//-------------
 //__
