@@ -64,6 +64,7 @@ export class AppComponent {
 
 //Настройки Prettier, Eslint, editorСonfig
 
+//-------------------
 //___Интерполяция__//
 //помещаем текст в скобочки
 
@@ -90,6 +91,7 @@ export class AppComponent {
 <p>{{obj.name}}</p>
 */
 
+//------------------------
 //___Property binding___//
 //динамическое связывание
 
@@ -111,6 +113,7 @@ export class AppComponent {
 <button [disabled]="isDisabled">Send</button>
 */
 
+//--------------------
 //___Event binding__//
 @Component({
   selector: 'main-root',
@@ -145,6 +148,7 @@ export class AppComponent {
 <input type="text" (keydown.enter)="onInputKey($event)">
 */
 
+//---------------------
 //__Two way binding__//
 //двусторонее связывание 
 
@@ -185,4 +189,45 @@ export class AppComponent {
 <input type="text" [(ngModel)]="inputNGModule">
 */
 
-//__
+//------------
+//__@Input__//
+//лучше при передаче не менять имя пропсов
+//также при типизации использовать interface
+
+//app.component.ts
+export interface IObject {
+  name: string
+  age: number
+  address?: string
+}
+
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent {
+  title: string = 'hello';
+  object: IObject = {
+    name: 'vlad',
+    age: 25,
+  }
+}
+/* 
+<main-child [title]="title" [object]="object"></main-child>
+*/
+
+//child.component.ts
+@Component({
+  selector: 'main-child',
+  templateUrl: './child.component.html',
+  styleUrls: ['./child.component.scss'],
+})
+export class ChildComponent {
+  @Input() title?: string;
+  @Input() object?: IObject;
+}
+/* 
+<p>{{title}}</p>
+<p>{{object?.name}} {{object?.age}} {{object?.address}}</p>
+*/

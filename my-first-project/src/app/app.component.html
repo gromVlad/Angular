@@ -1,6 +1,1 @@
-<h2>{{inputValue}}</h2>
-<input type="text" (input)="onInputEvent($event)" [value] ="inputValue" >
-<hr/>
-<!-- то же самое двусторонее связывание только с помощью дерективы ngModel -->
-<h2>{{inputNGModule}}</h2>
-<input type="text" [(ngModel)]="inputNGModule">
+<main-child [title]="title" [object]="object"></main-child>
