@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit} from '@angular/core';
+import { ServiceData } from '../service.service';
 
 
 @Component({
@@ -6,12 +7,16 @@ import { Component, EventEmitter, Output } from '@angular/core';
   templateUrl: './child.component.html',
   styleUrls: ['./child.component.scss'],
 })
-export class ChildComponent {
-  @Output() sendEventValue = new EventEmitter<string>();
-  info:string = ''
+export class ChildComponent implements OnInit {
+  value: number = 0;
 
-  sendhandlervalue(){
-    this.sendEventValue.emit(this.info);
-    this.info = ''
+  constructor(private serviceData: ServiceData) {}
+
+  ngOnInit() {
+    this.value = this.serviceData.value;
+  }
+
+  decHandler() {
+    this.serviceData.dec();
   }
 }

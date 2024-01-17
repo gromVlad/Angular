@@ -570,3 +570,121 @@ HELLO
 ular/cli
 Sunday, January 14, 2024
 */
+
+//--------------------------------------------------
+//__Введение в сервисы и DI dependency injection__//
+//для хранения данных и для распространения этих данных на всем приложениий с одного исходного места
+//dependency injection патерн при котором компонент получает все необходимые данные экземпляра класса из какого  внешнего источника(angular injection - создает экземпляры класса)
+//могут быть определены на уровне приложения, модуля или компонента
+//сервисы это singlton - патер проектирование при котором экземпляр класса создаеться лишь единожды / чтобы получали всегда одни и те же данные
+//каждый сервис должен отвечать за что-то свое
+//можно использовать DAL уровень в сервисе для работы с API и т.д.
+//всегда использовать в сервисе декоратор injectable -обеспечивают правильную работу патерна dependency injection / можно присоединять другие сервисы
+
+//--------------------------------------------------------------
+//__Создание и регистрация сервиса, DI, модификаторы доступа__//
+
+//модификаторы доступа
+//public - по умолчанию / доступны всем / можно использовать в шаблоне
+//private - приватное / доступны только внутри класса
+//protected - промежуточный / доступны внутри класса и наследникам класса , экземплярам недоступны
+
+//service.service.ts
+//без использования Injectable  то добовляем сервис в provider:... 
+@Injectable({
+  providedIn: 'root'
+})
+export class ServiceData {
+
+  value: number = 5
+}
+
+//app.component.ts
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent implements OnInit {
+  value: number = 0;
+
+  constructor(private serviceData: ServiceData) { }
+  ngOnInit() {
+    this.value = this.serviceData.value
+  }
+}
+//<h1>{{value}}</h1>
+
+//--------------------------------
+//__Область видимости сервисов__//
+//один сервис на обе компоненты , если хотим использовать разные то пользуемся provider:[] в декораторе компоненты
+
+//service.service.ts
+@Injectable({
+  providedIn: 'root'
+})
+export class ServiceData {
+
+  value: number = 5
+
+  add() {
+    this.value = this.value + 1
+  }
+
+  dec() {
+    this.value = this.value - 1
+  }
+}
+
+//app.component.ts
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent implements OnInit {
+  value: number = 0;
+
+  constructor(private serviceData: ServiceData) { }
+  ngOnInit() {
+    this.value = this.serviceData.value;
+  }
+
+  addHandler() {
+    this.serviceData.add()
+  }
+}
+/* 
+<h1>{{value}}</h1>
+<button (click)="addHandler()"> + </button>
+<main-child></main-child>
+*/
+
+//child.component.ts
+@Component({
+  selector: 'main-child',
+  templateUrl: './child.component.html',
+  styleUrls: ['./child.component.scss'],
+})
+export class ChildComponent implements OnInit {
+  value: number = 0;
+
+  constructor(private serviceData: ServiceData) { }
+
+  ngOnInit() {
+    this.value = this.serviceData.value;
+  }
+
+  decHandler() {
+    this.serviceData.dec();
+  }
+}
+/* 
+<h1>{{value}}</h1>
+<button (click)="decHandler()"> - </button>
+*/
+
+//и там и там будет использоваться только оригинальная значения с сервиса
+
+//---------------------------
+//__RxJs, BehaviorSubject__//
