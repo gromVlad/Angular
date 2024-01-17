@@ -760,5 +760,35 @@ export class AppComponent implements OnInit {
   }
 }
 
-//---------------------------------
-//__
+//------------------------------
+//__Утечки памяти, asyncpipe__//
+
+//при подписке на поток нельзя забывать от него отписаться
+
+//правильная манипуляция чтобы не было утечки памяти
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent implements OnInit {
+  value$ = new Observable(); // создаем Observable представляет собой идею вызываемой коллекции будущих значений или событий
+
+  constructor(private serviceData: ServiceData) { }
+  ngOnInit() {
+    this.value$ = this.serviceData.value$
+  }
+
+  addHandler() {
+    this.serviceData.add();
+  }
+}
+/* 
+<h1>{{value$ | async}}</h1> - чтобы получить значения а не объект то используем pipe async
+<button (click)="addHandler()"> + </button>
+<main-child></main-child>
+*/
+
+//-------------------------------------------------------------------
+//__Создание beatyLoggerService, закрепление сервисов на практике__//
+

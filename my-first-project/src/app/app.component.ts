@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ServiceData } from './service.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'main-root',
@@ -7,11 +8,11 @@ import { ServiceData } from './service.service';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
-  value: number = 0;
+  value$ = new Observable();
 
   constructor(private serviceData: ServiceData) {}
   ngOnInit() {
-    this.serviceData.value$.subscribe((value: number) => (this.value = value));
+    this.value$ = this. serviceData.value$
   }
 
   addHandler() {
