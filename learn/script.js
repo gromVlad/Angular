@@ -48,7 +48,7 @@ bootstrapApplication(AppComponent, appConfig)
     <h1>hello<h1/>
   `,
   styles: [
-  `
+    `
     .title{}
   `
   ],
@@ -688,3 +688,77 @@ export class ChildComponent implements OnInit {
 
 //---------------------------
 //__RxJs, BehaviorSubject__//
+//отображать изменения при вызове методов в сервисе
+
+//1 способ неправильный - изменить приватный индефиатор в коснструкторе
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent implements OnInit {
+
+  constructor(public serviceData: ServiceData) { }
+
+  addHandler() {
+    this.serviceData.add()
+  }
+}
+//<h1>{{value}}</h1>
+
+//2 cпособ правильный
+//с помощью библиотеки rxjs - реактивное програмирование
+//BehaviorSubject - объект с которым мы работаем / ожидает значения и эмитет это значение подписчикам
+//будем подписываться на потоки и у нас будет обновляться данные
+/* 
+Observable: представляет собой идею вызываемой коллекции будущих значений или событий.
+Observer: представляет собой набор обратных вызовов, которые знают, как слушать значения, доставляемые Observable.
+Подписка: представляет собой выполнение Observable, в основном полезна для отмены выполнения.
+Operators: это чистые функции, которые позволяют использовать функциональный стиль программирования для работы с коллекциями с помощью таких операций, как map, filter, concat, reduce и т. д.
+Subject: эквивалентен EventEmitter и является единственным способом многократной передачи значения или события нескольким наблюдателям.
+Schedulers: централизованные диспетчеры для контроля параллелизма, позволяющие нам координировать время выполнения вычислений, например, setTimeout, requestAnimationFrame или других.
+*/
+
+//service.service.ts
+@Injectable({
+  providedIn: 'root'
+})
+export class ServiceData {
+
+  //обычно используем с префиксом $ при взаимодействии с BehaviorSubject
+  //next - получить новые данные (перезаписать)
+  //getValue() - получить текущие данные
+  value$: BehaviorSubject<number> = new BehaviorSubject < number > (5)
+
+  add() {
+    this.value$.next(this.value$.getValue() + 1)
+  }
+
+  dec() {
+    this.value$.next(this.value$.getValue() - 1);
+  }
+}
+
+//app.component.ts
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent implements OnInit {
+  value: number = 0;
+
+  constructor(private serviceData: ServiceData) { }
+  ngOnInit() {
+
+    //подписываемся на изменения / и если изменилось то перезаписываем текущие данные
+    this.serviceData.value$.subscribe((value: number) => (this.value = value));
+  }
+
+  addHandler() {
+    this.serviceData.add()
+  }
+}
+
+//---------------------------------
+//__

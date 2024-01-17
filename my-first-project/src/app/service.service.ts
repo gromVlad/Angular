@@ -1,17 +1,18 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ServiceData {
 
-  value:number = 5
+  value$:BehaviorSubject<number> = new BehaviorSubject<number>(5)
 
   add(){
-    this.value = this.value + 1
+    this.value$.next(this.value$.getValue() + 1)
   }
 
   dec(){
-    this.value = this.value - 1
+    this.value$.next(this.value$.getValue() - 1);
   }
 }

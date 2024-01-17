@@ -13,7 +13,7 @@ export class ChildComponent implements OnInit {
   constructor(private serviceData: ServiceData) {}
 
   ngOnInit() {
-    this.value = this.serviceData.value;
+    this.serviceData.value$.subscribe((value:number) => this.value = value );
   }
 
   decHandler() {
