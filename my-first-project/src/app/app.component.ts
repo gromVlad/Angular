@@ -9,6 +9,7 @@ import { TodoService, Todos } from './todoService.service';
 export class AppComponent implements OnInit {
   public todosList: Todos[] = [];
   public title: string = '';
+  public error: string = '';
 
   constructor(private todoService: TodoService) {}
 
@@ -25,13 +26,19 @@ export class AppComponent implements OnInit {
   }
 
   deleteTodoList(todolistId: string): void {
-    this.todoService.deleteTodoList(todolistId).subscribe((response) => {
-      if (response.resultCode === 0) {
-        console.log('Todo list deleted successfully');
-        this.getTodos();
-      } else {
-        console.error('Error deleting todo list:', response.messages);
-      }
+    this.todoService.deleteTodoList(todolistId).subscribe({
+      next: (response) => {
+        if (response.resultCode === 0) {
+          console.log('Todo list deleted successfully');
+          this.getTodos();
+        } else {
+          console.error('Error deleting todo list:', response.messages);
+        }
+      },
+      error: (e) => {
+        this.error = `${e}`;
+      },
+      complete: () => console.log('done'),
     });
   }
 
@@ -41,15 +48,21 @@ export class AppComponent implements OnInit {
       return;
     }
 
-    this.todoService.createTodoList(this.title).subscribe((response) => {
-      if (response.resultCode === 0) {
-        console.log('Todo list created successfully');
-        const createdTodo = response.data.item;
-        this.todosList.push(createdTodo);
-        this.title = ''; 
-      } else {
-        console.error('Error creating todo list:', response.messages);
-      }
+    this.todoService.createTodoList(this.title).subscribe({
+      next: (response) => {
+        if (response.resultCode === 0) {
+          console.log('Todo list created successfully');
+          const createdTodo = response.data.item;
+          this.todosList.push(createdTodo);
+          this.title = '';
+        } else {
+          console.error('Error creating todo list:', response.messages);
+        }
+      },
+      error: (e) => {
+        this.error = `${e}`;
+      },
+      complete: () => console.log('done'),
     });
   }
 }

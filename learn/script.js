@@ -1148,6 +1148,94 @@ export const environment = {
 //-------------------------------------
 //___Обработка ошибок в subscribe__//
 
+//аналог типа try / catch / finally
+/* 
+      this.beerService
+      .getBeers()
+      .subscribe({
+        next: (beers) => {
+          console.log(beers);
+          this.beers = beers;
+          this.title = beers[0].name;
+        },
+        error: (e) => {
+          console.log(e);
+          this.title = 'ups';
+        },
+        complete: () => console.log('done'),
+      });
+
+функция next или success вызывается каждый раз, когда поток выдает значение.
+error: это функция, вызываемая при возникновении ошибки и получающая ее.
+complete: функция, которая вызывается только при завершении потока.
+//!!! В нынешней версии все упаковываем в объект  не через зяапятую
+*/
+
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent implements OnInit {
+  public todosList: Todos[] = [];
+  public title: string = '';
+  public error: string = '';
+
+  constructor(private todoService: TodoService) { }
+
+  ngOnInit(): void {
+    this.getTodos();
+  }
+
+  getTodos(): void {
+    this.todoService.getTodos().subscribe((data) => {
+      this.todosList = data;
+      console.log(this.todosList);
+      console.log(this.title);
+    });
+  }
+
+  deleteTodoList(todolistId: string): void {
+    this.todoService.deleteTodoList(todolistId).subscribe({
+      next: (response) => {
+        if (response.resultCode === 0) {
+          console.log('Todo list deleted successfully');
+          this.getTodos();
+        } else {
+          console.error('Error deleting todo list:', response.messages);
+        }
+      },
+      error: (e) => {
+        this.error = `${e}`;
+      },
+      complete: () => console.log('done'),
+    });
+  }
+
+  createTodoList(): void {
+    if (this.title.trim() === '') {
+      console.error('Error creating todo list: Title is required');
+      return;
+    }
+
+    this.todoService.createTodoList(this.title).subscribe({
+      next: (response) => {
+        if (response.resultCode === 0) {
+          console.log('Todo list created successfully');
+          const createdTodo = response.data.item;
+          this.todosList.push(createdTodo);
+          this.title = '';
+        } else {
+          console.error('Error creating todo list:', response.messages);
+        }
+      },
+      error: (e) => {
+        this.error = `${e}`;
+      },
+      complete: () => console.log('done'),
+    });
+  }
+}
 
 
 
