@@ -1,7 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { ServiceData } from './service.service';
-import { Observable } from 'rxjs';
-import { BeatyLoggerServiceService } from './beaty/beaty-logger-service.service';
+import { HttpClient } from '@angular/common/http';
+
+interface Todos {
+  addedDate:string,
+  id:string,
+  order:number,
+  title:string
+}
 
 @Component({
   selector: 'main-root',
@@ -9,15 +14,25 @@ import { BeatyLoggerServiceService } from './beaty/beaty-logger-service.service'
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
-  value$ = new Observable();
+  todosList: Todos[] = [];
 
-  constructor(private serviceData: ServiceData,private beatyLog:BeatyLoggerServiceService) {}
+  constructor(private http: HttpClient) {}
+
   ngOnInit() {
-    this.value$ = this. serviceData.value$
-  }
-
-  addHandler() {
-    this.serviceData.add();
-    this.beatyLog.log('Info','success');
+    this.http
+      .get<Todos[]>(
+        'https://social-network.samuraijs.com/api/1.1//todo-lists',
+        {
+          withCredentials: true,
+          headers: {
+            'api-key': 'e908cfda-79ef-4a49-94d7-a2a43ceaff44',
+          },
+        }
+      )
+      .subscribe((data) => {
+        this.todosList = data;
+        console.log(this.todosList);
+        
+      });
   }
 }

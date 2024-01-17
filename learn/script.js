@@ -837,3 +837,66 @@ export class AppComponent implements OnInit {
 
 //------------------------------------------------------
 //___Теория вз-ия с сервером, HttpClient, get запрос__//
+//при запросе возврощаеться поток а не Promise, потэтому не забываем подписаться на поток
+
+//app.module.ts
+import { HttpClientModule } from '@angular/common/http';
+
+@NgModule({
+  declarations: [AppComponent, ChildComponent],
+  imports: [BrowserModule, FormsModule, HttpClientModule],
+  providers: [],
+  bootstrap: [AppComponent],
+})
+export class AppModule { }
+
+//app.component.ts
+import { HttpClient } from '@angular/common/http';
+
+interface Todos {
+  addedDate: string,
+  id: string,
+  order: number,
+  title: string
+}
+
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent implements OnInit {
+  todosList: Todos[] = [];
+
+  constructor(private http: HttpClient) { }
+
+  ngOnInit() {
+    this.http
+      .get < Todos[] > (
+        'https://social-network.samuraijs.com/api/1.1//todo-lists',
+        {
+          withCredentials: true,
+          headers: {
+            'api-key': 'e908cfda-79ef-4a49-94d7-a2a43ceaff44',
+          },
+        }
+      )
+        .subscribe((data) => {
+          this.todosList = data;
+          console.log(this.todosList);
+
+        });
+  }
+}
+/* 
+<div *ngFor="let todo of todosList">
+  <p>{{todo.id}} --- {{todo.order}} ---- {{todo.title}}</p>
+</div>
+
+-->
+9c7d9dc7-8b15-490d-bb8d-8141d638fe36 --- 16 ---- hnvnvhnmn
+199a697c-9622-4fd8-be93-8612271a7906 --- 17 ---- work
+*/
+
+//-----------------------------
+//___
