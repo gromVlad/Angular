@@ -1,5 +1,6 @@
 import { Component, OnInit} from '@angular/core';
 import { ServiceData } from '../service.service';
+import { BeatyLoggerServiceService } from '../beaty/beaty-logger-service.service';
 
 
 @Component({
@@ -10,13 +11,17 @@ import { ServiceData } from '../service.service';
 export class ChildComponent implements OnInit {
   value: number = 0;
 
-  constructor(private serviceData: ServiceData) {}
+  constructor(
+    private serviceData: ServiceData,
+    private beatyLog: BeatyLoggerServiceService
+  ) {}
 
   ngOnInit() {
-    this.serviceData.value$.subscribe((value:number) => this.value = value );
+    this.serviceData.value$.subscribe((value: number) => (this.value = value));
   }
 
   decHandler() {
     this.serviceData.dec();
+    this.beatyLog.log('Warn', 'dec success');
   }
 }

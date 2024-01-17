@@ -592,7 +592,7 @@ Sunday, January 14, 2024
 //service.service.ts
 //без использования Injectable  то добовляем сервис в provider:... 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root' // будет глобально доступнов приложении
 })
 export class ServiceData {
 
@@ -792,3 +792,48 @@ export class AppComponent implements OnInit {
 //-------------------------------------------------------------------
 //__Создание beatyLoggerService, закрепление сервисов на практике__//
 
+//beaty-logger-service.service
+type LogLevel = "None" | "Info" | "Warn" | "Error"
+
+@Injectable({
+  providedIn: 'root'
+})
+export class BeatyLoggerServiceService {
+  log(level: LogLevel, msg: string): void {
+    switch (level) {
+      case 'None':
+        return console.log(msg);
+      case 'Info':
+        return console.info('%c' + msg, 'color: #6495ED');
+      case 'Warn':
+        return console.warn('%c' + msg, 'color: #FF8C00');
+      case 'Error':
+        return console.error('%c' + msg, 'color: #DC143C');
+      default:
+        console.debug(msg);
+    }
+  }
+}
+
+//app.component.ts
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent implements OnInit {
+  value$ = new Observable();
+
+  constructor(private serviceData: ServiceData, private beatyLog: BeatyLoggerServiceService) { }
+  ngOnInit() {
+    this.value$ = this.serviceData.value$
+  }
+
+  addHandler() {
+    this.serviceData.add();
+    this.beatyLog.log('Info', 'success');
+  }
+}
+
+//------------------------------------------------------
+//___Теория вз-ия с сервером, HttpClient, get запрос__//
