@@ -1005,3 +1005,149 @@ export class AppComponent implements OnInit {
   </ul>
 </div>
 */
+
+//--------------------------------------------------------
+//__Вынесение логики в service Рефакторинг Environment__//
+//API всегда выносим в сервис а не держим в компоненте
+
+//todoService.service.ts
+export interface Todos {
+  addedDate: string;
+  id: string;
+  order: number;
+  title: string;
+}
+
+export interface ApiResponse<T = {}> {
+  resultCode: number;
+  messages: string[];
+  data: T;
+}
+
+export interface CreateTodoResponse {
+  item: Todos;
+}
+
+export interface CreateTodoRequest {
+  title: string;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class TodoService {
+  private apiUrl = 'https://social-network.samuraijs.com/api/1.1/todo-lists';
+  private options = {
+    withCredentials: true,
+    headers: {
+      'api-key': 'e908cfda-79ef-4a49-94d7-a2a43ceaff44',
+    },
+  };
+
+  constructor(private http: HttpClient) { }
+
+  //возврощаем поток Observable
+  getTodos(): Observable<Todos[]> {
+    return this.http.get < Todos[] > (this.apiUrl, this.options);
+  }
+
+  deleteTodoList(todolistId: string): Observable<ApiResponse> {
+    const url = `${this.apiUrl}/${todolistId}`;
+    return this.http.delete < ApiResponse > (url, this.options);
+  }
+
+  createTodoList(title: string): Observable<ApiResponse<CreateTodoResponse>> {
+    const requestBody: CreateTodoRequest = {
+      title
+    };
+    return this.http.post < ApiResponse < CreateTodoResponse >> (
+      this.apiUrl,
+      requestBody,
+      this.options
+    );
+  }
+}
+
+//app.component.ts
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent implements OnInit {
+  public todosList: Todos[] = [];
+  public title: string = '';
+
+  constructor(private todoService: TodoService) { }
+
+  ngOnInit(): void {
+    this.getTodos();
+  }
+
+  getTodos(): void {
+    this.todoService.getTodos().subscribe((data) => {
+      this.todosList = data;
+      console.log(this.todosList);
+      console.log(this.title);
+    });
+  }
+
+  deleteTodoList(todolistId: string): void {
+    this.todoService.deleteTodoList(todolistId).subscribe((response) => {
+      if (response.resultCode === 0) {
+        console.log('Todo list deleted successfully');
+        this.getTodos();
+      } else {
+        console.error('Error deleting todo list:', response.messages);
+      }
+    });
+  }
+
+  createTodoList(): void {
+    if (this.title.trim() === '') {
+      console.error('Error creating todo list: Title is required');
+      return;
+    }
+
+    this.todoService.createTodoList(this.title).subscribe((response) => {
+      if (response.resultCode === 0) {
+        console.log('Todo list created successfully');
+        const createdTodo = response.data.item;
+        this.todosList.push(createdTodo);
+        this.title = '';
+      } else {
+        console.error('Error creating todo list:', response.messages);
+      }
+    });
+  }
+}
+/* 
+<div>
+  <h1>Todo Lists</h1>
+  <form (submit)="createTodoList()">
+    <!-- [ngModelOptions]="{ standalone: true }" - чтобы не был привязан к форме  ngModel -->
+    <input type="text" placeholder="Enter Todo Title" [(ngModel)]="title" [ngModelOptions]="{ standalone: true }"/>
+    <button type="submit">Add Todo</button>
+  </form>
+  <ul>
+    <li *ngFor="let todo of todosList">
+      {{ todo.title }}
+      <button (click)="deleteTodoList(todo.id)">Delete</button>
+    </li>
+  </ul>
+</div>
+*/
+
+//создаем окружения - разные базовый данные приложения / туда кидаем ключи , пути и т.д
+//ng generate environments -> создание environments
+export const environment = {
+  apiUrl: 'https://social-network.samuraijs.com/api/1.1',
+  apiKey: 'e908cfda-79ef-4a49-94d7-a2a43ceaff44',
+};
+
+//-------------------------------------
+//___Обработка ошибок в subscribe__//
+
+
+
+

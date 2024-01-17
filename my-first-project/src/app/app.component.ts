@@ -1,26 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-
-interface Todos {
-  addedDate:string,
-  id:string,
-  order:number,
-  title:string
-}
-
-interface ApiResponse<T = {}> {
-  resultCode: number;
-  messages: string[];
-  data: T;
-}
-
-interface CreateTodoResponse {
-  item: Todos;
-}
-
-interface CreateTodoRequest {
-  title: string;
-}
+import { TodoService, Todos } from './todoService.service';
 
 @Component({
   selector: 'main-root',
@@ -28,64 +7,49 @@ interface CreateTodoRequest {
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
-  todosList: Todos[] = [];
-  options = {
-    withCredentials: true,
-    headers: {
-      'api-key': 'e908cfda-79ef-4a49-94d7-a2a43ceaff44',
-    },
-  };
+  public todosList: Todos[] = [];
+  public title: string = '';
 
-  constructor(private http: HttpClient) {}
+  constructor(private todoService: TodoService) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.getTodos();
   }
 
-  getTodos() {
-    this.http
-      .get<Todos[]>(
-        'https://social-network.samuraijs.com/api/1.1/todo-lists',
-        this.options
-      )
-      .subscribe((data) => {
-        this.todosList = data;
-        console.log(this.todosList);
-      });
+  getTodos(): void {
+    this.todoService.getTodos().subscribe((data) => {
+      this.todosList = data;
+      console.log(this.todosList);
+      console.log(this.title);
+    });
   }
 
-  deleteTodoList(todolistId: string) {
-    const url = `https://social-network.samuraijs.com/api/1.1/todo-lists/${todolistId}`;
-
-    this.http
-      .delete<ApiResponse<CreateTodoResponse>>(url, this.options)
-      .subscribe((response) => {
-        if (response.resultCode === 0) {
-          console.log('Todo list deleted successfully');
-          this.getTodos();
-        } else {
-          console.error('Error deleting todo list:', response.messages);
-        }
-      });
+  deleteTodoList(todolistId: string): void {
+    this.todoService.deleteTodoList(todolistId).subscribe((response) => {
+      if (response.resultCode === 0) {
+        console.log('Todo list deleted successfully');
+        this.getTodos();
+      } else {
+        console.error('Error deleting todo list:', response.messages);
+      }
+    });
   }
 
-  createTodoList(title: string) {
-    const url = 'https://social-network.samuraijs.com/api/1.1/todo-lists';
+  createTodoList(): void {
+    if (this.title.trim() === '') {
+      console.error('Error creating todo list: Title is required');
+      return;
+    }
 
-    const requestBody: CreateTodoRequest = {
-      title: title,
-    };
-
-    this.http
-      .post<ApiResponse<CreateTodoResponse>>(url, requestBody, this.options)
-      .subscribe((response) => {
-        if (response.resultCode === 0) {
-          console.log('Todo list created successfully');
-          const createdTodo = response.data.item;
-          this.todosList.push(createdTodo);
-        } else {
-          console.error('Error creating todo list:', response.messages);
-        }
-      });
+    this.todoService.createTodoList(this.title).subscribe((response) => {
+      if (response.resultCode === 0) {
+        console.log('Todo list created successfully');
+        const createdTodo = response.data.item;
+        this.todosList.push(createdTodo);
+        this.title = ''; 
+      } else {
+        console.error('Error creating todo list:', response.messages);
+      }
+    });
   }
 }

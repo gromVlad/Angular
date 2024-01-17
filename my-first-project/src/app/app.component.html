@@ -1,7 +1,8 @@
 <div>
   <h1>Todo Lists</h1>
-  <form (submit)="createTodoList(todoTitle.value)">
-    <input type="text" placeholder="Enter Todo Title" #todoTitle />
+  <form (submit)="createTodoList()">
+    <!-- [ngModelOptions]="{ standalone: true }" - чтобы не был привязан к форме  ngModel -->
+    <input type="text" placeholder="Enter Todo Title" [(ngModel)]="title" [ngModelOptions]="{ standalone: true }"/>
     <button type="submit">Add Todo</button>
   </form>
   <ul>
