@@ -1792,3 +1792,94 @@ profileForm = new FormGroup({
 
 //-----------------------
 //___Роутинг введение__//
+//обязательно добовляем router-outlet (директиву) - чтобы angular понимал куда эти роуты вставлять / будет отрисовывать эти роуты именно туда где вставлен router-outlet
+
+@NgModule({
+  declarations: [AppComponent, ChildComponent],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    HttpClientModule,
+    ReactiveFormsModule,
+    RouterModule.forRoot([
+      { path: '', component: AppComponent },
+      { path: 'child', component: ChildComponent },
+    ]),
+  ],
+  providers: [],
+  bootstrap: [AppComponent],
+})
+export class AppModule { }
+
+//app.component.html
+//<router-outlet></router-outlet>
+
+//-------------------------------------------
+//__Вынесение роутинга в отдельный модуль__//
+
+//app-routing.module.ts
+const routes: Routes = [
+  { path: '', component: AppComponent },
+  { path: 'form', component: ChildComponent },
+];
+
+@NgModule({
+  declarations: [],
+  imports: [RouterModule.forRoot(routes)],
+  //не забыть экспортировать зависемость чтобы передать ее в главный модуль
+  exports: [RouterModule],
+})
+export class AppRoutingModule { }
+
+//app.module.ts
+@NgModule({
+declarations: [AppComponent, ChildComponent],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    HttpClientModule,
+    ReactiveFormsModule,
+    AppRoutingModule,// <----
+  ],
+    providers: [],
+      bootstrap: [AppComponent],
+})
+export class AppModule { }
+
+//app.component.html
+//.....
+//<router-outlet></router-outlet>
+
+//--------------------------------
+//__Навигация, активные ссылки__//
+
+//при использовании обычных ссылок приложения будет подгружать все сразу компоненты
+//поэтому используем роутинг ссылки
+//routerLinkActive - стили для активной ссылки
+//routerLink - сама ссылка
+
+//app-routing.module.ts
+const routes: Routes = [
+  { path: 'todo', component: AppComponent },
+  { path: 'form', component: ChildComponent },
+];
+
+@NgModule({
+  declarations: [],
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
+})
+export class AppRoutingModule { }
+
+//app.component.html
+/* 
+<h1>hello</h1>
+<div>
+  <!-- [routerLinkActiveOptions]="{exact: true}" - обнавлять классы только при точном совпадении URL со ссылкой -->
+  <nav>
+    <a class="button" routerLinkActive="activebutton" routerLink="/todo">Todo</a>
+    <a class="button" routerLinkActive="activebutton" routerLink="/form">Form</a>
+  </nav>
+</div>
+<router-outlet></router-outlet>
+*/

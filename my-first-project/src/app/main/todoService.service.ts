@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, EMPTY, catchError, map } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { BeatyLoggerServiceService } from './beaty/beaty-logger-service.service';
+import { BeatyLoggerServiceService } from '../beaty/beaty-logger-service.service';
 
 export interface Todos {
   addedDate: string;

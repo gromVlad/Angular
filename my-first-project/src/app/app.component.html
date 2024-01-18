@@ -1,14 +1,9 @@
+<h1>hello</h1>
 <div>
-  <h1>Todo Lists</h1>
-  <form (submit)="createTodoList()">
-    <input type="text" placeholder="Enter Todo Title" [formControl]="forms"/>
-    <button type="submit">Add Todo</button>
-  </form>
-  <ul>
-    <li *ngFor="let todo of todosList$ | async">
-      {{ todo.title }}
-      <button (click)="deleteTodoList(todo.id)">Delete</button>
-    </li>
-  </ul>
+  <!-- [routerLinkActiveOptions]="{exact: true}" - обнавлять классы только при точном совпадении URL со ссылкой -->
+  <nav>
+    <a class="button" routerLinkActive="activebutton" routerLink="/todo">Todo</a>
+    <a class="button" routerLinkActive="activebutton" routerLink="/form">Form</a>
+  </nav>
 </div>
-<main-child></main-child>
+<router-outlet></router-outlet>

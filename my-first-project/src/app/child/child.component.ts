@@ -1,5 +1,4 @@
 import { Component, OnInit} from '@angular/core';
-import { BeatyLoggerServiceService } from '../beaty/beaty-logger-service.service';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 

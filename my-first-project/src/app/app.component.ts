@@ -1,38 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { TodoService, Todos } from './todoService.service';
-import { Observable} from 'rxjs';
-import { FormControl } from '@angular/forms';
 
 @Component({
-  selector: 'main-root',
+  selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit {
-  public todosList$!: Observable<Todos[]>;
+export class App implements OnInit {
   
-  forms = new FormControl('');
-
-
-  constructor(private todoService: TodoService) {}
-
   ngOnInit(): void {
-    this.todosList$ = this.todoService.todos$;
-
-    this.getTodos();
+    throw new Error('Method not implemented.');
   }
-
-  getTodos(): void {
-    this.todoService.getTodos();
-  }
-
-  deleteTodoList(todolistId: string): void {
-    this.todoService.deleteTodoList(todolistId);
-  }
-
-  createTodoList(): void {
-    this.todoService.createTodoList(this.forms.value as string);
-  }
+  
 }
 
 
