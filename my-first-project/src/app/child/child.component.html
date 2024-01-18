@@ -1,2 +1,26 @@
-<h1>{{value}}</h1>
-<button (click)="decHandler()"> - </button>
+<form
+  [formGroup]="profileForm"
+  (ngSubmit)="submitForm()"
+  [ngClass]="{
+    errorForm: firstName!.invalid && (firstName!.dirty || firstName!.touched),
+    success: firstName!.valid
+  }"
+>
+  <label for="first-name">First Name: </label>
+  <input id="first-name" type="text" formControlName="firstName" />
+
+  <label for="last-name">Last Name: </label>
+  <input id="last-name" type="text" formControlName="lastName" />
+
+  <button [disabled]="profileForm.invalid" type="submit">Add</button>
+</form>
+<p>{{ formValueObj | json }}</p>
+
+<!-- валидация по гетеру firstName-->
+<div
+  *ngIf="firstName!.invalid && (firstName!.dirty || firstName!.touched)"
+  class="error"
+>
+  <div *ngIf="firstName!.errors?.['required']">Name is required.</div>
+  <div *ngIf="firstName!.errors?.['pattern']">Name is not corrected</div>
+</div>

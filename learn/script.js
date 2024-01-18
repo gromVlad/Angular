@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 //обновление незначительные обычно каждые полгода
 //у angular(фреймворк) все с коробки 
 //также можно ставить дополнительные пакеты
@@ -1459,14 +1461,14 @@ export class TodoService {
     private http: HttpClient,
     private beatyLogger: BeatyLoggerServiceService
   ) { }
-  
+
   //создаем приватный метод 
   private errorhandler(error: HttpErrorResponse) {
     this.beatyLogger.log('Error', error.message);
     return EMPTY;
   }
 
- //....
+  //....
 
   deleteTodoList(todolistId: string) {
     const url = `${this.apiUrl}/${todolistId}`;
@@ -1487,5 +1489,306 @@ export class TodoService {
   //.....
 }
 
-//-------------------------------------
-//_____
+//-----------------------------------------------
+//_____Формы, Реактивные формы, FormControl____//
+//есть 2 типа : реактивные и шаблонные
+//обычно используем реактивные формы
+//FormControl - объект с различными свойствами типо value. touched и т.д.
+
+//todoService.service.ts
+import { ReactiveFormsModule } from '@angular/forms';
+
+@NgModule({
+  declarations: [AppComponent, ChildComponent],
+  imports: [BrowserModule, FormsModule, HttpClientModule, ReactiveFormsModule],
+  providers: [],
+  bootstrap: [AppComponent],
+})
+export class AppModule { }
+
+//app.component.ts
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent implements OnInit {
+  public todosList$!: Observable<Todos[]>;
+
+  //cоздаем форму
+  forms = new FormControl('');
+
+  constructor(private todoService: TodoService) { }
+
+  ngOnInit(): void {
+    this.todosList$ = this.todoService.todos$;
+    this.getTodos();
+  }
+  //....
+
+  createTodoList(): void {
+    this.todoService.createTodoList(this.forms.value as string);
+  }
+}
+/* 
+<form (submit)="createTodoList()">
+    //подключаем ее [formControl]="forms"
+    <input type="text" placeholder="Enter Todo Title" [formControl]="forms"/>
+    <button type="submit">Add Todo</button>
+  </form>
+*/
+
+//----------------------------------
+//___Создание формы, FormGroup___//
+
+//например хотим динамический заполнить поля например с localstorage
+/* 
+updateName() {
+  this.forms.setValue('Nancy');
+}
+*/
+
+//поля формы
+@Component({
+  selector: 'main-child',
+  templateUrl: './child.component.html',
+  styleUrls: ['./child.component.scss'],
+})
+export class ChildComponent implements OnInit {
+  formValueObj: {} | null = null
+
+
+  ngOnInit(): void {
+    throw new Error('Method not implemented.');
+  }
+
+  profileForm = new FormGroup({
+    firstName: new FormControl(''),
+    lastName: new FormControl(''),
+  });
+
+  submitForm() {
+    this.formValueObj = this.profileForm.value
+  }
+}
+/* 
+<form [formGroup]="profileForm" (ngSubmit)="submitForm()">
+
+  <label for="first-name">First Name: </label>
+  <input id="first-name" type="text" formControlName="firstName">
+
+  <label for="last-name">Last Name: </label>
+  <input id="last-name" type="text" formControlName="lastName">
+
+  <button type="submit">Add</button>
+</form>
+<p>{{formValueObj | json}}</p>
+*/
+//{ "firstName": "cvbvcbcb", "lastName": "cbcbcbcb" }
+
+//-------------------------------------------------
+//__Краткий обзор возможностей работы с формами__//
+
+//можно сделать вложенные formGroup
+@Component({
+  standalone: true,
+  selector: 'app-profile-editor',
+  templateUrl: './profile-editor.component.html',
+  styleUrls: ['./profile-editor.component.css'],
+})
+export class ProfileEditorComponent {
+  profileForm = new FormGroup({
+    firstName: new FormControl(''),
+    lastName: new FormControl(''),
+    address: new FormGroup({
+      street: new FormControl(''),
+      city: new FormControl(''),
+      state: new FormControl(''),
+      zip: new FormControl(''),
+    }),
+  });
+}
+
+//Обновление частей модели данных
+//setValue() - устанавливает новое значение для отдельного элемента
+//patchValue() Заменяет все свойства, определенные в объекте, которые изменились в модели формы.
+updateProfile() {
+  this.profileForm.patchValue({
+    firstName: 'Nancy',
+    address: {
+      street: '123 Drew Street',
+    },
+  });
+}
+
+//FormBuilder 
+//удобные методы для генерации элементов управления
+@Component({
+  selector: 'main-child',
+  templateUrl: './child.component.html',
+  styleUrls: ['./child.component.scss'],
+})
+export class ChildComponent implements OnInit {
+  fprofileForm = this.formBuilder.group({
+    firstName: [''],
+    lastName: [''],
+    address: this.formBuilder.group({
+      street: [''],
+      city: [''],
+      state: [''],
+      zip: [''],
+    }),
+  });
+
+  constructor(private formBuilder: FormBuilder) { }
+
+  ngOnInit(): void {
+    throw new Error('Method not implemented.');
+  }
+}
+
+//Validating form
+//Validators - Предоставляет набор встроенных валидаторов, которые могут использоваться элементами управления формы.
+class Validators {
+  static min(min: number): ValidatorFn
+  static max(max: number): ValidatorFn
+  static required(control: AbstractControl<any, any>): ValidationErrors | null
+  static requiredTrue(control: AbstractControl<any, any>): ValidationErrors | null
+  static email(control: AbstractControl<any, any>): ValidationErrors | null
+  static minLength(minLength: number): ValidatorFn
+  static maxLength(maxLength: number): ValidatorFn
+  static pattern(pattern: string | RegExp): ValidatorFn
+  static nullValidator(control: AbstractControl<any, any>): ValidationErrors | null
+  static compose(validators: ValidatorFn[]): ValidatorFn | null
+  static composeAsync(validators: AsyncValidatorFn[]): AsyncValidatorFn | null
+}
+//можем писать и свои методы проверки
+
+//-------------------------------------------------------
+//___validators Вывод ошибки disabled, touched, dirty__//
+
+//child.component.ts
+@Component({
+  selector: 'main-child',
+  templateUrl: './child.component.html',
+  styleUrls: ['./child.component.scss'],
+})
+export class ChildComponent implements OnInit {
+  formValueObj: {} | null = null;
+
+  ngOnInit(): void {
+    throw new Error('Method not implemented.');
+  }
+
+  profileForm = new FormGroup({
+    firstName: new FormControl('', Validators.required),
+    lastName: new FormControl('', Validators.required),
+  });
+
+  submitForm() {
+    this.formValueObj = this.profileForm.value;
+  }
+
+  //чтобы не обращться постоянно в шаблоне к полю через длинный метод то записываем его в гетер для сокращения
+  get firstName() {
+    return this.profileForm.get('firstName');
+  }
+
+  get lastName() {
+    return this.profileForm.get('firstName');
+  }
+}
+/* 
+<form [formGroup]="profileForm" (ngSubmit)="submitForm()">
+  <label for="first-name">First Name: </label>
+  <input id="first-name" type="text" formControlName="firstName" />
+
+  <label for="last-name">Last Name: </label>
+  <input id="last-name" type="text" formControlName="lastName" />
+
+  <button [disabled]="profileForm.invalid" type="submit">Add</button>
+</form>
+<p>{{ formValueObj | json }}</p>
+
+<!-- валидация по гетеру firstName-->
+<div
+  *ngIf="firstName!.invalid && (firstName!.dirty || firstName!.touched)"
+  class="error"
+>error firstName</div>
+*/
+
+//---------------------------------------
+//___Вз-ие с несколькими валидаторами__//
+//если пустое поле то будет Name is required
+//если поле не валидное то - Name is not correcte
+
+/* 
+profileForm = new FormGroup({
+    firstName: new FormControl('', [Validators.required,Validators.email]),
+    lastName: new FormControl('', Validators.required),
+});
+
+<div
+  *ngIf="firstName!.invalid && (firstName!.dirty || firstName!.touched)"
+  class="error"
+>
+  <div *ngIf="firstName!.errors?.['required']">Name is required.</div>
+  //валидацию связываем с Validators.email поэтому и ['email']
+   <div *ngIf="firstName!.errors?.['email']">Name is not corrected</div>
+</div>
+*/
+
+//-------------------------------
+//__validators pattern, regex__//
+
+/* 
+profileForm = new FormGroup({
+    firstName: new FormControl('', [Validators.required,Validators.pattern('[a-zA-Z ]*')]),
+    lastName: new FormControl('', Validators.required),
+})
+
+<div *ngIf="firstName!.errors?.['pattern']">Name is not corrected</div>;
+*/
+
+//------------------------------------
+//___Валидация - работа со стилями__//
+
+//1 способ
+/* 
+<form
+  [formGroup]="profileForm"
+  (ngSubmit)="submitForm()"
+
+  //используем дескриптор класса
+  [ngClass]="{
+    errorForm: firstName!.invalid && (firstName!.dirty || firstName!.touched),
+    success: firstName!.valid
+  }"
+>
+  <label for="first-name">First Name: </label>
+  <input id="first-name" type="text" formControlName="firstName" />
+
+  <label for="last-name">Last Name: </label>
+  <input id="last-name" type="text" formControlName="lastName" />
+
+  <button [disabled]="profileForm.invalid" type="submit">Add</button>
+</form>
+*/
+
+//2 способ / Control status CSS classes
+/* 
+прописанные класса с коробки
+.ng-valid[required], .ng-valid.required  {
+  border-left: 5px solid #42A948; 
+}
+
+.ng - invalid: not(form)  {
+  border - left: 5px solid #a94442;
+}
+
+//можно установить глобально стили
+//также можем подключать к компоненту не один стиль а несколько т.к. находиться стили в массиве
+*/
+
+//-----------------------
+//___Роутинг введение__//

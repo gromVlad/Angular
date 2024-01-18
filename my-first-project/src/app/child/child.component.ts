@@ -1,5 +1,6 @@
 import { Component, OnInit} from '@angular/core';
 import { BeatyLoggerServiceService } from '../beaty/beaty-logger-service.service';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 
 @Component({
@@ -8,18 +9,26 @@ import { BeatyLoggerServiceService } from '../beaty/beaty-logger-service.service
   styleUrls: ['./child.component.scss'],
 })
 export class ChildComponent implements OnInit {
-  value: number = 0;
+  formValueObj: {} | null = null;
 
-  constructor(
-    
-    private beatyLog: BeatyLoggerServiceService
-  ) {}
-
-  ngOnInit() {
-    
+  ngOnInit(): void {
+    throw new Error('Method not implemented.');
   }
 
-  decHandler() {
-    this.beatyLog.log('Warn', 'dec success');
+  profileForm = new FormGroup({
+    firstName: new FormControl('', [Validators.required,Validators.pattern('[a-zA-Z ]*')]),
+    lastName: new FormControl('', Validators.required),
+  });
+
+  submitForm() {
+    this.formValueObj = this.profileForm.value;
+  }
+
+  get firstName() {
+    return this.profileForm.get('firstName');
+  }
+
+  get lastName() {
+    return this.profileForm.get('firstName');
   }
 }
