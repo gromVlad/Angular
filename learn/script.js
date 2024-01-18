@@ -1283,7 +1283,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
 //-------------------------------------------------
 //_____Рефакторинг behaviorsubject, async pype___//
-//чтобы уменьшить код надо всю логику преобразование кинутьв сервис
+//чтобы уменьшить код надо всю логику преобразование кинуть в сервис / также убираем отписки чтобы не пришлось потом отписываться от них
 //с помощью объекта behaviorsubject работаем с нашими данными (выше раньше работали с ним)
 //т.к мы возврощаем поток то в шаблоне используем pipe async
 //также при изменении данныхй используем специальные операторы rxjs (например map через через метод pipe)
@@ -1436,3 +1436,56 @@ export class TodoService {
   }
 
 }
+
+//------------------------
+//___Рефакторинг Bind___//
+//убираем от дублирование в pipe методах
+
+@Injectable({
+  providedIn: 'root',
+})
+export class TodoService {
+  todos$: BehaviorSubject<Todos[]> = new BehaviorSubject < Todos[] > ([]);
+
+  private apiUrl = `${environment.apiUrl}/todo-lists`;
+  private options = {
+    withCredentials: true,
+    headers: {
+      'api-key': `${environment.apiKey}/todo-lists`,
+    },
+  };
+
+  constructor(
+    private http: HttpClient,
+    private beatyLogger: BeatyLoggerServiceService
+  ) { }
+  
+  //создаем приватный метод 
+  private errorhandler(error: HttpErrorResponse) {
+    this.beatyLogger.log('Error', error.message);
+    return EMPTY;
+  }
+
+ //....
+
+  deleteTodoList(todolistId: string) {
+    const url = `${this.apiUrl}/${todolistId}`;
+    this.http
+      .delete < ApiResponse > (url, this.options)
+        .pipe(
+          //используем bind чтобы не потерять контекст вызова
+          catchError(this.errorhandler.bind(this)),
+          map((res) => {
+            return this.todos$
+              .getValue()
+              .filter((todo) => todo.id !== todolistId);
+          })
+        )
+        .subscribe((res) => this.todos$.next(res));
+  }
+
+  //.....
+}
+
+//-------------------------------------
+//_____

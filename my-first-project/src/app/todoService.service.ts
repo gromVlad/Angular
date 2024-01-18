@@ -39,16 +39,21 @@ export class TodoService {
     },
   };
 
-  constructor(private http: HttpClient,private beatyLogger:BeatyLoggerServiceService) {}
+  constructor(
+    private http: HttpClient,
+    private beatyLogger: BeatyLoggerServiceService
+  ) {}
+
+  private errorhandler(error: HttpErrorResponse) {
+    this.beatyLogger.log('Error', error.message);
+    return EMPTY;
+  }
 
   getTodos() {
     this.http
       .get<Todos[]>(this.apiUrl, this.options)
       .pipe(
-        catchError((error:HttpErrorResponse) => {
-          this.beatyLogger.log('Error', error.message);
-          return EMPTY;
-        })
+        catchError(this.errorhandler.bind(this))
       )
       .subscribe((res) => this.todos$.next(res));
   }
@@ -58,16 +63,11 @@ export class TodoService {
     this.http
       .delete<ApiResponse>(url, this.options)
       .pipe(
+        catchError(this.errorhandler.bind(this)),
         map((res) => {
           return this.todos$
             .getValue()
             .filter((todo) => todo.id !== todolistId);
-        })
-      )
-      .pipe(
-        catchError((error: HttpErrorResponse) => {
-          this.beatyLogger.log('Error', error.message);
-          return EMPTY;
         })
       )
       .subscribe((res) => this.todos$.next(res));
@@ -84,14 +84,9 @@ export class TodoService {
         this.options
       )
       .pipe(
+        catchError(this.errorhandler.bind(this)),
         map((res) => {
           return [...this.todos$.getValue(), res.data.item];
-        })
-      )
-      .pipe(
-        catchError((error: HttpErrorResponse) => {
-          this.beatyLogger.log('Error', error.message);
-          return EMPTY;
         })
       )
       .subscribe((res) => this.todos$.next(res));
