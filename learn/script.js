@@ -1238,4 +1238,48 @@ export class AppComponent implements OnInit {
 }
 
 
+//------------------------------
+//___memory leak, unsubscribe__//
+//лучше вообще избегать отписку
+//если сделал подписку то сделай и отписку
+//через жизненнный метод убираем отписку
+//типо добовляем все подписки а потом их убираем
 
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent implements OnInit, OnDestroy {
+  public todosList: Todos[] = [];
+  public title: string = '';
+  public error: string = '';
+
+  //храним все подписки
+  subscriptions: Subscription = new Subscription()
+
+  constructor(private todoService: TodoService) { }
+
+  ngOnDestroy(): void {
+    //убираем подписки
+    this.subscriptions.unsubscribe()
+  }
+
+  ngOnInit(): void {
+    this.getTodos();
+  }
+
+  getTodos(): void {
+    //добовляем подписки в один объект
+    this.subscriptions.add(this.todoService.getTodos().subscribe((data) => {
+      this.todosList = data;
+      console.log(this.todosList);
+      console.log(this.title);
+    }))
+  }
+
+  //........
+}
+
+//---------------------------------
+//_____

@@ -1,32 +1,39 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { TodoService, Todos } from './todoService.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'main-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit,OnDestroy {
   public todosList: Todos[] = [];
   public title: string = '';
   public error: string = '';
 
+  subscriptions:Subscription = new Subscription()
+
   constructor(private todoService: TodoService) {}
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe()
+  }
 
   ngOnInit(): void {
     this.getTodos();
   }
 
   getTodos(): void {
-    this.todoService.getTodos().subscribe((data) => {
+    this.subscriptions.add(this.todoService.getTodos().subscribe((data) => {
       this.todosList = data;
       console.log(this.todosList);
       console.log(this.title);
-    });
+    }))
   }
 
   deleteTodoList(todolistId: string): void {
-    this.todoService.deleteTodoList(todolistId).subscribe({
+    this.subscriptions.add(this.todoService.deleteTodoList(todolistId).subscribe({
       next: (response) => {
         if (response.resultCode === 0) {
           console.log('Todo list deleted successfully');
@@ -39,7 +46,7 @@ export class AppComponent implements OnInit {
         this.error = `${e}`;
       },
       complete: () => console.log('done'),
-    });
+    }))
   }
 
   createTodoList(): void {
@@ -48,7 +55,7 @@ export class AppComponent implements OnInit {
       return;
     }
 
-    this.todoService.createTodoList(this.title).subscribe({
+    this.subscriptions.add(this.todoService.createTodoList(this.title).subscribe({
       next: (response) => {
         if (response.resultCode === 0) {
           console.log('Todo list created successfully');
@@ -63,6 +70,8 @@ export class AppComponent implements OnInit {
         this.error = `${e}`;
       },
       complete: () => console.log('done'),
-    });
+    }))
   }
 }
+
+
