@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, map } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 export interface Todos {
@@ -28,6 +28,8 @@ export interface CreateTodoRequest {
   providedIn: 'root',
 })
 export class TodoService {
+  todos$: BehaviorSubject<Todos[]> = new BehaviorSubject<Todos[]>([]);
+
   private apiUrl = `${environment.apiUrl}/todo-lists`;
   private options = {
     withCredentials: true,
@@ -38,23 +40,41 @@ export class TodoService {
 
   constructor(private http: HttpClient) {}
 
-  getTodos(): Observable<Todos[]> {
-    return this.http.get<Todos[]>(this.apiUrl, this.options);
+  getTodos() {
+    this.http
+      .get<Todos[]>(this.apiUrl, this.options)
+      .subscribe((res) => this.todos$.next(res));
   }
 
-  deleteTodoList(todolistId: string): Observable<ApiResponse> {
+  deleteTodoList(todolistId: string) {
     const url = `${this.apiUrl}/${todolistId}`;
-    return this.http.delete<ApiResponse>(url, this.options);
+    this.http
+      .delete<ApiResponse>(url, this.options)
+      .pipe(
+        map((res) => {
+          return this.todos$
+            .getValue()
+            .filter((todo) => todo.id !== todolistId);
+        })
+      )
+      .subscribe((res) => this.todos$.next(res));
   }
 
-  createTodoList(title: string): Observable<ApiResponse<CreateTodoResponse>> {
+  createTodoList(title: string) {
     const requestBody: CreateTodoRequest = {
       title,
     };
-    return this.http.post<ApiResponse<CreateTodoResponse>>(
-      this.apiUrl,
-      requestBody,
-      this.options
-    );
+    this.http
+      .post<ApiResponse<CreateTodoResponse>>(
+        this.apiUrl,
+        requestBody,
+        this.options
+      )
+      .pipe(
+        map((res) => {
+          return [...this.todos$.getValue(), res.data.item];
+        })
+      )
+      .subscribe((res) => this.todos$.next(res));
   }
 }

@@ -1281,5 +1281,127 @@ export class AppComponent implements OnInit, OnDestroy {
   //........
 }
 
-//---------------------------------
-//_____
+//-------------------------------------------------
+//_____Рефакторинг behaviorsubject, async pype___//
+//чтобы уменьшить код надо всю логику преобразование кинутьв сервис
+//с помощью объекта behaviorsubject работаем с нашими данными (выше раньше работали с ним)
+//т.к мы возврощаем поток то в шаблоне используем pipe async
+//также при изменении данныхй используем специальные операторы rxjs (например map через через метод pipe)
+//"!" -  указывает на то, что это свойство не будет иметь значение null или undefined
+
+//todoService.service.ts
+@Injectable({
+  providedIn: 'root',
+})
+export class TodoService {
+  todos$: BehaviorSubject<Todos[]> = new BehaviorSubject < Todos[] > ([]);
+
+  private apiUrl = `${environment.apiUrl}/todo-lists`;
+  private options = {
+    withCredentials: true,
+    headers: {
+      'api-key': `${environment.apiKey}/todo-lists`,
+    },
+  };
+
+  constructor(private http: HttpClient) { }
+
+  getTodos() {
+    this.http
+      .get < Todos[] > (this.apiUrl, this.options)
+        .subscribe((res) => this.todos$.next(res));
+  }
+
+  deleteTodoList(todolistId: string) {
+    const url = `${this.apiUrl}/${todolistId}`;
+    this.http
+      .delete < ApiResponse > (url, this.options)
+        //используем pipe метод
+        .pipe(
+          //специальнй оператор в rxjs  map -пропускает каждое исходное значение через функцию преобразования, чтобы получить соответствующие выходные значения.
+          map((res) => {
+            return this.todos$
+              .getValue()
+              .filter((todo) => todo.id !== todolistId);
+          })
+        )
+        .subscribe((res) => this.todos$.next(res));
+  }
+
+  createTodoList(title: string) {
+    const requestBody: CreateTodoRequest = {
+      title,
+    };
+    this.http
+      .post < ApiResponse < CreateTodoResponse >> (
+        this.apiUrl,
+        requestBody,
+        this.options
+      )
+        .pipe(
+          map((res) => {
+            return [...this.todos$.getValue(), res.data.item];
+          })
+        )
+        .subscribe((res) => this.todos$.next(res));
+  }
+}
+
+//app.component.ts
+@Component({
+  selector: 'main-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class AppComponent implements OnInit {
+  public todosList$!: Observable<Todos[]>
+  public title: string = '';
+  public error: string = '';
+
+  constructor(private todoService: TodoService) { }
+
+
+  ngOnInit(): void {
+    //подписываемся чтобы принемать данные с behaviorsubject
+    this.todosList$ = this.todoService.todos$;
+
+    this.getTodos()
+  }
+
+  getTodos(): void {
+    this.todoService.getTodos()
+  }
+
+  deleteTodoList(todolistId: string): void {
+    this.todoService.deleteTodoList(todolistId)
+  }
+
+  createTodoList(): void {
+    if (this.title.trim() === '') {
+      console.error('Error creating todo list: Title is required');
+      return;
+    }
+    this.todoService.createTodoList(this.title)
+    this.title = ''
+  }
+}
+/* 
+<div>
+  <h1>Todo Lists</h1>
+  <form (submit)="createTodoList()">
+    <!-- [ngModelOptions]="{ standalone: true }" - чтобы не был привязан к форме  ngModel -->
+    <input type="text" placeholder="Enter Todo Title" [(ngModel)]="title" [ngModelOptions]="{ standalone: true }"/>
+    <button type="submit">Add Todo</button>
+  </form>
+  <ul>
+    <!-- преобразуем поток в данные с помощью pipe async -->
+    <li *ngFor="let todo of todosList$ | async">
+      {{ todo.title }}
+      <button (click)="deleteTodoList(todo.id)">Delete</button>
+    </li>
+  </ul>
+</div>
+*/
+
+//-----------------------------------
+//___
