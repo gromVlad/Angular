@@ -1403,5 +1403,36 @@ export class AppComponent implements OnInit {
 </div>
 */
 
-//-----------------------------------
-//___
+//----------------------------
+//__rxjs catcherror, empty__//
+
+@Injectable({
+  providedIn: 'root',
+})
+export class TodoService {
+  todos$: BehaviorSubject<Todos[]> = new BehaviorSubject < Todos[] > ([]);
+
+  private apiUrl = `${environment.apiUrl}/todo-lists`;
+  private options = {
+    withCredentials: true,
+    headers: {
+      'api-key': `${environment.apiKey}/todo-lists`,
+    },
+  };
+
+  constructor(private http: HttpClient, private beatyLogger: BeatyLoggerServiceService) { }
+
+  getTodos() {
+    this.http
+      .get < Todos[] > (this.apiUrl, this.options)
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            this.beatyLogger.log('Error', error.message);
+            //т.к мы нечего не возврощаем но от нас требует поток должен что то возврощать то используем заглушку EMPTY(то же оператор rxjs)
+            return EMPTY;
+          })
+        )
+        .subscribe((res) => this.todos$.next(res));
+  }
+
+}
