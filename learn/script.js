@@ -1883,3 +1883,14 @@ export class AppRoutingModule { }
 </div>
 <router-outlet></router-outlet>
 */
+
+//------------------------------
+//__page not found Редиректы__//
+
+const routes: Routes = [
+  { path: 'todo', component: AppComponent },
+  { path: 'form', component: ChildComponent },
+  { path: '404', component: PageNotFoundComponent },
+  //неизвестный путь
+  { path: '**', redirectTo: '404' },
+];

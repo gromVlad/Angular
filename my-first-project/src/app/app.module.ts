@@ -6,9 +6,10 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { App } from './app.component';
 import { AppComponent } from './main/main.component';
+import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 
 @NgModule({
-  declarations: [App, AppComponent, ChildComponent],
+  declarations: [App, AppComponent, ChildComponent, PageNotFoundComponent],
   imports: [
     BrowserModule,
     FormsModule,
