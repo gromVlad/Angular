@@ -10,9 +10,10 @@ import { PageNotFoundComponent } from './page-not-found/page-not-found.component
 import { UsersComponent } from './users/users.component';
 import { ProfileComponent } from './profile/profile.component';
 import { CredentialsInterceptor } from './credentials.interceptor';
+import { HomeComponent } from './home/home.component';
 
 @NgModule({
-  declarations: [App, AppComponent, ChildComponent, PageNotFoundComponent, UsersComponent, ProfileComponent],
+  declarations: [App, AppComponent, ChildComponent, PageNotFoundComponent, UsersComponent, ProfileComponent, HomeComponent],
   imports: [
     BrowserModule,
     FormsModule,
