@@ -38,4 +38,7 @@
   <div *ngIf="profile.photos.large">
     <img [src]="profile.photos.large" alt="Large Photo">
   </div>
+
+  <button (click)="backToUser()">Back to user</button>
+  <button [routerLink]="['/users']">Back to user 2</button>
 </div>

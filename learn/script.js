@@ -2071,6 +2071,7 @@ export class ProfileComponent implements OnInit {
 }
 /* 
 //преобразуем profile$ и созраняем его как profile / далее по нем берем данные
+//альтернативный способ - *ngIf="profile$ | async ; let = profile" 
 <div *ngIf="profile$ | async as profile" class="profile">
   <h1>{{ profile.fullName }}</h1>
   <p>Looking for a job: {{ profile.lookingForAJob ? 'Yes' : 'No' }}</p>
@@ -2112,4 +2113,43 @@ export class ProfileComponent implements OnInit {
     <img [src]="profile.photos.large" alt="Large Photo">
   </div>
 </div>
+*/
+
+//--------------------------------------
+//__Программная навигация routerlink__//
+//делаем кнопку назад
+//[routerLink]="['/profile',user.id]" - можно вещать куда хотим и на a , button, div и т.д.
+
+@Component({
+  selector: 'app-profile',
+  templateUrl: './profile.component.html',
+  styleUrls: ['./profile.component.scss'],
+})
+export class ProfileComponent implements OnInit {
+  profile$!: Observable<Profile>;
+
+  constructor(
+    private route: ActivatedRoute,
+    private profileService: ProfileService,
+    private routes: Router
+  ) { }
+
+  ngOnInit(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.profile$ = this.profileService.getProfile(+id);
+    }
+  }
+
+  //програмный подход через Router
+  backToUser() {
+    this.routes.navigate(['users']);
+  }
+}
+/* 
+  //....
+  <button (click)="backToUser()">Back to user</button>
+
+  //аналог просто написать с помощью routerLink через шаблон
+  <button [routerLink]="['/users']">Back to user 2</button>
 */
