@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { User, UserService } from '../service/users.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 
 @Component({
   selector: 'app-users',
@@ -19,7 +19,9 @@ export class UsersComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.getUsers(this.currentPage);
+    this.route.queryParams.subscribe((params:Params) => {
+      this.getUsers(params["page"] ? params["page"] : this.currentPage )
+    })
   }
 
   getUsers(page: number) {
@@ -28,8 +30,7 @@ export class UsersComponent implements OnInit {
 
   nextPageUsers() {
     this.currentPage++;
-    this.router.navigateByUrl(`/users?page=${this.currentPage}`).then(() => {
-      this.getUsers(this.currentPage);
-    });
+     this.router
+       .navigate(['/users'], { queryParams: { page: this.currentPage } })
   }
 }

@@ -1833,7 +1833,7 @@ export class AppRoutingModule { }
 
 //app.module.ts
 @NgModule({
-declarations: [AppComponent, ChildComponent],
+  declarations: [AppComponent, ChildComponent],
   imports: [
     BrowserModule,
     FormsModule,
@@ -1841,8 +1841,8 @@ declarations: [AppComponent, ChildComponent],
     ReactiveFormsModule,
     AppRoutingModule,// <----
   ],
-    providers: [],
-      bootstrap: [AppComponent],
+  providers: [],
+  bootstrap: [AppComponent],
 })
 export class AppModule { }
 
@@ -2220,3 +2220,64 @@ export class UsersComponent implements OnInit {
 /* 
 <button class="button" (click)="nextPageUsers()"> Next page</button>
 */
+
+//---------------------------------------------
+//__Query параметры, subscribe, рефакторинг__//
+
+nextPageUsers() {
+  this.currentPage++;
+  // this.router.navigateByUrl(`/users?page=${this.currentPage}`).then(() => {
+  //   this.getUsers(this.currentPage);
+  // });
+
+  //2 cпособ
+  this.router
+    .navigate(['/users'], { queryParams: { page: this.currentPage } })
+    .then(() => {
+      this.getUsers(this.currentPage);
+    });
+}
+
+//также можем подписаться на получения Query параметров а далее просто передовать...
+//users.component.ts
+@Component({
+  selector: 'app-users',
+  templateUrl: './users.component.html',
+  styleUrls: ['./users.component.scss'],
+})
+export class UsersComponent implements OnInit {
+  users$!: Observable<User[]>;
+  currentPage: number = 1;
+
+  constructor(
+    private userService: UserService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) { }
+
+  ngOnInit(): void {
+    //подписка на измненения параметра
+    this.route.queryParams.subscribe((params: Params) => {
+      this.getUsers(params["page"] ? params["page"] : this.currentPage)
+    })
+  }
+
+  getUsers(page: number) {
+    this.users$ = this.userService.getUsers(page);
+  }
+
+  nextPageUsers() {
+    this.currentPage++;
+    //не надо опять вызывать getUsers  т.к при инициализации ngOnInit подписчик считает значения
+    this.router
+      .navigate(['/users'], { queryParams: { page: this.currentPage } })
+  }
+}
+/* 
+//передаем параметр в шаблоне
+<button class="button" [routerLink]="['/users']" [queryParams]="{page:1}"> Start page</button>
+<button class="button" (click)="nextPageUsers()"> Next page</button>
+*/
+
+//--------------------------------
+

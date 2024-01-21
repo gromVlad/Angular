@@ -23,5 +23,6 @@
     </div>
   </ng-template>
 
+  <button class="button" [routerLink]="['/users']" [queryParams]="{page:1}"> Start page</button>
   <button class="button" (click)="nextPageUsers()"> Next page</button>
 </div>
