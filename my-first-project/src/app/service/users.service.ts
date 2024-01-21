@@ -39,9 +39,9 @@ export class UserService {
     private beatyLogger: BeatyLoggerServiceService
   ) {}
 
-  getUsers(): Observable<User[]> {
+  getUsers(page:number): Observable<User[]> {
     return this.http
-      .get<Response>(this.apiUrl, this.options)
+      .get<Response>(`${this.apiUrl}?page = ${page}`, this.options)
       .pipe(map((res) => res.items));
   }
 }

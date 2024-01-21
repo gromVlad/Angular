@@ -2153,3 +2153,70 @@ export class ProfileComponent implements OnInit {
   //аналог просто написать с помощью routerLink через шаблон
   <button [routerLink]="['/users']">Back to user 2</button>
 */
+
+//------------------------------------------------
+//___Query параметры Реализация псевдо пагинации__
+//Query - параметры(query parameters) являются частью URL - адреса веб - страницы и используются для передачи данных на сервер или для выполнения определенных действий на веб - странице.Они представляются в виде пар "ключ=значение" и разделяются символом вопроса "?" от основной части URL.
+//https://example.com/search?q=apple&category=fruits
+//Query-параметры могут использоваться для различных целей, включая фильтрацию данных, сортировку, пагинацию, поиск и другие действия на веб-странице. Они могут быть переданы на сервер для обработки запроса или использоваться на клиентской стороне для изменения поведения или отображения веб-страницы.
+
+//users.service.ts
+@Injectable({
+  providedIn: 'root',
+})
+export class UserService {
+  private apiUrl = `${environment.apiSocial}/users`;
+  private options = {
+    withCredentials: true,
+    headers: {
+      'api-key': `${environment.apiKey}`,
+    },
+  };
+
+  constructor(
+    private http: HttpClient,
+    private beatyLogger: BeatyLoggerServiceService
+  ) { }
+
+  getUsers(page: number): Observable<User[]> {
+    return this.http
+      .get < Response > (`${this.apiUrl}?page = ${page}`, this.options)
+        .pipe(map((res) => res.items));
+  }
+}
+
+//users.component.ts
+@Component({
+  selector: 'app-users',
+  templateUrl: './users.component.html',
+  styleUrls: ['./users.component.scss'],
+})
+export class UsersComponent implements OnInit {
+  users$!: Observable<User[]>;
+  currentPage: number = 1;
+
+  constructor(
+    private userService: UserService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) { }
+
+  ngOnInit(): void {
+    this.getUsers(this.currentPage);
+  }
+
+  getUsers(page: number) {
+    this.users$ = this.userService.getUsers(page);
+  }
+
+  nextPageUsers() {
+    this.currentPage++;
+    //чтобы сначало менялся наш url а после уже запрос на next страницу
+    this.router.navigateByUrl(`/users?page=${this.currentPage}`).then(() => {
+      this.getUsers(this.currentPage);
+    });
+  }
+}
+/* 
+<button class="button" (click)="nextPageUsers()"> Next page</button>
+*/

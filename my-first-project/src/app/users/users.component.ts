@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { User, UserService } from '../service/users.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-users',
@@ -9,10 +10,26 @@ import { User, UserService } from '../service/users.service';
 })
 export class UsersComponent implements OnInit {
   users$!: Observable<User[]>;
+  currentPage: number = 1;
 
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    this.users$ = this.userService.getUsers();
+    this.getUsers(this.currentPage);
+  }
+
+  getUsers(page: number) {
+    this.users$ = this.userService.getUsers(page);
+  }
+
+  nextPageUsers() {
+    this.currentPage++;
+    this.router.navigateByUrl(`/users?page=${this.currentPage}`).then(() => {
+      this.getUsers(this.currentPage);
+    });
   }
 }
