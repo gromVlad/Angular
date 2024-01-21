@@ -1,0 +1,25 @@
+<div class="users-container">
+  <h2>Users</h2>
+
+  <ng-container *ngIf="users$ | async as users; else loading">
+    <div class="user-card" *ngFor="let user of users">
+      <div class="user-info">
+        <div class="user-avatar">
+          <img [src]="user.photos.large || 'placeholder.png'" alt="User Avatar" />
+        </div>
+        <div class="user-details">
+          <h3>{{ user.name }}</h3>
+          <p>Status: {{ user.status || 'N/A' }}</p>
+          <p>Followed: {{ user.followed ? 'Yes' : 'No' }}</p>
+        </div>
+        <a [routerLink]="['/profile',user.id]" routerLinkActive="activebutton" class="button"> Link profile</a>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #loading>
+    <div class="loading-spinner">
+      <span>Loading...</span>
+    </div>
+  </ng-template>
+</div>

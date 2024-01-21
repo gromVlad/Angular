@@ -1,0 +1,41 @@
+<div *ngIf="profile$ | async as profile" class="profile">
+  <h1>{{ profile.fullName }}</h1>
+  <p>Looking for a job: {{ profile.lookingForAJob ? 'Yes' : 'No' }}</p>
+  <p>Job description: {{ profile.lookingForAJobDescription }}</p>
+  
+  <h2>Contacts</h2>
+  <ul>
+    <li>
+      <a href="{{ profile.contacts.github }}" target="_blank">GitHub</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.vk }}" target="_blank">VK</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.facebook }}" target="_blank">Facebook</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.instagram }}" target="_blank">Instagram</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.twitter }}" target="_blank">Twitter</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.website }}" target="_blank">Website</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.youtube }}" target="_blank">YouTube</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.mainLink }}" target="_blank">Main Link</a>
+    </li>
+  </ul>
+  
+  <h2>Photos</h2>
+  <div *ngIf="profile.photos.small">
+    <img [src]="profile.photos.small" alt="Small Photo">
+  </div>
+  <div *ngIf="profile.photos.large">
+    <img [src]="profile.photos.large" alt="Large Photo">
+  </div>
+</div>

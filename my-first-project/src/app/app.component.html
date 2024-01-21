@@ -2,8 +2,10 @@
 <div>
   <!-- [routerLinkActiveOptions]="{exact: true}" - обнавлять классы только при точном совпадении URL со ссылкой -->
   <nav>
-    <a class="button" routerLinkActive="activebutton" routerLink="/todo">Todo</a>
+    <a class="button" routerLinkActive="activebutton" [routerLinkActiveOptions]="{exact: true}" routerLink="/">Todo</a>
     <a class="button" routerLinkActive="activebutton" routerLink="/form">Form</a>
+    <a class="button" routerLinkActive="activebutton" routerLink="/users">Users</a>
+    <a class="button" routerLinkActive="activebutton" routerLink="/profile:id">Profile</a>
   </nav>
 </div>
 <router-outlet></router-outlet>

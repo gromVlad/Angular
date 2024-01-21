@@ -1894,3 +1894,222 @@ const routes: Routes = [
   //неизвестный путь
   { path: '**', redirectTo: '404' },
 ];
+
+//---------------
+//___Роутинг___//
+//получаем юзера по его id
+
+//app-routing.module.ts
+const routes: Routes = [
+  { path: '', component: AppComponent },
+  { path: 'form', component: ChildComponent },
+  { path: 'users', component: UsersComponent },
+  { path: 'profile/:id', component: ProfileComponent },
+  { path: '404', component: PageNotFoundComponent },
+  //неизвестный путь
+  { path: '**', redirectTo: '404' },
+];
+
+@NgModule({
+  declarations: [],
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
+})
+export class AppRoutingModule { }
+
+//users.service.ts
+export interface User {
+  id: number;
+  name: string;
+  status?: string;
+  photos: {
+    small: string | null;
+    large: string | null;
+  };
+  followed: boolean;
+}
+
+interface Response {
+  items: User[];
+  totalCount?: number;
+  error?: string | null;
+}
+
+
+@Injectable({
+  providedIn: 'root',
+})
+export class UserService {
+  private apiUrl = `${environment.apiSocial}/users`;
+  private options = {
+    withCredentials: true,
+    headers: {
+      'api-key': `${environment.apiKey}`,
+    },
+  };
+
+  constructor(
+    private http: HttpClient,
+    private beatyLogger: BeatyLoggerServiceService
+  ) { }
+
+  getUsers(): Observable<User[]> {
+    return this.http
+      .get < Response > (this.apiUrl, this.options)
+        .pipe(map((res) => res.items));
+  }
+}
+
+//users.component.ts
+@Component({
+  selector: 'app-users',
+  templateUrl: './users.component.html',
+  styleUrls: ['./users.component.scss'],
+})
+export class UsersComponent implements OnInit {
+  users$!: Observable<User[]>;
+
+  constructor(private userService: UserService) { }
+
+  ngOnInit(): void {
+    this.users$ = this.userService.getUsers();
+  }
+}
+/* 
+<div class="users-container">
+  <h2>Users</h2>
+
+  <ng-container *ngIf="users$ | async as users; else loading">
+    <div class="user-card" *ngFor="let user of users">
+      <div class="user-info">
+        <div class="user-avatar">
+          <img [src]="user.photos.large || 'placeholder.png'" alt="User Avatar" />
+        </div>
+        <div class="user-details">
+          <h3>{{ user.name }}</h3>
+          <p>Status: {{ user.status || 'N/A' }}</p>
+          <p>Followed: {{ user.followed ? 'Yes' : 'No' }}</p>
+        </div>
+        //идем по роуту
+        <a [routerLink]="['/profile',user.id]" routerLinkActive="activebutton" class="button"> Link profile</a> 
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #loading>
+    <div class="loading-spinner">
+      <span>Loading...</span>
+    </div>
+  </ng-template>
+</div>
+*/
+
+//profile.service.ts
+export interface Profile {
+  userId: number;
+  lookingForAJob: boolean;
+  lookingForAJobDescription: string;
+  fullName: string;
+  contacts: {
+    github: string;
+    vk: string;
+    facebook: string;
+    instagram: string;
+    twitter: string;
+    website: string;
+    youtube: string;
+    mainLink: string;
+  };
+  photos: {
+    small: string | null;
+    large: string | null;
+  };
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class ProfileService {
+  private apiUrl = `${environment.apiSocial}/profile`;
+  private options = {
+    withCredentials: true,
+    headers: {
+      'api-key': `${environment.apiKey}`,
+    },
+  };
+
+  constructor(
+    private http: HttpClient,
+    private beatyLogger: BeatyLoggerServiceService
+  ) { }
+
+  getProfile(id: number): Observable<Profile> {
+    return this.http
+      .get < any > (`${this.apiUrl}/${id}`, this.options)
+  }
+}
+
+//profile.component.ts
+@Component({
+  selector: 'app-profile',
+  templateUrl: './profile.component.html',
+  styleUrls: ['./profile.component.scss'],
+})
+export class ProfileComponent implements OnInit {
+  profile$!: Observable<Profile>
+
+  constructor(private route: ActivatedRoute, private profileService: ProfileService) { }
+
+  ngOnInit(): void {
+    //получаем id по роуту
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      //далее по полученному id отображаем profile
+      this.profile$ = this.profileService.getProfile(+id);
+    }
+  }
+}
+/* 
+//преобразуем profile$ и созраняем его как profile / далее по нем берем данные
+<div *ngIf="profile$ | async as profile" class="profile">
+  <h1>{{ profile.fullName }}</h1>
+  <p>Looking for a job: {{ profile.lookingForAJob ? 'Yes' : 'No' }}</p>
+  <p>Job description: {{ profile.lookingForAJobDescription }}</p>
+  
+  <h2>Contacts</h2>
+  <ul>
+    <li>
+      <a href="{{ profile.contacts.github }}" target="_blank">GitHub</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.vk }}" target="_blank">VK</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.facebook }}" target="_blank">Facebook</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.instagram }}" target="_blank">Instagram</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.twitter }}" target="_blank">Twitter</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.website }}" target="_blank">Website</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.youtube }}" target="_blank">YouTube</a>
+    </li>
+    <li>
+      <a href="{{ profile.contacts.mainLink }}" target="_blank">Main Link</a>
+    </li>
+  </ul>
+  
+  <h2>Photos</h2>
+  <div *ngIf="profile.photos.small">
+    <img [src]="profile.photos.small" alt="Small Photo">
+  </div>
+  <div *ngIf="profile.photos.large">
+    <img [src]="profile.photos.large" alt="Large Photo">
+  </div>
+</div>
+*/
