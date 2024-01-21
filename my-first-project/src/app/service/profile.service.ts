@@ -30,12 +30,12 @@ export interface Profile {
 })
 export class ProfileService {
   private apiUrl = `${environment.apiSocial}/profile`;
-  private options = {
-    withCredentials: true,
-    headers: {
-      'api-key': `${environment.apiKey}`,
-    },
-  };
+  // private options = {
+  //   withCredentials: true,
+  //   headers: {
+  //     'api-key': `${environment.apiKey}`,
+  //   },
+  // };
 
   constructor(
     private http: HttpClient,
@@ -44,6 +44,6 @@ export class ProfileService {
 
   getProfile(id:number): Observable<Profile> {
     return this.http
-      .get<any>(`${this.apiUrl}/${id}`, this.options)
+      .get<any>(`${this.apiUrl}/${id}`)
   }
 }

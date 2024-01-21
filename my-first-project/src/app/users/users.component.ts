@@ -34,3 +34,4 @@ export class UsersComponent implements OnInit {
        .navigate(['/users'], { queryParams: { page: this.currentPage } })
   }
 }
+

@@ -2279,5 +2279,65 @@ export class UsersComponent implements OnInit {
 <button class="button" (click)="nextPageUsers()"> Next page</button>
 */
 
-//--------------------------------
+//-----------------
+//__Interceptor__//
+//перехватчик запросов
+//далее уже отдаем с дополнительными параметрами
+//ng generate interceptor credentials
+
+//app.module.ts
+@NgModule({
+  declarations: [App, AppComponent, ChildComponent, PageNotFoundComponent, UsersComponent, ProfileComponent],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    HttpClientModule,
+    ReactiveFormsModule,
+    AppRoutingModule,
+  ],
+  //это INTERCEPTORS / CredentialsInterceptor - какой внедрить Interceptor / multi - использовать несколько Interceptors
+  providers: [{ provide: HTTP_INTERCEPTORS, useClass: CredentialsInterceptor, multi: true }],
+  bootstrap: [App],
+})
+export class AppModule { }
+
+//credentials.interceptor.ts
+//теперь не вводим в каждый сервис header а interceptor добовляет сам при запросе 
+@Injectable()
+export class CredentialsInterceptor implements HttpInterceptor {
+  constructor() { }
+
+  intercept(
+    request: HttpRequest<unknown>,
+    next: HttpHandler
+  ): Observable<HttpEvent<unknown>> {
+    const secureReq = request.clone({
+      withCredentials: true,
+      headers: new HttpHeaders().append('api-key', environment['apiKey']),
+    });
+    return next.handle(secureReq);
+  }
+}
+
+//users.service.ts
+@Injectable({
+  providedIn: 'root',
+})
+export class UserService {
+  private apiUrl = `${environment.apiSocial}/users`;
+
+  constructor(
+    private http: HttpClient,
+    private beatyLogger: BeatyLoggerServiceService
+  ) { }
+
+  getUsers(page: number): Observable<User[]> {
+    return this.http
+      .get < Response > (`${this.apiUrl}?page = ${page}`)
+        .pipe(map((res) => res.items));
+  }
+}
+
+//------------------------------------
+//__
 

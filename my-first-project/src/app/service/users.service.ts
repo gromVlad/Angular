@@ -27,12 +27,6 @@ interface Response {
 })
 export class UserService {
   private apiUrl = `${environment.apiSocial}/users`;
-  private options = {
-    withCredentials: true,
-    headers: {
-      'api-key': `${environment.apiKey}`,
-    },
-  };
 
   constructor(
     private http: HttpClient,
@@ -41,7 +35,7 @@ export class UserService {
 
   getUsers(page:number): Observable<User[]> {
     return this.http
-      .get<Response>(`${this.apiUrl}?page = ${page}`, this.options)
+      .get<Response>(`${this.apiUrl}?page = ${page}`)
       .pipe(map((res) => res.items));
   }
 }

@@ -32,12 +32,6 @@ export class TodoService {
   todos$: BehaviorSubject<Todos[]> = new BehaviorSubject<Todos[]>([]);
 
   private apiUrl = `${environment.apiUrl}/todo-lists`;
-  private options = {
-    withCredentials: true,
-    headers: {
-      'api-key': `${environment.apiKey}/todo-lists`,
-    },
-  };
 
   constructor(
     private http: HttpClient,
@@ -51,7 +45,7 @@ export class TodoService {
 
   getTodos() {
     this.http
-      .get<Todos[]>(this.apiUrl, this.options)
+      .get<Todos[]>(this.apiUrl)
       .pipe(
         catchError(this.errorhandler.bind(this))
       )
@@ -61,7 +55,7 @@ export class TodoService {
   deleteTodoList(todolistId: string) {
     const url = `${this.apiUrl}/${todolistId}`;
     this.http
-      .delete<ApiResponse>(url, this.options)
+      .delete<ApiResponse>(url)
       .pipe(
         catchError(this.errorhandler.bind(this)),
         map((res) => {
@@ -81,7 +75,6 @@ export class TodoService {
       .post<ApiResponse<CreateTodoResponse>>(
         this.apiUrl,
         requestBody,
-        this.options
       )
       .pipe(
         catchError(this.errorhandler.bind(this)),
