@@ -2338,6 +2338,104 @@ export class UserService {
   }
 }
 
-//------------------------------------
-//__
+//------------
+//__Guards__//
+//ng generate guard [name]
+//Guard в Angular - это сервис, который используется для защиты маршрутов от неавторизованного доступа
+//Существует несколько типов Guard :
+//CanActivate - Этот Guard используется для проверки того, авторизован ли пользователь и имеет ли он необходимые права доступа для посещения маршрута.
+//CanActivateChild - Этот Guard используется для проверки того, авторизован ли пользователь и имеет ли он необходимые права доступа для посещения дочернего маршрута.
+//CanDeactivate - Этот Guard используется для проверки того, может ли пользователь покинуть текущий маршрут.
+//CanLoad - Этот Guard используется для проверки того, может ли модуль быть загружен.
+//при false блокирует роуты при true разблокирует, зявяжем работу его с запросом me()
 
+//authMe.service.ts
+interface AuthMeResponse {
+  resultCode: number;
+  messages: string[];
+  data: {
+    id: number;
+    email: string;
+    login: string;
+  };
+}
+
+enum ResultCode {
+  success = 0,
+  error = 1,
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AutmMeService {
+  private apiUrl = `${environment.apiSocial}/auth/me`;
+  isAuth: boolean = false
+
+  constructor(
+    private http: HttpClient,
+    private beatyLogger: BeatyLoggerServiceService
+  ) { }
+
+  getAuthMe(): void {
+    this.http
+      .get < AuthMeResponse > (this.apiUrl)
+        .subscribe((res) =>
+          res.resultCode === ResultCode.success
+            ? (this.isAuth = true)
+            : (this.isAuth = false)
+        );
+  }
+}
+
+//is-auth-me.guard.ts
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate {
+  constructor(private autmMeService: AutmMeService) { }
+
+  canActivate(
+    next: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): boolean {
+    return this.autmMeService.isAuth
+  }
+}
+
+//app-routing.module.ts
+const routes: Routes = [
+  { path: '', component: AppComponent },
+  { path: 'form', component: ChildComponent },
+  { path: 'users', component: UsersComponent, canActivate: [AuthGuard] }, // <------
+  {
+    path: 'profile/:id',
+    component: ProfileComponent,
+    canActivate: [AuthGuard], // <------
+  },
+  { path: '404', component: PageNotFoundComponent },
+  //неизвестный путь
+  { path: '**', redirectTo: '404' },
+];
+
+@NgModule({
+  declarations: [],
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
+})
+export class AppRoutingModule { }
+
+//app.component.ts
+//иницилизируем
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+})
+export class App implements OnInit {
+  constructor(private autmMeService: AutmMeService) { }
+
+  ngOnInit(): void {
+    this.autmMeService.getAuthMe()
+  }
+}

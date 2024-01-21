@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AutmMeService } from './service/authMe.service';
 
 @Component({
   selector: 'app-root',
@@ -6,11 +7,11 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./app.component.scss'],
 })
 export class App implements OnInit {
-  
+  constructor(private autmMeService: AutmMeService) {}
+
   ngOnInit(): void {
-    throw new Error('Method not implemented.');
+    this.autmMeService.getAuthMe()
   }
-  
 }
 
 
