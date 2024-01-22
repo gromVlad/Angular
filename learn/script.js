@@ -2565,4 +2565,65 @@ export class AppRoutingModule { }
 })
 export class AppModule { }
 
-//--------------------------
+//------------------
+//__Lazy loading__//
+//уменьшить bundle / не загружать все файлы сразу
+//загружает NgModules по мере необходимости
+//Ленивая загрузка помогает уменьшить размер начальных пакетов, что, в свою очередь, сокращает время загрузки.
+
+//profile-routing.module.ts
+const routes: Routes = [
+  {
+    //убираем пути т.к. мы будем использовать его в главном роуте
+    path: '',
+    component: ProfileComponent,
+    canActivate: [AuthGuard],
+  },
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class ProfileRoutingModule { }
+
+//app-routing.module.ts
+const routes: Routes = [
+  {
+    path: '',
+    loadChildren: () => import('./home/home.module').then((m) => m.HomeModule),
+  },
+  {
+    path: 'todo',
+    loadChildren: () => import('./todo/todo.module').then((m) => m.TodoModule),
+  },
+  {
+    path: 'users',
+    loadChildren: () => import('./user/user.module').then((m) => m.UserModule),
+  },
+  {
+    path: 'profile/:id',
+    loadChildren: () =>
+      import('./profile/profile.module').then((m) => m.ProfileModule),
+  },
+  {
+    path: 'form',
+    loadChildren: () => import('./auth/auth.module').then((m) => m.AuthModule),
+  },
+  {
+    path: '404',
+    loadChildren: () =>
+      import('./error/error.module').then((m) => m.ErrorModule),
+  },
+  { path: '**', redirectTo: '404' }
+];
+
+@NgModule({
+  declarations: [],
+  imports: [
+    //preloadingStrategy: PreloadAllModules  - предварительная загрузка  за счет загрузки частей приложения в фоновом режиме тоетсь сначало ленивая загрузка но если ресурсов хватает интернета то в фоновом режиме будет качать другие модули
+    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules }),
+  ],
+  exports: [RouterModule],
+})
+export class AppRoutingModule { }

@@ -5,7 +5,7 @@ import { AuthGuard } from '../сore/guard/is-auth-me.guard';
 
 const routes: Routes = [
   {
-    path: 'profile/:id',
+    path: '',
     component: ProfileComponent,
     canActivate: [AuthGuard],
   },
