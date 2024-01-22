@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { User, UserService } from '../service/users.service';
 import { ActivatedRoute, Params, Router } from '@angular/router';
+import { User, UserService } from '../service/users.service';
 
 @Component({
   selector: 'app-users',

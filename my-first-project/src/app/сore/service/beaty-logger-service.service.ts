@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-
-type LogLevel = "None" | "Info" | "Warn" | "Error"
+import { LogLevel } from '../module/typeBeatyLog';
 
 @Injectable({
   providedIn: 'root'

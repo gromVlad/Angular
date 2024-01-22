@@ -1528,6 +1528,7 @@ export class AppComponent implements OnInit {
 
   createTodoList(): void {
     this.todoService.createTodoList(this.forms.value as string);
+    this.forms.reset();
   }
 }
 /* 
@@ -2484,3 +2485,84 @@ export class AppModule { }
 
 //-----------------------
 //__Перевод на модули__//
+//ng generate module [name]
+//ng generate module [name] --routing с роутами
+
+//__сore ->  guard / interceptor / module(типизация) / service(общие) / сore.module.ts
+
+//сore.module.ts
+@NgModule({
+  declarations: [],
+  imports: [CommonModule, HttpClientModule],
+  //не забыть их кинуть в провайдеры т.к убрали у этих сервисов providedIn ( @Injectable({ providedIn: 'root', })) / также не забыть про INTERCEPTORS
+  providers: [
+    AutmMeService,
+    AuthGuard,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: CredentialsInterceptor,
+      multi: true,
+    },
+  ],
+})
+export class СoreModule { }
+
+//__shared то же самое только с компонентами которые исполльзуеться повсюду и декораторами
+
+//__по Feature -> на примере  components(сама компонента с html  и css) / service (ее сервис) / profile-routing.module.ts(ее путь) / profile.module.ts (ее модуль) 
+
+//profile-routing.module.ts
+const routes: Routes = [
+  {
+    path: 'profile/:id',
+    component: ProfileComponent,
+    canActivate: [AuthGuard],
+  },
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class ProfileRoutingModule { }
+
+//profile.module.ts
+@NgModule({
+  declarations: [ProfileComponent],
+  imports: [CommonModule, ProfileRoutingModule],
+})
+export class ProfileModule { }
+
+//__главный модуль
+
+//app-routing.module.ts
+const routes: Routes = [{ path: '**', redirectTo: '404' }];
+
+@NgModule({
+  declarations: [],
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
+})
+export class AppRoutingModule { } 
+
+//app.module.ts
+@NgModule({
+  declarations: [App],
+  imports: [
+    BrowserModule,
+    СoreModule,
+    AuthModule,
+    HomeModule,
+    ProfileModule,
+    SharedModule,
+    TodoModule,
+    UserModule,
+    ErrorModule,
+    AppRoutingModule // <--- Поместите AppRoutingModule в конец списка импортируемых модулей. Таким образом, другие модули будут иметь приоритет перед AppRoutingModule, и их маршруты будут обрабатываться раньше / чтобы коректно работал redirectTo (он должен находиться под остальными роутами)
+  ],
+  providers: [],
+  bootstrap: [App],
+})
+export class AppModule { }
+
+//--------------------------

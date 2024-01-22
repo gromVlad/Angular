@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { BeatyLoggerServiceService } from '../beaty/beaty-logger-service.service';
+import { BeatyLoggerServiceService } from '../../сore/service/beaty-logger-service.service';
 
 export interface User {
   id: number;

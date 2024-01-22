@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AutmMeService } from './service/authMe.service';
+import { AutmMeService } from './сore/service/authMe.service';
 
 @Component({
   selector: 'app-root',

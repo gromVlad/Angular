@@ -4,14 +4,13 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'main-child',
-  templateUrl: './child.component.html',
-  styleUrls: ['./child.component.scss'],
+  templateUrl: './form.component.html',
+  styleUrls: ['./form.component.scss'],
 })
-export class ChildComponent implements OnInit {
+export class FormComponent implements OnInit {
   formValueObj: {} | null = null;
 
   ngOnInit(): void {
-    throw new Error('Method not implemented.');
   }
 
   profileForm = new FormGroup({

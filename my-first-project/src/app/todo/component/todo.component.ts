@@ -1,14 +1,15 @@
-import { TodoService, Todos } from './todoService.service';
 import { Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Observable} from 'rxjs';
+import { TodoService} from '../service/todoService.service';
+import { Todos } from '../module/interfaceTodo';
 
 @Component({
   selector: 'main-root',
-  templateUrl: './main.component.html',
-  styleUrls: ['./main.component.scss'],
+  templateUrl: './todo.component.html',
+  styleUrls: ['./todo.component.scss'],
 })
-export class AppComponent implements OnInit {
+export class TodoComponent implements OnInit {
   public todosList$!: Observable<Todos[]>;
   
   forms = new FormControl('');
@@ -32,6 +33,7 @@ export class AppComponent implements OnInit {
 
   createTodoList(): void {
     this.TodoService.createTodoList(this.forms.value as string);
+    this.forms.reset();
   }
 }
 
