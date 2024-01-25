@@ -84,3 +84,33 @@ export class AppComponent {
 //-----------------------
 //__What is a Component
 //Компонент эта ключая функция angular
+//В корневой компонент включаем все остальные компоненты
+//cтили по умолчанию не действует глобально а локально на свой шаблон
+import { Component } from '@angular/core';
+@Component({
+  selector: 'app-header',
+  template: `
+    <h1>Hello World!</h1>
+    <p>This template definition spans multiple lines.</p>
+  `,
+  styles: ['h1 { font-weight: normal; }']
+})
+export class HeaderComponent { }
+
+//app.component.html
+//<h1>hello</h1>
+//<app-header></app-header>
+
+//styles.scss - эти стили будут применины ко всему приложению глобально типо шрифт и т.д
+/* 
+*{
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+}
+body{
+    font-family: 'Montserrat', sans-serif;
+}
+*/
+
+//..11
