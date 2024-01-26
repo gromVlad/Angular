@@ -86,6 +86,7 @@ export class AppComponent {
 //Компонент эта ключая функция angular
 //В корневой компонент включаем все остальные компоненты
 //cтили по умолчанию не действует глобально а локально на свой шаблон
+
 import { Component } from '@angular/core';
 @Component({
   selector: 'app-header',
@@ -113,4 +114,44 @@ body{
 }
 */
 
-//..11
+//-------------------------------------
+//___Create Component 
+//Генерирует и/или изменяет файлы на основе схемы.
+//ng generate component [name]
+//selector: '[app-header]' | '.app-header' | '#app-header'  - можно использовать как селектор, как класс, как id, не рекомендуеться используем как тэг
+
+//------------------
+//__Data Binding__//
+//Привязка данных - поток данных связывающий класс компонента и шаблон
+//существет одностороняя привязка данных и двустороняя привязка данных(могут передоваться в обоих направлениях)
+
+//_String Interpolation
+@Component({
+  selector: 'product-list',
+  templateUrl: './product-list.component.html',
+  styleUrls: ['./product-list.component.css']
+})
+export class ProductListComponent {
+  addToCart: number = 0;
+  product = {
+    name: 'iPhone X',
+    price: 789,
+    color: 'Black',
+    discount: 8.5,
+    inStock: 10,
+    pImage: '/assets/images/iphone.png'
+  }
+
+  getDiscountedPrice() {
+    return this.product.price - (this.product.price * this.product.discount / 100)
+  }
+}
+/* 
+<p>Name: {{ product.name }}</p>
+<p>Price: {{ '$' + product.price }}</p>
+<p>Color: {{product.color}}</p>
+<p>Discounted Price: {{ getDiscountedPrice().toFixed(2) }}</p>
+<p>{{product.inStock > 0 ? 'Only' + product.inStock +' items left': 'Not in Stock'}}</p>
+*/
+
+
