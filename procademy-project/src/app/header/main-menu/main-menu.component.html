@@ -3,4 +3,6 @@
     <a href="#">Products</a>
     <a href="#">About</a>
     <a href="#">Contact</a>
+    <!-- the same -->
+    <a *ngFor="let item of list" [href]="'/' + item">{{item}}</a>
 </div>
