@@ -682,7 +682,7 @@ export class MyComponent implements OnChanges {
 
   // Свойство, которое будет обновляться в методе `ngOnChanges()`
   public fullName: string;
- 
+
   ngOnChanges(changes: SimpleChanges) {
     // Метод `ngOnChanges()` вызывается, когда Angular устанавливает или сбрасывает входные свойства.
 
@@ -847,3 +847,263 @@ export class MyComponent implements OnDestroy {
 
 //--------------------------------
 //__Custom Attribute Directive__//
+//create setbacground and color
+
+import { Directive, ElementRef, Input } from '@angular/core';
+
+@Directive({
+  selector: '[appSetBackground]'
+})
+export class SetBackgroundDirective {
+
+  //Директива принимает входной параметр color, который указывает цвет фона.
+  @Input('appSetBackground') color: string;
+
+  constructor(private el: ElementRef) { }
+
+  ngOnInit() {
+    //не рекомендуеться напрямую взаимодействоать с DOM т.к. будет работать только в браузерах, небезосны для атак и т.д.
+    this.el.nativeElement.style.backgroundColor = this.color;
+  }
+
+}
+
+//<div appSetBackground color="red">...</div>
+
+//--------------------------
+//__Renderer2 in Angular__//
+//класс который предостовляет возможность через него взаимодействовать с DOM
+
+import { Component, ElementRef, Renderer2 } from '@angular/core';
+
+@Component({
+  selector: 'my-app',
+  template: '<div id="my-element">Hello, world!</div>'
+})
+export class AppComponent {
+
+  constructor(private el: ElementRef, private renderer: Renderer2) { }
+
+  ngOnInit() {
+    // Создаем новый элемент
+    const newElement = this.renderer.createElement('p');
+
+    // Устанавливаем текст нового элемента
+    this.renderer.setProperty(newElement, 'textContent', 'This is a new element.');
+
+    // Добавляем новый элемент в DOM
+    this.renderer.appendChild(this.el.nativeElement, newElement);
+
+    // Устанавливаем стиль нового элемента
+    this.renderer.setStyle(newElement, 'color', 'red');
+
+    // Добавляем класс новому элементу
+    this.renderer.addClass(newElement, 'my-class');
+
+    // Удаляем класс из нового элемента
+    this.renderer.removeClass(newElement, 'my-class');
+
+    // Устанавливаем атрибут новому элементу
+    this.renderer.setAttribute(newElement, 'id', 'my-new-element');
+
+    // Удаляем атрибут из нового элемента
+    this.renderer.removeAttribute(newElement, 'id');
+
+    // Добавляем обработчик события к новому элементу
+    this.renderer.listen(newElement, 'click', (event) => {
+      alert('Новый элемент был нажат.');
+    });
+
+    // Удаляем обработчик события из нового элемента
+    this.renderer.removeListener(newElement, 'click');
+
+    // Удаляем новый элемент из DOM
+    this.renderer.removeChild(this.el.nativeElement, newElement);
+  }
+
+}
+
+//-----------------------------
+//__@HostListner in Angular__//
+
+/* 
+Вот список всех возможных событий, которые можно прослушивать с помощью директивы @HostListener:
+click - событие щелчка мыши
+dblclick - событие двойного щелчка мыши
+mousedown - событие нажатия кнопки мыши
+mouseup - событие отпускания кнопки мыши
+mousemove - событие перемещения мыши
+mouseover - событие наведения курсора мыши на элемент
+mouseout - событие ухода курсора мыши с элемента
+keydown - событие нажатия клавиши клавиатуры
+keyup - событие отпускания клавиши клавиатуры
+keypress - событие нажатия и удержания клавиши клавиатуры
+resize - событие изменения размера окна браузера
+scroll - событие прокрутки окна браузера
+focus - событие получения фокуса элементом
+blur - событие потери фокуса элементом
+*/
+
+import { Directive, HostListener } from '@angular/core';
+
+@Directive({
+  selector: '[appClick]'
+})
+export class ClickDirective {
+
+  constructor(private el: ElementRef, private renderer: Renderer2) { }
+
+  @HostListener('mouseover')
+  onClick() {
+    this.renderer.setStyle(this.el.nativeElement, 'color', 'red');
+  }
+
+}
+
+//-----------------------------
+//__@HostBinding in Angular__//
+//@HostBinding в Angular позволяет привязать свойство хост-элемента директивы к свойству компонента или директивы
+import { Component, Directive, HostBinding } from '@angular/core';
+
+@Component({
+  selector: 'my-component',
+  template: '<div appColor>...</div>'
+})
+export class MyComponent {
+  color = 'red';
+}
+
+//_
+@Directive({
+  selector: '[appColor]'
+})
+export class ColorDirective {
+
+  @HostBinding('style.color')
+  color: string;
+
+  constructor(private component: MyComponent) {
+    //не надо обращаться через this.el.nativeElement и т.д. а проще сохранить как свойство а потом просто использовать
+    this.color = component.color;
+  }
+}
+
+//-------------------------------------
+//__Property Binding vs @HostBinding__//
+
+// Привязку свойств следует использовать в следующих случаях:
+// Когда необходимо привязать свойство компонента или директивы к свойству хост - элемента, и изменения в свойстве хост - элемента не должны приводить к изменениям в свойстве компонента или директивы.
+
+// @HostBinding следует использовать в следующих случаях:
+// Когда необходимо привязать свойство хост - элемента к свойству компонента или директивы, и изменения в свойстве хост - элемента должны приводить к изменениям в свойстве компонента или директивы.
+// Когда необходимо привязать свойство хост - элемента к свойству компонента или директивы, и изменения в свойстве компонента или директивы должны приводить к изменениям в свойстве хост - элемента.
+
+//-----------------------------------
+//__Property Binding in Directives__//
+//Привязка свойств в директивах позволяет связать свойства хост-элемента директивы со свойствами компонента или директивы. Хост-элемент - это элемент, к которому применяется директива.
+
+import { Directive, ElementRef } from '@angular/core';
+
+@Directive({
+  selector: '[appColor]'
+})
+export class ColorDirective {
+
+  constructor(private el: ElementRef) { }
+
+  //1 вариант @Input() color: string;
+  //2 @Input('appColor') color: string;
+  //3 @Input('appColor') color: string = 'red'
+  @Input('appColor') color: { backgroundColor: string, color: string }
+
+  ngOnInit() {
+    this.el.nativeElement.style.color = this.color.backgroundColor;
+  }
+
+}
+//1) <div appColor [color]='"red"'>...</div>
+//2) <div [appColor] = '"red"'>...</div>
+//3) по умолчанию <div [appColor] >...</div>
+//4 использовать объект <div [appColor]='"{backgroundColor:'...', color:'..'}"' >...</div>
+
+//-------------------------------------
+//__Conditional Attribute Directive__//
+//Условная директива атрибута (conditional attribute directive) - это директива, которая позволяет условно добавлять или удалять атрибут из хост-элемента директивы.
+
+import { Directive, Input } from '@angular/core';
+
+@Directive({
+  selector: '[appShow]'
+})
+export class ShowDirective {
+
+  @Input()
+  set show(value: boolean) {
+    if (this.show) {
+      this.el.nativeElement.setAttribute('appShow', '');
+    }
+  }
+
+}
+//<div *appShow="show">...</div>
+
+//---------------------------------------
+//__Creating a Custom Class Directive__//
+//Использование сеттера и геттера позволяет нам лучше контролировать доступ к входному параметру customClass и выполнять дополнительные действия при его изменении.
+
+import { Directive, Input } from '@angular/core';
+
+@Directive({
+  selector: '[appCustomClass]'
+})
+export class CustomClassDirective {
+
+  @Input('appCustomClass')
+  set customClass(value: 'string' |'object') {
+    if (typeof value === 'string') {
+      this.el.nativeElement.classList.add(value);
+    } else if (typeof value === 'object') {
+      for (const key in value) {
+        if (value[key]) {
+          this.el.nativeElement.classList.add(key);
+        }
+      }
+    }
+  }
+
+}
+//<div [appCustomClas]="customClass">...</div>
+
+//----------------------------------------
+//___Creating a Custom Class Directive__//
+//аналог ngStyle
+
+import { Directive, Input } from '@angular/core';
+
+@Directive({
+  selector: '[appSetStyle]'
+})
+export class SetStyleDirective {
+
+  constructor(private renderer: Renderer2, private el: ElementRef) { }
+
+
+  @Input() appSetStyle(value:Object) {
+    for (const key in value) {
+      this.renderer.setStyle(this.el.nativeElement, key, value[key]);
+    }
+  }
+}
+
+export class MyComponent {
+  setStyle = {
+    'color': 'red',
+    'font-size': '20px',
+    'background-color': 'blue'
+  };
+}
+//<div *appSetStyle="setStyle">...</div>
+
+//--------------------------------------
+//__How a Structural Directive Works__//
+//
