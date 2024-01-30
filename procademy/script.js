@@ -541,5 +541,170 @@ export class MyComponentComponent {
 </div>
 */
 
+//--------------------------
+//__ng-content__//
+//Проекция содержимого - это шаблон, в который вы вставляете или проектируете содержимое, которое хотите использовать внутри другого компонента
+/* 
+<app-zippy-basic>
+  <p>Is content projection cool?</p>
+</app-zippy-basic>
+*/
+import { Component } from '@angular/core';
 
+@Component({
+  selector: 'app-zippy-basic',
+  template: `
+    <h2>Single-slot content projection</h2>
+    <ng-content></ng-content> // <---  <ng-content> Элемент является заполнителем
+  `
+})
+export class ZippyBasicComponent { }
+
+//Компонент может иметь несколько слотов
+
+/* 
+<app-zippy-multislot>
+  <p question>
+    Is content projection cool?
+  </p>
+  <p>Let's learn about content projection!</p>
+</app-zippy-multislot>
+*/
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-zippy-multislot',
+  template: `
+    <h2>Multi-slot content projection</h2>
+
+    Default:
+    <ng-content></ng-content>
+
+    Question:
+    <ng-content select="[question]"></ng-content> // <--- select - > указывает что именно вставить / как его распознать / в примере по тэгу / можно использовать и класс элемента и т.д.
+  `
+})
+export class ZippyMultislotComponent { }
+
+//--------------------
+//__ContentChild()__//
+//Она позволяет получить доступ к дочерним элементам компонента из его кода, используя селекторы или имена классов
+
+import { Component, ContentChild } from '@angular/core';
+
+@Component({
+  selector: 'app-custom-component',
+  template: `
+    <div>
+      <app-child>
+        Custom Component
+        <header #header>Hello</header> // < -- получаем доступ к элементам внутри другого элемента 
+      </app-child>
+      <ng-content></ng-content>
+    </div>
+  `,
+})
+export class CustomComponent {
+  //ViewChild работать не будет т.к. элемент вложенен в другой элемент
+  @ContentChild('header')
+  header: ElementRef;
+
+  ngAfterContentInit() {
+    console.log(this.header); // Выводит найденный элемент с селектором 'header'
+  }
+}
+
+//-----------------------
+//__ContentChildren()__//
+//ContentChildren() – то же самое что и ContentChild() но позволяет получить доступ к коллекции дочерних элементов внутри компонента.
+@Component({
+  selector: 'app-custom-component',
+  template: `
+    <div>
+      <app-child>
+        Custom Component
+        <header #header>Hello</header> // < -- получаем доступ к элементам внутри другого элемента 
+        <header #header>Hello</header> 
+        <header #header>Hello</header> 
+      </app-child>
+      <ng-content></ng-content>
+    </div>
+  `,
+})
+export class CustomComponent {
+  //если используем сам компонент то пишем @ContentChildren(AppChild) items: QueryList<AppChild>;
+  @ContentChildren('header')
+  items: QueryList<ElementRef>;
+
+  ngAfterContentInit() {
+    this.items.forEach(element => {
+      element
+    }); // Выводит найденный элемент с селектором 'header' из массива элементов
+  }
+}
+
+//-----------------------------------------------------------
+//__Component Initialization | Lifecycle Hooks in Angular__//
+//При инициализации при создании компоненты создаеться экземпляр каждый раз, тоесть конструктор будет вызван
+//если продублировали  3 компоненты то и создаеться 3 экземпляра с вызовом коснтруктора
+//входные свойства не появлються в конструкторе (@Input() только те которые были по умолчанию после = "") только те которые были заложены внутри самого компонента
+//Тоесть в констукторе инициализируеться начальные занчение всех свойств и значений и больше ничего, представление компоненты не отрисованы, и входные сойства еще не обновлялись
+//Lifecycle - последовательность методов, которые вызываются в процессе создания, инициализации, обновления и уничтожения компонента (ngOnChanges(), ngOnInit(), ngDoCheck(), ngAfterContentInit(), ngAfterContentChecked(), ngAfterViewInit(), ngAfterViewChecked(), ngOnDestroy())
+export class MyComponent {
+  // Свойство, которое инициализируется в конструкторе
+  name: string = 'John Doe';
+
+  // Входное свойство, которое не будет доступно в конструкторе
+  @Input() age: number = 0;
+
+  constructor() {
+    // Конструктор вызывается при создании компонента.
+    // Входное свойство `age` еще не инициализировано, поэтому оно равно значению по умолчанию (0).
+
+    console.log('Конструктор вызывается.');
+    console.log(`Имя: ${this.name}`);
+    console.log(`Возраст: ${this.age}`);
+  }
+}
+/* 
+Конструктор вызывается.
+Имя: John Doe
+Возраст: 0
+*/
+
+//-------------------------------------------------------------
+//__ngOnChanges Lifecycle Hook | Lifecycle Hooks in Angular__//
+//Цикл обнаружение изменений запускаеться при изменений входных, значений, измениний по средствам событий, интервалы, и запросы http
+//ngOnChanges() - реагирует, когда Angular устанавливает или сбрасывает входные свойства, привязанные к данным, не вызваеться если не будет изменений и отличий от текущего
+export class MyComponent implements OnChanges {
+  // Входное свойство
+  @Input() name: string;
+
+  // Свойство, которое будет обновляться в методе `ngOnChanges()`
+  public fullName: string;
+ 
+  ngOnChanges(changes: SimpleChanges) {
+    // Метод `ngOnChanges()` вызывается, когда Angular устанавливает или сбрасывает входные свойства.
+
+    console.log('Метод `ngOnChanges()` вызывается.');
+
+    // Проверяем, изменилось ли входное свойство `name`.
+    if (changes['name']) {
+      console.log(`Новое значение свойства 'name': ${changes['name'].currentValue}`);
+
+      // Обновляем свойство `fullName`.
+      this.fullName = `${this.name} Doe`;
+    }
+  }
+}
+/* 
+Метод `ngOnChanges()` вызывается.
+Новое значение свойства 'name': John
+Метод `ngOnChanges()` вызывается.
+Новое значение свойства 'name': Jane
+*/
+
+//----------------------------------------------------------
+//__ngOnInit Lifecycle Hook | Lifecycle Hooks in Angular__//
+//ngOnInit() - Инициализируйте директиву или компонент после того, как Angular сначала отобразит свойства, привязанные к данным, и установит входные свойства директивы или компонента. 
 
