@@ -706,5 +706,144 @@ export class MyComponent implements OnChanges {
 
 //----------------------------------------------------------
 //__ngOnInit Lifecycle Hook | Lifecycle Hooks in Angular__//
-//ngOnInit() - Инициализируйте директиву или компонент после того, как Angular сначала отобразит свойства, привязанные к данным, и установит входные свойства директивы или компонента. 
+//ngOnInit() - Инициализируйте директиву или компонент после того, как Angular сначала отобразит свойства, привязанные к данным, и установит входные свойства директивы или компонента. Вызывается один раз, после первого ngOnChanges(), ссылочные данные не работают (такие как @ContentChildren и т.д.)
 
+export class MyComponent implements OnInit {
+  // Входное свойство
+  @Input() name: string;
+
+  // Свойство, которое будет инициализировано в методе `ngOnInit()`
+  public fullName: string;
+
+  ngOnInit() {
+    // Метод `ngOnInit()` вызывается после того, как Angular отобразит свойства, привязанные к данным, и установит входные свойства директивы или компонента.
+
+    console.log('Метод `ngOnInit()` вызывается.');
+
+    // Инициализируем свойство `fullName`.
+    this.fullName = `${this.name} Doe`;
+  }
+}
+//Метод `ngOnInit()` вызывается.
+
+//-----------------------------------------------------------
+//__ngDoCheck Lifecycle Hook | Lifecycle Hooks in Angular__//
+//Вызывается сразу после ngOnChanges() при каждом запуске обнаружения изменений и сразу после ngOnInit() при первом запуске.
+//Не имеет значение изменилось что то или нет всегда будет вызываться, также при отработке событий.Ссылочные данные не работают (такие как @ContentChildren, Viewchild и т.д.)
+
+export class MyComponent implements DoCheck {
+  // Свойство, которое будет обновляться в методе `ngDoCheck()`
+  public count: number = 0;
+
+  ngDoCheck() {
+    // Метод `ngDoCheck()` вызывается сразу после `ngOnChanges()` при каждом запуске обнаружения изменений и сразу после `ngOnInit()` при первом запуске.
+
+    console.log('Метод `ngDoCheck()` вызывается.');
+
+    // Увеличиваем значение свойства `count`.
+    this.count++;
+  }
+}
+//Метод `ngDoCheck()` вызывается.
+
+//--------------------------------------------------------------------
+//__ngAfterContentInit Lifecycle Hook | Lifecycle Hooks in Angular__//
+//Реагирует после того, как Angular проецирует внешний контент в представление компонента или в представление, в котором находится директива.Вызывается один раз после первой ngDoCheck(), при проецировании вложенного контента внутри какого либо компонента (типо ng-content, также будут инициализированы ContentChildren() и ContentChild()),не видит свойство оформленые при использовании Viewchild и Viewchildren
+//только для компонент не можем использовать в дерективе
+
+export class MyComponent implements AfterContentInit {
+  @ContentChild('pr') projectedContent: ElementRef;
+
+  ngDoCheck() {
+    console.log(this.content.nativeElement.textContent)// not work
+  }
+
+  ngAfterContentInit() {
+    // Метод `ngAfterContentInit()` вызывается после того, как Angular проецирует внешний контент в представление компонента или в представление, в котором находится директива.
+
+    console.log('Метод `ngAfterContentInit()` вызывается.');
+
+    // Получаем проецируемый контент.
+    console.log(this.content.nativeElement.textContent)
+  }
+}
+//undefined
+//Метод `ngAfterContentInit()` вызывается.
+//hello
+
+//-----------------------------------------------------------------------
+//__ngAfterContentChecked Lifecycle Hook | Lifecycle Hooks in Angular__//
+//вызываеться при каждом обнаружении изменении в контенте,вызывается после ngAfterContentInit() и каждой последующей ngDoCheck(),также будут инициализированы ContentChildren() и ContentChild(), также будет запускаться при событий и т.д. даже если ничего не меняеться
+//не видит свойство оформленые при использовании Viewchild и Viewchildren
+//только для компонент не можем использовать в дерективе
+
+export class MyComponent implements AfterContentChecked {
+  @ContentChild('pr') projectedContent: ElementRef;
+
+  ngAfterContentChecked() {
+    // Метод `ngAfterContentChecked()` вызывается при каждом обнаружении изменений в контенте.
+
+    console.log('Метод `ngAfterContentChecked()` вызывается.');
+
+    // Получаем длину проецируемого контента.
+    console.log(this.content.nativeElement.textContent)
+  }
+}
+//Метод `ngAfterContentChecked()` вызывается.
+
+//-----------------------------------------------------------------
+//__ngAfterViewInit Lifecycle Hook | Lifecycle Hooks in Angular__//
+//Реагировать после того, как Angular инициализирует представления компонента и дочерние представления или представление, содержащее директиву.
+//Вызывается один раз после первого ngAfterContentChecked()
+//инициализирует свойство оформленые при использовании Viewchild и Viewchildren
+//только для компонент не можем использовать в дерективе
+
+export class MyComponent implements AfterViewInit {
+  @Viewchild('pr') childElement: ElementRef;
+
+  ngAfterViewInit() {
+    // Метод `ngAfterViewInit()` вызывается после того, как Angular инициализирует представления компонента и дочерние представления или представление, содержащее директиву.
+
+    console.log('Метод `ngAfterViewInit()` вызывается.');
+
+    // Получаем ссылку на дочерний элемент.
+    console.log(this.child.nativeElement)
+  }
+}
+
+//--------------------------------------------------------------------
+//__ngAfterViewChecked Lifecycle Hook | Lifecycle Hooks in Angular__//
+//Angular проверит представления компонента и дочерние представления или представление, содержащее директиву,даже если ничего не меняеться
+//Вызывается после ngAfterViewInit() и каждого последующего ngAfterContentChecked().
+//следит за свойствами оформленые при использовании Viewchild и Viewchildren
+//только для компонент не можем использовать в дерективе
+
+
+export class MyComponent implements AfterViewChecked {
+  @Viewchild('pr') childElement: ElementRef;
+
+  ngAfterViewChecked() {
+    // Метод `ngAfterViewChecked()` вызывается после того, как Angular проверит представления компонента и дочерние представления или представление, содержащее директиву.
+
+    console.log('Метод `ngAfterViewChecked()` вызывается.');
+
+    // Получаем ширину дочернего элемента.
+    console.log(this.child.nativeElement)
+  }
+}
+//Метод `ngAfterViewChecked()` вызывается.
+
+//-------------------------------------------------------------
+//__ngOnDestroy Lifecycle Hook | Lifecycle Hooks in Angular__//
+//Очистка непосредственно перед уничтожением директивы или компонента Angular. Отмените подписку на наблюдаемые объекты и отсоедините обработчики событий, чтобы избежать утечек памяти.Вызывается непосредственно перед тем, как Angular уничтожит директиву или компонент.
+
+export class MyComponent implements OnDestroy {
+
+  ngOnDestroy() {
+    // Метод `ngOnDestroy()` вызывается непосредственно перед тем, как Angular уничтожит директиву или компонент.
+    console.log('Метод `ngOnDestroy()` вызывается.');
+  }
+}
+
+//--------------------------------
+//__Custom Attribute Directive__//
