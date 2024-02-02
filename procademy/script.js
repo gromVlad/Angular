@@ -1059,7 +1059,7 @@ import { Directive, Input } from '@angular/core';
 export class CustomClassDirective {
 
   @Input('appCustomClass')
-  set customClass(value: 'string' |'object') {
+  set customClass(value: 'string' | 'object') {
     if (typeof value === 'string') {
       this.el.nativeElement.classList.add(value);
     } else if (typeof value === 'object') {
@@ -1088,7 +1088,7 @@ export class SetStyleDirective {
   constructor(private renderer: Renderer2, private el: ElementRef) { }
 
 
-  @Input() appSetStyle(value:Object) {
+  @Input() appSetStyle(value: Object) {
     for (const key in value) {
       this.renderer.setStyle(this.el.nativeElement, key, value[key]);
     }
@@ -1106,4 +1106,278 @@ export class MyComponent {
 
 //--------------------------------------
 //__How a Structural Directive Works__//
-//
+//Структурная директива, которая условно включает шаблон, основанный на значении выражения, приведенного к логическому значению. Когда выражение принимает значение true, Angular отображает шаблон, указанный в then предложении, а когда false или null, Angular отображает шаблон, указанный в необязательном else предложении
+
+//<app-conditional-component [show]="show"></app-conditional-component>
+import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'app-conditional-component',
+  template: '<div *ngIf="show">...</div>'
+})
+export class ConditionalComponent {
+
+  @Input() show: boolean;
+
+}
+
+//other
+/* 
+<div *ngIf="condition; then thenBlock else elseBlock"></div>
+<ng-template #thenBlock>Content to render when condition is true.</ng-template>
+<ng-template #elseBlock>Content to render when condition is false.</ng-template>
+*/
+
+//вместо *ngIf ... можем написать 
+/* 
+<ng-template [ngIf]="show">
+  <div>...</div>
+</ng-template>
+*/
+
+//---------------------------------
+//__Custom Structural Directive__//
+
+
+import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
+
+@Directive({
+  selector: '[appCustomIf]'
+})
+export class CustomIfDirective {
+
+  private _show: boolean;
+
+  @Input()
+  set appCustomIf(value: boolean) {
+    this._show = value;
+    this.updateView();
+  }
+
+  constructor(private templateRef: TemplateRef<any>, private viewContainerRef: ViewContainerRef) { }
+
+  private updateView() {
+    if (this._show) {
+      this.viewContainerRef.createEmbeddedView(this.templateRef);
+    } else {
+      this.viewContainerRef.clear();
+    }
+  }
+
+}
+//использование структурной дерективы добовляем *
+//<app-my-component *appCustomIf="show"></app-my-component>
+
+//-------------------
+//___ngSwitchCase__//
+
+//<app-switch-component [value]="value"></app-switch-component>
+@Component({
+  selector: 'app-switch-component',
+  template: `
+    <div [ngSwitch]="value">
+      <div *ngSwitchCase="'A'">...</div>
+      <div *ngSwitchCase="'B'">...</div>
+      <div *ngSwitchCase="'C'">...</div>
+      <div *ngSwitchDefault>...</div>
+    </div>
+  `
+})
+export class SwitchComponent {
+  @Input() value: string;
+}
+
+//---------------------------------
+//___What is View Encapsulation__//
+//View Encapsulation - это механизм в Angular, который позволяет изолировать стили компонента от стилей других компонентов. Это означает, что стили компонента не будут влиять на стили других компонентов, и наоборот.
+
+/* 
+есть три режима View Encapsulation:
+ - Emulated (по умолчанию): В этом режиме Angular пытается эмулировать Shadow DOM, применяя CSS-классы с уникальными идентификаторами к элементам компонента. Это позволяет применять стили компонента только к его собственным элементам, изолируя их от внешнего контекста. Это достигается с помощью префикса уникального атрибута ng-сomponent- к CSS-классам, которые применяются к элементам компонента.
+- None: В этом режиме стили компонента применяются глобально, без всякой изоляции. Это означает, что стили компонента могут влиять на другие элементы на странице, и стили из внешнего контекста могут влиять на элементы компонента.
+- ShadowDom: В этом режиме Angular использует настоящий Shadow DOM, который обеспечивает полную изоляцию стилей и кода компонента от внешнего контекста. Стили компонента применяются только к элементам внутри его Shadow DOM, и стили из внешнего контекста не проникают внутрь компонента.
+*/
+
+//ViewEncapsulation.Emulated - используеться по умолчанию
+@Component({
+  selector: 'app-button',
+  template: '<button class="button">Click me</button>',
+  styles: ['.button { background-color: blue; color: white; }'],
+  encapsulation: ViewEncapsulation.Emulated
+})
+export class ButtonComponent { }
+//Angular автоматически добавит уникальный атрибут с префиксом ng-component- к классу стиля компонента. Например, вместо класса "button" наша кнопка будет иметь класс "ng-component-button". Это обеспечивает изоляцию стилей компонента от внешнего контекста
+
+//--------------------------------
+//__What is Service in Angular__//
+//Сервисы выполняют роль поставщиков данных и функций для компонентов, а также предоставляют механизмы для обработки бизнес-логики приложения
+
+/* 
+Сервисы в Angular могут быть использованы для:
+- Предоставления данных: Сервисы могут предоставлять данные, полученные из удаленного сервера, локального хранилища или других источников данных. Они могут выполнять запросы HTTP, работать с базами данных или получать данные из других сервисов.
+- Обработки бизнес-логики: Сервисы могут содержать логику, связанную с обработкой данных, выполнением сложных вычислений или взаимодействием с другими сервисами. Они могут быть ответственными за обработку событий, валидацию данных, авторизацию и т.д.
+- Взаимодействия с внешними ресурсами: Сервисы могут обеспечивать взаимодействие с внешними ресурсами, такими как API сторонних сервисов, платежные системы, сенсоры устройств и другие интеграции.
+- Обмен данными между компонентами: Сервисы могут использоваться для обмена данными между компонентами. Они могут хранить общие данные или состояние, которые могут быть доступны различным компонентам в приложении. Это позволяет обеспечить согласованность данных и избежать дублирования кода.
+*/
+
+//---------------------------------
+//___ Creating & Using Services__//
+
+//__
+export class DataService {
+  private data: string[];
+
+  constructor() {
+    this.data = ['Apple', 'Banana', 'Orange'];
+  }
+
+  getData(): string[] {
+    return this.data;
+  }
+
+  addData(item: string): void {
+    this.data.push(item);
+  }
+}
+
+//__
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <ul>
+      <li *ngFor="let item of data">{{ item }}</li>
+    </ul>
+    <button (click)="addItem()">Add Item</button>
+  `
+})
+export class MyComponent {
+  data: string[];
+
+  addItem(): void {
+    //в простом примере создаем экземпляр самостоятельно
+    let dataService = new DataService()
+    this.dataService.addData('Mango');
+  }
+}
+
+//--------------------------
+//__Dependency Injection__//
+//Dependency Injection (DI) - это паттерн программирования, который используется для управления зависимостями между компонентами и обеспечения легкого расширения, тестирования и поддержки кода.В Angular фреймворке Dependency Injection(DI) используется для внедрения зависимостей в компоненты, сервисы и другие объекты.Вместо того, чтобы объекты создавали и управляли своими зависимостями, DI позволяет внедрять(inject) зависимости извне.
+
+//__
+export class DataService {
+  private data: string[];
+
+  constructor() {
+    this.data = ['Apple', 'Banana', 'Orange'];
+  }
+
+  getData(): string[] {
+    return this.data;
+  }
+
+  addData(item: string): void {
+    this.data.push(item);
+  }
+}
+
+//__
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <ul>
+      <li *ngFor="let item of data">{{ item }}</li>
+    </ul>
+    <button (click)="addItem()">Add Item</button>
+  `,
+  //внедрили экземпляр зависемостей, при внедрении создаеться новый экземпляр зависемостей
+  providers: [DataService]
+})
+export class MyComponent {
+  data: string[];
+
+  constructor(private dataService: DataService) {
+    this.data = this.dataService.getData();
+  }
+
+  addItem(): void {
+    this.dataService.addData('Mango');
+  }
+}
+
+//---------------------------------------
+//__Hierarchical Dependency Injection__//
+//Предоставление общих зависимостей: Если у вас есть зависимость, которая должна быть доступна во всем приложении, вы можете предоставить ее на уровне корневого модуля приложения. Таким образом, эта зависимость будет доступна для всех компонентов и сервисов в приложении ниже по иерархии.
+
+//__
+@NgModule({
+  declarations: [AppComponent],
+  imports: [BrowserModule],
+  //получаем один экземпляр который будет доступен во всем приложении
+  providers: [DataService],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+//-----------------------------------------------
+//__Injecting Service into Another Service__//
+//В Angular можно инжектировать сервис в другой сервис. Это позволяет сервисам взаимодействовать друг с другом и обмениваться данными. Чтобы инжектировать сервис в другой сервис, необходимо использовать декоратор @Injectable. Рекондеуеться во все сервисы добовлять @Injectable
+@Injectable({
+  providedIn: 'root'
+})
+export class ServiceB {
+  constructor(private serviceA: ServiceA) { }
+}
+
+//-----------------------------
+//__Angular Injection Token__//
+
+@NgModule({
+  declarations: [AppComponent],
+  imports: [BrowserModule],
+  //за кулисами преоразуеться в объект / provide - хранит уникальный индефикатор токен
+  providers: [DataService], // < --- {provide: DataService, useValue:DataService} 
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+//лучше создавать специальный токен для служб а неиспользовать строковый формат
+import { InjectionToken } from '@angular/core';
+export const APP_CONFIG = new InjectionToken < string > ('app.config');
+
+//__
+import { NgModule } from '@angular/core';
+import { APP_CONFIG } from './app-config.token';
+
+@NgModule({
+  providers: [
+    { provide: APP_CONFIG, useValue: 'some value' }
+  ]
+})
+export class AppModule { }
+
+//__Инжектирование зависимости с использованием Injection Token
+import { Component, Inject } from '@angular/core';
+import { APP_CONFIG } from './app-config.token';
+
+@Component({ })
+export class MyComponent {
+  //при использовании токенов при подключении сервисов используем @Inject()
+  constructor(@Inject(APP_CONFIG) private config: string) {
+    console.log(config); // 'some value'
+  }
+}
+
+//при использовании в сервисе его не надо подключать в providers он сразу доступен во всем приложении
+@Injectable({
+  providedIn: 'root'
+})
+
+//вы также можете инжектировать сервисы непосредственно в компоненты с помощью аннотации inject
+@Component({})
+class HeroListComponent {
+  private service = inject(HeroService);
+}
+
+//------------------------------------------
+//__Component Interaction using Services__//
