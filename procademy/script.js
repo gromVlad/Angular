@@ -1381,3 +1381,527 @@ class HeroListComponent {
 
 //------------------------------------------
 //__Component Interaction using Services__//
+//речь идет о взаимодействии компонентов с использованием сервисов в Angular, вы можете использовать общий сервис в качестве посредника между компонентами
+
+//__Создайте общий сервис:
+@Injectable()
+export class DataService {
+  private data: string;
+
+  getData(): string {
+    return this.data;
+  }
+
+  setData(newData: string): void {
+    this.data = newData;
+  }
+}
+
+//__
+@NgModule({
+  imports: [BrowserModule],
+  declarations: [AppComponent, Component1, Component2],
+  providers: [DataService],
+  bootstrap: [AppComponent],
+})
+export class AppModule { }
+
+//__
+@Component({
+  selector: 'app-component1',
+  template: `
+    <h1>Компонент 1</h1>
+    <input [(ngModel)]="data" (ngModelChange)="updateData()">
+  `,
+})
+export class Component1 {
+  data: string;
+
+  constructor(private dataService: DataService) { }
+
+  updateData(): void {
+    this.dataService.setData(this.data);
+  }
+}
+
+//__
+@Component({
+  selector: 'app-component2',
+  template: `
+    <h1>Компонент 2</h1>
+    <p>Данные из Компонента 1: {{ data }}</p>
+  `,
+})
+export class Component2 {
+  data: string;
+
+  constructor(private dataService: DataService) { }
+
+  ngOnInit(): void {
+    this.data = this.dataService.getData();
+  }
+}
+
+//С такой настройкой, когда пользователь вводит значение в поле ввода Component1, данные обновляются в общем сервисе. Затем Component2 получает обновленные данные из общего сервиса и отображает их. Это позволяет осуществлять взаимодействие и обмен данными между компонентами с использованием общего сервиса в качестве посредника.
+
+//___можем реализовать сервис с использованием EventEmitter и получения данных в компоненте с помощью подписки
+@Injectable()
+export class DataService {
+  dataUpdated: EventEmitter<string> = new EventEmitter < string > ();
+
+  updateData(newData: string): void {
+    this.dataUpdated.emit(newData);
+  }
+}
+
+//__
+@Component({
+  selector: 'app-component1',
+  template: `
+    <h1>Компонент 1</h1>
+    <input [(ngModel)]="data" (ngModelChange)="updateData()">
+  `,
+})
+export class Component1 {
+  data: string;
+
+  constructor(private dataService: DataService) { }
+
+  //обновляем данные
+  updateData(): void {
+    this.dataService.updateData(this.data);
+  }
+}
+
+//__
+@Component({
+  selector: 'app-component2',
+  template: `
+    <h1>Компонент 2</h1>
+    <p>Данные: {{ data }}</p>
+  `,
+})
+export class Component2 implements OnDestroy {
+  data: string;
+  subscription: Subscription;
+
+  constructor(private dataService: DataService) {
+    //подписваемся на изменения и получаем data
+    this.subscription = this.dataService.dataUpdated.subscribe((newData: string) => {
+      this.data = newData;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
+}
+
+//---------------------------
+//__What is an Observable__//
+//Он представляет собой поток данных или событий, которые можно наблюдать со временем. Observable предоставляет способ обработки асинхронных операций и позволяет реагировать на изменения или эмиссии данных.
+
+/* 
+ключевые характеристики Observable:
+- Поток данных: Observable представляет собой последовательность значений, которые могут быть эмитированы со временем, как синхронно, так и асинхронно. Эти значения могут быть любого типа, такого как числа, строки, объекты или даже пользовательские структуры данных. Поток данных может быть конечным (с определенным концом) или бесконечным (непрерывным).
+- Производитель и потребитель: Observable имеет отношение производитель-потребитель. Производитель, часто называемый источником, эмитирует значения или события в своем собственном ритме. Потребитель, который обычно является кодом, подписывается на Observable, получает и реагирует на эмитированные значения.
+- Асинхронные операции: Observable прекрасно подходят для обработки асинхронных операций, таких как HTTP-запросы, таймеры или пользовательские взаимодействия. Они предоставляют способ обработки ответа или результата асинхронной задачи без блокирования выполнения другого кода.
+- Операторы: Observable предлагает множество операторов, которые позволяют преобразовывать, фильтровать, комбинировать или манипулировать эмитированными значениями различными способами. Эти операторы позволяют выполнять операции, такие как отображение, фильтрация, сокращение, слияние и другие операции с потоком данных.
+- Подписка: При подписке на Observable вы создаете связь между производителем и потребителем. Потребитель получает эмитированные значения через обратный вызов или набор обратных вызовов, которые определяются во время подписки. Подписки могут использоваться для управления ресурсами, отмены текущих операций или отписки от Observable, когда он больше не нужен.
+- Обработка ошибок: Observable обрабатывает ошибки структурированным образом. Если происходит ошибка во время выполнения Observable, она может быть передана вниз по потоку и обработана обработчиком ошибок, определенным в подписке. Это позволяет элегантно обрабатывать ошибки и принимать соответствующие меры.
+*/
+
+//------------------------------------
+//__Creating & Using an Observable__//
+//Observable в RxJS (Reactive Extensions for JavaScript) позволяет работать с асинхронными потоками данных и реагировать на изменения в этих потоках.
+
+import { Component, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
+
+@Component({
+  selector: 'app-observable-demo',
+  template: `
+    <h1>Observable Demo</h1>
+    <button (click)="startObservable()">Start Observable</button>
+    <ul>
+      <li *ngFor="let value of values">{{ value }}</li>
+    </ul>
+  `,
+})
+export class ObservableDemoComponent implements OnInit {
+  values: string[] = [];
+
+  ngOnInit() { }
+
+  startObservable() {
+    //Создание Observable
+    const myObservable = new Observable < string > (subscriber => {
+      //данные передаються потокам одним за другим
+      subscriber.next('Hello');
+      subscriber.next('World');
+      //После вызова метода complete(), Observable больше не будет эмитировать значения
+      subscriber.complete();
+    });
+
+    //Подписка на Observable
+    myObservable.subscribe(value => {
+      //получаем поток данных и далее их push в values
+      this.values.push(value);
+    });
+  }
+}
+
+//Обработка ошибок: Observable также предоставляет возможность обработки ошибок
+const myObservable = new Observable(subscriber => {
+  try {
+    // выполнение операций
+    subscriber.next('Success');
+    subscriber.complete();
+  } catch (error) {
+    subscriber.error(error);
+  }
+});
+
+//Отписка от Observable: После завершения работы с Observable рекомендуется отписаться от него, чтобы избежать утечки памяти
+subscription.unsubscribe();
+
+//---------------------------------------
+//__ Error & Completion of Observable__//
+//В процессе работы с Observable могут возникать ошибки или Observable может успешно завершиться.
+
+const myObservable = new Observable(subscriber => {
+  try {
+    // ...
+    if (errorCondition) {
+      throw new Error('Something went wrong');
+    } else {
+      subscriber.next('Success');
+    }
+    // ...
+  } catch (error) {
+    subscriber.error(error);
+  }
+});
+
+//3 функции в подписчике
+myObservable.subscribe({
+  next: value => console.log(value),
+  error: err => console.error(err),
+  complete: () => console.log('Observable completed'),
+});
+
+//можно написать и таким образом
+myObservable.subscribe(
+  (value) => console.log(value),
+  (err) => console.error(err),
+  () => console.log('Observable completed')
+);
+
+//---------------------------------
+//__RxJS of() & from() Operator__//
+//Оба оператора of() и from() являются полезными для создания Observables из различных типов данных. Они позволяют нам эффективно работать с асинхронными операциями и управлять потоком данных в RxJS.
+
+//Оператор of():
+//Оператор of() позволяет создавать Observable, который эмитирует заданные значения в определенном порядке.
+import { of } from 'rxjs';
+const myObservable = of('Value 1', 'Value 2', 'Value 3');
+myObservable.subscribe(value => console.log(value));
+/* 
+Value 1
+Value 2
+Value 3
+*/
+
+// Оператор from():
+// Оператор from() позволяет создавать Observable из различных источников данных, таких как массивы, промисы, строки и другие Observable.
+import { from } from 'rxjs';
+
+const myArray = [1, 2, 3, 4, 5];
+const myPromise = fetch('https://api.example.com/data');
+const myString = 'Hello, world!';
+
+const arrayObservable = from(myArray);
+const promiseObservable = from(myPromise);
+const stringObservable = from(myString);
+
+arrayObservable.subscribe(value => console.log(value));
+/* 
+1
+2
+3
+4
+5
+*/
+promiseObservable.subscribe(value => console.log(value));
+/* 
+{data: ...}
+*/
+stringObservable.subscribe(value => console.log(value));
+/* 
+H
+e
+..
+*/
+
+//------------------------------
+//____The fromEvent Operator__//
+//Оператор fromEvent в RxJS позволяет создавать Observable, который эмитирует события от определенного источника событий, такого как DOM элементы, Node.js EventEmitter и другие.
+
+import { fromEvent } from 'rxjs';
+
+const button = document.getElementById('myButton');
+const buttonClicks = fromEvent(button, 'click');
+buttonClicks.subscribe(event => console.log('Клик!', event));
+//Мы передаем button как первый аргумент, указывая на DOM элемент, от которого мы хотим получать события. Второй аргумент - это строка 'click', которая указывает на тип события, которое мы хотим отслеживать.
+
+//При использовании fromEvent, вы можете подписываться на различные события и выполнять различные операции с данными, полученными от этих событий. Например, вы можете фильтровать события, преобразовывать данные или комбинировать их с другими Observables для создания сложной логики потока данных.
+
+//--------------------------------
+//__RxJS map & filter Operator__//
+
+//Оператор map:
+//Оператор map применяет функцию преобразования к каждому значению в потоке данных и возвращает новый поток данных с преобразованными значениями.
+import { of } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+const numbers = of(1, 2, 3, 4, 5);
+const squaredNumbers = numbers.pipe(
+  map(num => num * num)
+);
+squaredNumbers.subscribe(value => console.log(value));
+/* 
+1
+4
+9
+16
+25
+*/
+
+//Оператор filter:
+//Оператор filter фильтрует значения в потоке данных на основе заданного условия и возвращает новый поток данных, содержащий только значения, удовлетворяющие условию фильтрации.
+
+const numbers = of(1, 2, 3, 4, 5);
+const evenNumbers = numbers.pipe(
+  filter(num => num % 2 === 0)
+);
+evenNumbers.subscribe(value => console.log(value));
+/* 
+2
+4
+*/
+
+//Мы используем оператор pipe, чтобы связать операторы filter и map в цепочку.
+
+const numbers = of(1, 2, 3, 4, 5).pipe(
+  filter(num => num % 2 === 0), 
+  map(num => num * num) 
+);
+numbers.subscribe(value => console.log(value));
+
+//----------------------
+//__Subjects in RxJS__//
+//Subject - это специальный тип Observable, который может выступать и в качестве Observable, и в качестве Observer. Он позволяет подписчикам подписываться на него и получать значения, а также эмитировать новые значения, которые будут доставлены всем подписчикам.
+
+import { Subject } from 'rxjs';
+
+class UserService {
+  private users: User[] = [];
+  private usersSubject = new Subject < User[] > ();
+
+  getUsers(): Observable<User[]> {
+    //возвращает Observable
+    return this.usersSubject.asObservable();
+  }
+
+  addUser(user: User) {
+    this.users.push(user);
+    //добавляет нового пользователя в массив users и затем вызывает чтобы оповестить подписчиков о новом состоянии массива пользователей
+    this.usersSubject.next(this.users);
+  }
+
+  removeUser(user: User) {
+    const index = this.users.indexOf(user);
+    if (index !== -1) {
+      this.users.splice(index, 1);
+      this.usersSubject.next(this.users);
+    }
+  }
+}
+
+//__
+@Component({
+  selector: 'app-user-list',
+  template: `
+    <ul>
+      <li *ngFor="let user of users">{{ user.name }}</li>
+    </ul>
+  `
+})
+export class UserListComponent implements OnInit {
+  users: User[];
+
+  constructor(private userService: UserService) { }
+
+  ngOnInit() {
+    this.userService.getUsers().subscribe(users => {
+      this.users = users;
+    });
+  }
+}
+
+//----------------------------
+//__Observable vs Subjects__//
+//Observable и Subject предоставляют различные возможности для работы с асинхронными потоками данных. Observable является однонаправленным потоком данных, который может быть подписан и отменен, не всегда выдает одни и те же значения всем подписчикам,одноадресная рассылка данных, в то время как Subject является двунаправленным,одни и те же данные всем подписчикам, и он также может эмитировать значения для всех подписчиков, в отличие от Observable, он также является Observer. это означает, что Subject может как получать значения, так и эмитировать их для всех своих подписчиков..
+
+//----------------------
+//__Behavior Subject__//
+//Behavior Subject (Поведенческий субъект) является одним из типов Subject в библиотеке RxJS. Он расширяет функциональность обычного Subject
+
+/* 
+имеет следующие особенности:
+- Значение по умолчанию:
+Behavior Subject хранит в себе значение по умолчанию, которое будет доступно для всех новых подписчиков. При создании Behavior Subject, вы должны указать начальное значение.
+- Запоминание последнего значения:
+Behavior Subject запоминает последнее эмитированное значение. Когда новый подписчик подключается к Behavior Subject, он автоматически получает последнее эмитированное значение.
+- Эмитирование значения при подписке:
+При подписке на Behavior Subject, подписчик сразу же получает последнее эмитированное значение.
+- Множество подписчиков:
+Behavior Subject может иметь несколько подписчиков, и каждый из них получит последнее значение и все последующие эмитированные значения.
+*/
+
+import { BehaviorSubject } from 'rxjs';
+
+const behaviorSubject = new BehaviorSubject('Значение 1');
+
+// Подписка на Behavior Subject
+behaviorSubject.subscribe(value => {
+  console.log('Подписчик 1:', value); //Подписчик 1: Значение 1
+});
+
+// Эмитирование нового значения
+behaviorSubject.next('Значение 2');
+
+// Подписка на Behavior Subject после эмитирования значения
+behaviorSubject.subscribe(value => {
+  console.log('Подписчик 2:', value);//Подписчик 2:Значение 2
+});
+
+// Эмитирование еще одного значения
+behaviorSubject.next('Значение 3');
+
+//--------------------
+//__Replay Subject__//
+//Replay Subject (Воспроизводящий субъект) является одним из типов Subject в библиотеке RxJS.
+
+import { ReplaySubject } from 'rxjs';
+
+const replaySubject = new ReplaySubject(2); // Запоминаем два последних значения
+
+// Эмитирование новых значений
+replaySubject.next('Значение 1');
+replaySubject.next('Значение 2');
+replaySubject.next('Значение 3');
+
+// Подписка на Replay Subject
+replaySubject.subscribe(value => {
+  console.log('Подписчик 1:', value);
+});
+
+// Подписка на Replay Subject после эмитирования значений
+replaySubject.subscribe(value => {
+  console.log('Подписчик 2:', value);
+});
+/*
+Подписчик 1: Значение 2
+Подписчик 1: Значение 3
+Подписчик 2: Значение 2
+Подписчик 2: Значение 3 
+ */
+
+//Replay Subject запоминает историю эмитированных значений и передает ее всем новым подписчикам при подписке
+
+//--------------------
+//__Async Subject__//
+//Async Subject (Асинхронный субъект) является одним из типов Subject в библиотеке RxJS
+//Он особенно полезен, когда вам нужно отправить значение только одному подписчику, который подключается после завершения.
+//Async Subject запоминает только последнее эмитированное значение. Он игнорирует все предыдущие значения, эмитированные во время работы, и сохраняет только последнее
+
+import { AsyncSubject } from 'rxjs';
+
+const asyncSubject = new AsyncSubject();
+
+// Эмитирование новых значений
+asyncSubject.next('Значение 1');
+asyncSubject.next('Значение 2');
+
+// Подписка на Async Subject
+asyncSubject.subscribe(value => {
+  console.log('Подписчик 1:', value);
+});
+
+// Эмитирование еще одного значения
+asyncSubject.next('Значение 3');
+
+// Завершение Async Subject
+asyncSubject.complete();
+
+// Подписка на Async Subject после завершения
+asyncSubject.subscribe(value => {
+  console.log('Подписчик 2:', value);
+});
+
+/* 
+Подписчик 1: Значение 3
+Подписчик 2: Значение 3
+*/
+
+//---------------------------
+//__Promise vs Observable__//
+//Они оба позволяют обрабатывать асинхронные задачи, но имеют некоторые отличия в своей работе и функциональности
+
+//Promise представляет собой объект, который представляет результат или ошибку асинхронной операции, которая может быть выполнена только один раз
+const myPromise = new Promise((resolve, reject) => {
+  // Асинхронная операция
+  setTimeout(() => {
+    const randomValue = Math.random();
+    if (randomValue > 0.5) {
+      resolve(randomValue); // Успешное выполнение
+    } else {
+      reject(new Error('Ошибка')); // Отклонение с ошибкой
+    }
+  }, 1000);
+});
+
+// Обработка успешного выполнения
+myPromise.then(result => {
+  console.log('Результат:', result);
+}).catch(error => {
+  console.error('Ошибка:', error);
+});
+
+//Observable представляет поток асинхронных данных, которые могут быть переданы по мере их поступления
+import { Observable } from 'rxjs';
+
+const myObservable = new Observable(observer => {
+  // Асинхронная операция
+  setTimeout(() => {
+    const randomValue = Math.random();
+    if (randomValue > 0.5) {
+      observer.next(randomValue); // Передача значения
+      observer.complete(); // Завершение успешно
+    } else {
+      observer.error(new Error('Ошибка')); // Завершение с ошибкой
+    }
+  }, 1000);
+});
+
+// Обработка значений и завершения
+//Возврощает данные только если есть подписчик
+myObservable.subscribe(
+  result => console.log('Значение:', result),
+  error => console.error('Ошибка:', error),
+  () => console.log('Завершено Observable')
+)
+
+//----------------------------
+//__
