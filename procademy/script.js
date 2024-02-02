@@ -1360,7 +1360,7 @@ export class AppModule { }
 import { Component, Inject } from '@angular/core';
 import { APP_CONFIG } from './app-config.token';
 
-@Component({ })
+@Component({})
 export class MyComponent {
   //при использовании токенов при подключении сервисов используем @Inject()
   constructor(@Inject(APP_CONFIG) private config: string) {
@@ -1693,8 +1693,8 @@ evenNumbers.subscribe(value => console.log(value));
 //Мы используем оператор pipe, чтобы связать операторы filter и map в цепочку.
 
 const numbers = of(1, 2, 3, 4, 5).pipe(
-  filter(num => num % 2 === 0), 
-  map(num => num * num) 
+  filter(num => num % 2 === 0),
+  map(num => num * num)
 );
 numbers.subscribe(value => console.log(value));
 
@@ -1939,4 +1939,168 @@ setTimeout(() => {
 
 //-------------------------------------------
 //__Creating Dynamic Component using ngIf__//
+/* 
+Для создания динамической компоненты программно в Angular, вы можете использовать фабрику компонентов и контейнер для отображения компоненты. Вот подробное объяснение шагов:
+Создайте компонент, который вы хотите отобразить динамически. Для примера, предположим, что у вас есть компонент с именем DynamicComponent, который вы хотите создать динамически.
+В родительском компоненте, где вы хотите создать динамическую компоненту программно, включите ComponentFactoryResolver в конструктор компонента:
+*/
+
+//__
+import { Component, ComponentFactoryResolver, ViewChild, ViewContainerRef } from '@angular/core';
+
+@Component({
+  selector: 'app-parent',
+  template: '<ng-container #dynamicComponentContainer></ng-container>',
+})
+export class ParentComponent {
+  @ViewChild('dynamicComponentContainer', { read: ViewContainerRef }) dynamicComponentContainer: ViewContainerRef;
+
+  constructor(private componentFactoryResolver: ComponentFactoryResolver) { }
+
+  createDynamicComponent() {
+    // Получите фабрику компонента для DynamicComponent
+    const componentFactory = this.componentFactoryResolver.resolveComponentFactory(DynamicComponent);
+
+    // Создайте экземпляр компонента
+    const componentRef = this.dynamicComponentContainer.createComponent(componentFactory);
+  }
+}
+
+//-------------------------------
+//__What is an entryComponent__//
+//В Angular, entry component (компонент входа) - это компонент, который не указывается в шаблоне другого компонента. Когда вы создаете компоненты динамически с помощью ComponentFactoryResolver, вам необходимо указать их как entry components.
+
+@NgModule({
+  declarations: [DynamicComponent],
+  entryComponents: [DynamicComponent],
+  // остальная конфигурация модуля
+})
+export class AppModule { }
+
+//с Angular версии 9, концепция entry components стала менее важной
+
+//------------------------------
+//___Data & Event Binding__//
+//Data binding и event binding также могут использоваться при создании динамических компонентов в Angular. 
+
+//_Data Binding(Привязка данных):
+// Создание экземпляра динамической компоненты
+const componentRef = this.dynamicComponentContainer.createComponent(componentFactory);
+// Установка значения свойства message
+componentRef.instance.message = 'Hello, dynamic component!';
+//<p>{{ message }}</p>
+
+//_Event Binding (Привязка событий):
+// Создание экземпляра динамической компоненты
+const componentRef = this.dynamicComponentContainer.createComponent(componentFactory);
+
+// Привязка обработчика события к кнопке
+componentRef.instance.buttonClick.subscribe(() => {
+  this.handleButtonClick();
+});
+//<button (click)="onButtonClick()">Click me</button>
+
+//-------------------------------------
+//__Implementing Routing in Angular__//
+//Роутинг в Angular позволяет навигироваться по различным компонентам и представлениям в вашем приложении на основе URL-адресов
+
+//В массиве маршрутов { path: '', redirectTo: '/home', pathMatch: 'full' } указывает, что при переходе на корневой URL, пользователь будет перенаправлен на /home. / pathMatch - указывает как сопоставить путь с указанным url адресом
+const routes: Routes = [
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  { path: 'home', component: HomeComponent },
+  { path: 'about', component: AboutComponent },
+  { path: 'contact', component: ContactComponent },
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+//В вашем основном шаблоне (обычно app.component.html), добавьте <router-outlet></router-outlet> там, где вы хотите отображать компоненты, соответствующие маршрутам
+//<!-- app.component.html -->
+//<router-outlet></router-outlet>
+
+//использовать метод router.navigate() в вашем компоненте для программной навигации
+import { Router } from '@angular/router';
+
+constructor(private router: Router) { }
+
+goToContact() {
+  this.router.navigate(['/contact']);
+}
+
+//---------------------------------
+//__Implementing NotFound Route__//
+//Для реализации маршрута "NotFound" в Angular, вы можете использовать маршрут с пустым путем и установить его в конце массива маршрутов. Это позволит перенаправлять пользователей на страницу "404 Not Found", если они пытаются перейти по несуществующему маршруту
+
+const routes: Routes = [
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  { path: 'home', component: HomeComponent },
+  { path: 'about', component: AboutComponent },
+  { path: 'contact', component: ContactComponent },
+  //порядок важен 
+  { path: '**', component: NotFoundComponent }, // Маршрут для страницы "NotFound" - будет использоваться, когда пользователь пытается перейти по несуществующему маршруту.
+];
+
+//----------------------
+//__route navigation__//
+//Для настройки ссылок для навигации по маршрутам в Angular можно использовать директиву [routerLink]
+
+//routerLink - не перезагружает страницы
+/* 
+<a [routerLink]="/home">Home</a>
+<a [routerLink]="/about">About</a>
+<a [routerLink]="/contact">Contact</a>
+*/
+
+//Навигация по маршрутам программно
+goToContact() {
+  this.router.navigate(['/contact']);
+}
+
+//--------------------------------
+//__Styling Active Router Link__//
+//Вы можете стилизовать активную ссылку маршрута в Angular, используя псевдокласс :router-link-active и добавляя соответствующие стили в CSS или SCSS файл вашего компонента.
+
+/* 
+<a [routerLink]="/home" routerLinkActive="router-link-active">Home</a>
+<a [routerLink]="/about" routerLinkActive="router-link-active">About</a>
+<a [routerLink]="/contact" routerLinkActive="router-link-active">Contact</a>
+*/
+
+/* 
+a.router-link-active {
+  font-weight: bold;
+  color: blue;
+}
+*/
+
+//Если вы хотите, чтобы маршрут по умолчанию не всегда был активным, вы можете добавить дополнительные настройки к директиве [routerLinkActive]
+//В приведенном выше примере, ссылка "/home" будет активной только при явном выборе этого маршрута, а не при загрузке маршрута по умолчанию.
+/* 
+<a [routerLink]="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+<a [routerLink]="/about" routerLinkActive="active">About</a>
+*/
+
+//-------------------------------------
+//__Relative vs Absolute Route Path__//
+//При работе с маршрутами в Angular можно использовать как относительные, так и абсолютные пути
+//Относительные пути начинаются с символа / ../
+//Абсолютный путь без символов
+
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <a routerLink="home">Home</a>
+    <a routerLink="/about">About</a>
+  `
+})
+export class MyComponent { }
+
+//------------------------------------------------
+//__Navigating between Routes Programmatically__//
 
