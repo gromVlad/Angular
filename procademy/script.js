@@ -2104,3 +2104,228 @@ export class MyComponent { }
 //------------------------------------------------
 //__Navigating between Routes Programmatically__//
 
+//при разработке приложений на Angular часто возникает необходимость программно переходить между маршрутами. Angular предоставляет сервис Router, который можно использовать для навигации между маршрутами программно
+//Программная навигация позволяет динамически переходить между маршрутами в зависимости от логики вашего приложения, например, при обработке событий или после выполнения определенных действий.
+
+import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <button (click)="navigateToHome()">Go to Home</button>
+    <button (click)="navigateToProduct(1)">Go to Product</button>
+  `
+})
+export class MyComponent {
+
+  //ActivatedRoute в качестве точки отсчета для относительного пути
+  constructor(private router: Router, private route: ActivatedRoute) { }
+
+  //Для использования относительного пути вместе с ActivatedRoute в Angular можно использовать метод navigate() сервиса Router с дополнительным параметром relativeTo.
+
+  navigateToHome() {
+    this.router.navigate(['/home']);
+  }
+
+  navigateToProduct(productId: number) {
+    //по умолчанию абсолютный путь
+    this.router.navigate(['/product', productId]);// 1 -> /product/1
+
+    // Метод navigateByUrl() также может принимать второй параметр в виде объекта NavigationExtras, который позволяет настроить дополнительные параметры навигации, такие как queryParams, fragment, queryParamsHandling, preserveFragment и други
+    // Программный переход на полный URL-адрес '/products/1' с передачей query параметров
+    this.router.navigateByUrl('/products/1', { queryParams: { category: 'electronics' } });//products/1?category=electronics'
+
+    // Программный переход на относительный путь 'child' от текущего ActivatedRoute
+    this.router.navigate(['child'], { relativeTo: this.route });//home/child
+  }
+}
+
+//-----------------------------------
+//__Working with route Parameters__//
+
+//Работа с параметрами маршрута в Angular позволяет передавать динамические значения в маршруты и использовать их в компонентах
+//Получаем значения url и из него забираем id для дальнешего использование напр имер для фильтрации
+
+//_url = ... product/1
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <h1>Product Details</h1>
+    <p>Product ID: {{ productId }}</p>
+  `
+})
+export class MyComponent implements OnInit {
+  productId: string;
+
+  constructor(private route: ActivatedRoute) { }
+
+  ngOnInit() {
+    // Получение значения параметра 'id' из paramMap
+    // Используйте значение параметра для выполнения необходимых действий
+    this.route.snapshot.paramMap.get('id') // 1
+  }
+}
+
+//----------------------------------------------------
+//__Using observable to Retrieving Route Parameter__//
+
+//Использование Observable для получения параметра маршрута позволяет реагировать на изменения параметра и обновлять соответствующие данные или выполнить необходимые действия в компоненте Angular
+
+//this.route.snapshot.paramMap.get('id') он при измнениний например при пролистовании на другую страницу сама страница не отрендариться поэтому используем подписчика
+
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <h1>Product Details</h1>
+    <p>Product ID: {{ productId }}</p>
+  `
+})
+export class MyComponent implements OnInit {
+  productId: string;
+
+  constructor(private route: ActivatedRoute) { }
+
+  ngOnInit() {
+    this.route.paramMap.subscribe(params => {
+      this.productId = params.get('id'); // Получение значения параметра 'id' из paramMap
+      // Используйте значение параметра для выполнения необходимых действий
+    });
+  }
+
+}
+
+//всегда полезно самому отписаться от предыдущего с помощью onDestroy
+
+//---------------------------------
+//__Using Query String in Route__//
+// Query parametrs не обязательные , параметры маршрута обязательные
+
+//___
+import { Router } from '@angular/router';
+
+constructor(private router: Router) { }
+
+//В приведенном выше примере мы используем метод navigate() объекта Router, передавая путь '/product-details' и объект queryParams, содержащий параметры 'id' и 'name' с их значениями. При переходе по этому маршруту значения параметров будут добавлены в URL в виде строки запрос
+navigateToProductDetails() {
+  const queryParams = {
+    id: '123',
+    name: 'Product ABC'
+  };
+  this.router.navigate(['/product-details'], { queryParams });
+}
+
+//___
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <h1>Product Details</h1>
+    <p>Product ID: {{ productId }}</p>
+    <p>Product Name: {{ productName }}</p>
+  `
+})
+export class MyComponent implements OnInit {
+  productId: string;
+  productName: string;
+
+  constructor(private route: ActivatedRoute) { }
+
+  ngOnInit() {
+    this.productId = this.route.snapshot.queryParams.get('id');
+    this.productName = this.route.snapshot.queryParams.get('name');
+    // Используйте значения параметров для выполнения необходимых действий
+  }
+}
+
+//Для добавления параметров строки запроса к тегу <a> в HTML-шаблоне с использованием queryParams, вы можете использовать связывание данных с помощью атрибутов
+import { Component } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <h1>Product Details</h1>
+    <a [routerLink]="['/product-details']" [queryParams]={ productId:'123'}>Product Details</a>
+    <a [routerLink]="['/product-details']" [queryParams]=getQueryParams()>Product Details</a>
+  `
+})
+export class MyComponent {
+  productId = '123';
+  productName = 'Product ABC';
+
+  constructor(private route: ActivatedRoute) { }
+
+  getQueryParams() {
+    return { id: this.productId, name: this.productName };
+  }
+}
+
+//также используем observable что позволяет реагировать на изменения параметра
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <h1>Product Details</h1>
+    <p>Product ID: {{ productId }}</p>
+    <p>Product Name: {{ productName }}</p>
+  `
+})
+export class MyComponent implements OnInit {
+  productId: string;
+  productName: string;
+
+  constructor(private route: ActivatedRoute) { }
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      this.productId = params['id']; // Получение значения параметра 'id' из queryParams
+      this.productName = params['name']; // Получение значения параметра 'name' из queryParams
+      // Используйте значения параметров для выполнения необходимых действий
+    });
+  }
+}
+
+//-------------------------------
+//__Using Fragment in Route__//
+//Упрощение навигации к определенным частям страницы
+//следует использовать фрагменты с осторожностью, чтобы избежать проблем с индексацией поисковыми системами и доступностью.
+
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <h1>Product Details</h1>
+    <a [routerLink]="['/product-details']" fragment="description">Product Details</a>
+
+    <section id='description'>.....<section>
+  `
+})
+export class MyComponent implements OnInit {
+
+  constructor(private activatedRoute: ActivatedRoute) { }
+
+  //В методе ngOnInit() компонента MyComponent мы подписываемся на свойство fragment сервиса ActivatedRoute. Когда фрагмент изменяется, мы получаем его значение и используем метод scrollIntoView() элемента window, чтобы прокрутить страницу к разделу с соответствующим идентификатором.
+  ngOnInit() {
+    this.activatedRoute.fragment.subscribe(fragment => {
+      if (fragment) {
+        const element = document.getElementById(fragment);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    });
+  }
+}
+
+//------------------------------
+//__
