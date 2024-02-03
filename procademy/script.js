@@ -2327,5 +2327,361 @@ export class MyComponent implements OnInit {
   }
 }
 
+//-------------------------------
+//__Working with Child Routes__//
+//Работа с дочерними маршрутами (child routes) в Angular позволяет вам организовать вложенную навигацию внутри основного маршрут
+
+//__
+const routes: Routes = [
+  {
+    path: 'main', component: MainComponent, children: [
+      { path: 'child1', component: Child1Component },
+      { path: 'child2', component: Child2Component }
+    ]
+  },
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+/* 
+<!-- main.component.html -->
+<h1>Main Component</h1>
+<nav>
+  <a routerLink="/main/child1">Child 1</a>
+  <a routerLink="/main/child2">Child 2</a>
+</nav>
+<router-outlet></router-outlet>
+*/
+
+//----------------------------------
+//__Creating a Route Module File__//
+//Создание файлов модуля маршрутизации (route module) в Angular помогает организовать и централизовать определение маршрутов для вашего приложения. В модуле маршрутизации вы можете определить все маршруты и их настройки, а затем импортировать этот модуль в основной модуль вашего приложени
+
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+
+// Импортируйте компоненты, которые будут использованы в маршрутах
+import { HomeComponent } from './home.component';
+import { AboutComponent } from './about.component';
+// И другие компоненты вашего приложения
+
+const routes: Routes = [
+  { path: '', component: HomeComponent },
+  { path: 'about', component: AboutComponent },
+  // Добавьте другие маршруты вашего приложения
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+//__
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+
+// Импортируйте созданный модуль маршрутизации
+import { AppRoutingModule } from './app-routing.module';
+
+import { AppComponent } from './app.component';
+
+@NgModule({
+  declarations: [AppComponent],
+  imports: [BrowserModule, AppRoutingModule],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+//-----------------------------
+//__ What is a Route Guard__//
+//Route Guard (или охранник маршрута) - это механизм в Angular, который позволяет контролировать доступ к маршрутам. Route Guard может быть использован для авторизации, проверки ролей, загрузки данных перед отображением маршрута и других целей.
+
+/* 
+Различают следующие виды guard-ов:
+CanActivate — разрешает/запрещает доступ к маршруту;
+CanActivateChild -разрешает/запрещает доступ к дочернему маршруту;
+CanDeactivate — разрешает/запрещает уход с текущего маршрута;
+Resolve — выполняет какое-либо действие перед переходом на маршрут, обычно ожидает данные от сервера;
+CanLoad — разрешает/запрещает загрузку модуля, загружаемого асинхронно.
+*/
+
+//Все guard-ы должны возвращать либо true, либо false. И происходить это может как в синхронном режиме (тип Boolean), так и в асинхронном режиме (Observable<boolean> или Promise<boolean>).
+
 //------------------------------
+//__CanActivate Route Guard ..14 version__//
+
+//В этом примере мы создали Route Guard AuthGuard, который использует сервис аутентификации AuthService для проверки того, авторизован ли пользователь.
+//в более поздних версиях
+import { Injectable } from '@angular/core';
+import { ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate {
+
+  constructor(private authService: AuthService) { }
+
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+    return this.authService.isAuthenticated();
+  }
+}
+
+//Чтобы использовать Route Guard AuthGuard, необходимо добавить его в массив canActivate объекта маршрута
+const routes: Routes = [
+  {
+    path: 'home',
+    component: HomeComponent,
+    canActivate: [AuthGuard]
+  }
+];
+
+//--------------------------------------------
+//__CanActivate Route Guard 15 version ...__//
+
+//В 15 version и выше в качестве альтернативы вы можете использовать класс с возможностью ввода в качестве функциональной защиты
+//также можно поместить туда функции предворительно прописанную
+
+const routes: Routes = [
+  {
+    path: 'my-component',
+    component: MyComponent,
+    canActivate: [() => inject(AuthService).isAuthenticated()]
+  },
+];
+
+//----------------------------
+//__CanActivateChild Route__//
+
+//то же самое что CanActivate только защищаем дочерние маршруты
+
+import { Injectable } from '@angular/core';
+import { CanActivateChild, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
+
+@Injectable()
+export class AuthGuard implements CanActivateChild {
+  constructor(private authService: AuthService) { }
+
+  canActivateChild(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+    return this.authService.isAuthenticated(); // Your authentication logic here
+  }
+}
+
+//__
+const routes: Routes = [
+  {
+    path: 'my-component',
+    component: MyComponent,
+    canActivateChild: [AuthGuard]
+  },
+];
+
+//__в версии 15 и выше
+const routes: Routes = [
+  {
+    path: 'my-component',
+    component: MyComponent,
+    canActivateChild: [() => inject(AuthService).isAuthenticated()]
+  },
+];
+
+//-------------------------------
+//__CanDeactivate Route Guard__//
+
+//__
+import { Injectable } from '@angular/core';
+import { CanDeactivate } from '@angular/router';
+import { Observable } from 'rxjs';
+import { ComponentWithDeactivation } from './component-with-deactivation';
+
+@Injectable()
+export class CanDeactivateGuard implements CanDeactivate<ComponentWithDeactivation> {
+  canDeactivate(
+    component: ComponentWithDeactivation
+  ): Observable<boolean> | Promise<boolean> | boolean {
+    return component.canDeactivate(); // Ваша логика деактивации компонента
+  }
+}
+
+//CanDeactivateGuard реализует интерфейс CanDeactivate и переопределяет метод canDeactivate. Внутри этого метода вы можете реализовать вашу собственную логику деактивации, например, проверку наличия несохраненных изменений или подтверждение от пользователя, например пользователь не перейдет никуда пока до конца не заполнит форму  на текущей странице или не нажмет отмену в модальном окне
+const routes: Routes = [
+  {
+    path: 'my-component',
+    component: MyComponent,
+    canDeactivate: [CanDeactivateGuard]
+  },
+];
+
+//__в версии 15 и выше
+const routes: Routes = [
+  {
+    path: 'my-component',
+    component: MyComponent,
+    canDeactivate: [(comp: MyComponent) => comp.myCustomDeactivationLogic()]
+  },
+];
+
+//-------------------------
+//__Resolve Route Guard__//
+//Когда данные будут доступны мы перейдем на этот маршрут, то есть нажали кнопку, но сразу не перешли т.к. данные мы получаем не сразу а ждем ответа от сервера и чтобы не получить сразу пустую страницу мы используем Resolve Route Guard, он не дает нам перейти пока не подгрузим данные, тоесть при нажатии на маршрут переход идет с задержкой
+
+import { Injectable } from '@angular/core';
+import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { Observable } from 'rxjs';
+import { DataService } from './data.service';
+
+@Injectable()
+export class DataResolver implements Resolve<any> {
+  constructor(private dataService: DataService) { }
+
+  resolve(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): Observable<any> | Promise<any> | any {
+    //вы можете реализовать вашу логику получения данных, например, получение данных через сервис DataService
+    return this.dataService.getData(); // Ваша логика получения данных
+  }
+}
+
+//__
+const routes: Routes = [
+  {
+    path: 'my-component',
+    component: MyComponent,
+    resolve: {
+      data: DataResolver
+    }
+  },
+];
+//в компоненте получить данные в то же время как и в guard
+this.activatedRoute.snapshot.data['data']
+
+//__в версии 15 и выше
+const resolve = ()  => {
+  return this.dataService.getData()
+}
+
+const routes: Routes = [
+  {
+    path: 'my-component',
+    component: MyComponent,
+    resolve: {
+      data: resolve
+    }
+  },
+];
+
+//------------------------------
+//__Router Navigation Events__//
+//Angular предоставляет набор событий навигации, которые могут быть использованы для отслеживания и реагирования на изменения маршрутов в приложении.
+
+//enableTracing:true - просматривать все Router событие в консоли
+@NgModule({
+  imports: [RouterModule.forRoot(routes),{enableTracing:true}],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+//NavigationStart: Событие NavigationStart возникает, когда начинается навигация к новому маршруту. Это событие может быть использовано для выполнения дополнительных действий перед началом навигации, например, для отображения индикатора загрузки
+import { Router, NavigationStart } from '@angular/router';
+
+constructor(private router: Router) {
+  router.events.subscribe(event => {
+    if (event instanceof NavigationStart) {
+      // Выполнить действия перед началом навигации
+    }
+  });
+}
+
+//NavigationEnd: Событие NavigationEnd возникает после успешного завершения навигации к новому маршруту.
+import { Router, NavigationEnd } from '@angular/router';
+
+constructor(private router: Router) {
+  router.events.subscribe(event => {
+    if (event instanceof NavigationEnd) {
+      // Выполнить действия после завершения навигации
+    }
+  });
+}
+
+//-------------------------------
+//___Passing Data with a Route__//
+//Когда вы маршрутизируетесь между компонентами в Angular, вы можете передавать данные с помощью параметров маршрута
+
+//<a routerLink="/main/child1" [state] = "'{ id: 1, name: 'Product' }'">Child 1</a>
+
+// Перенаправление с передачей данных состояния маршрута
+this.router.navigate(['/product'], { state: { id: 1, name: 'Product' } });
+
+// Извлечение данных состояния маршрута в целевом компоненте
+import { Router } from '@angular/router';
+
+constructor(private router: Router) {
+  const state = this.router.getCurrentNavigation().extras.state;
+  if (state) {
+    const id = state.id;
+    const name = state.name;
+    // Используйте данные состояния маршрута
+  }
+
+  //если не работает то используем 
+  const state2 = history.state
+}
+
+//___
+//также можем передовать в route
+const routes: Routes = [
+  {
+    path: 'my-component',
+    component: MyComponent,
+    data: { id: 1, name: 'Product' }
+  },
+];
+
+// Извлечение параметра запроса в целевом компоненте
+import { ActivatedRoute } from '@angular/router';
+
+constructor(private route: ActivatedRoute) {
+  this.route.data.subscribe(date => {
+    const dataState = date
+    // Используйте значение параметра запроса
+  });
+}
+
+//-------------------------------
+//__What are Pipes in Angular__//
+//В Angular, Pipes (пайпы) представляют собой инструмент для преобразования данных прямо в шаблоне компонента. Они позволяют выполнять форматирование и преобразование данных перед их отображением пользователю. Пайпы часто используются для изменения формата дат, чисел, строк и других типов данных
+
+//DatePipe: Позволяет форматировать даты
+//<p>Текущая дата: {{ currentDate | date:'dd/MM/yyyy' }}</p>
+
+//UpperCasePipe и LowerCasePipe:
+//Позволяют преобразовывать строки в верхний или нижний регистр.Например:
+//<p>Привет, {{ name | uppercase }}</p>
+
+//CurrencyPipe:
+//Позволяет форматировать числа в денежном формате.Например:
+//<p>Цена: {{ price | currency:'USD':'symbol' }}</p>
+
+//DecimalPipe
+//Позволяет форматировать числа с заданным количеством десятичных знаков. Например:
+//<p>Рейтинг: {{ rating | number:'1.1-2' }}</p>
+
+//Кроме встроенных пайпов, вы также можете создавать свои пользовательские пайпы, определяя класс с декоратором @Pipe. 
+
+//---------------------------------
 //__
