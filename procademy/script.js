@@ -2683,5 +2683,69 @@ constructor(private route: ActivatedRoute) {
 
 //Кроме встроенных пайпов, вы также можете создавать свои пользовательские пайпы, определяя класс с декоратором @Pipe. 
 
-//---------------------------------
-//__
+//-------------------------------
+//__How to Create Custom Pipe__//
+//Создание пользовательского пайпа в Angular
+
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({
+  name: 'custom'
+})
+export class CustomPipe implements PipeTransform {
+  transform(value: any, args?: any): any {
+    // Логика преобразования данных
+    return value;
+  }
+}
+
+//Регистрируйте пайп
+@NgModule({
+  declarations: [CustomPipe],
+  exports: [CustomPipe]
+})
+export class AppModule { }
+
+//<p>{{ value | custom }}</p>
+
+//Вы также можете передавать дополнительные аргументы в пайп, указав их после двоеточия (:) в выражении пайпа
+//<p>{{ value | custom: arg1: arg2 }}</p>
+
+//------------------------------------
+//___Creating a Custom Filter Pipe__//
+
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({
+  name: 'customFilter'
+})
+export class CustomFilterPipe implements PipeTransform {
+  transform(items: any[], searchText: string): any[] {
+    if (!items) return [];
+    if (!searchText) return items;
+
+    searchText = searchText.toLowerCase();
+
+    return items.filter(item => {
+      return item.name.toLowerCase().includes(searchText);
+    });
+  }
+}
+
+/* 
+<ul>
+  <li *ngFor="let item of items | customFilter: searchText">
+    {{ item.name }}
+  </li>
+</ul>
+*/
+
+//Зарегистрируйте пайп
+@NgModule({
+  declarations: [CustomFilterPipe],
+  exports: [CustomFilterPipe]
+})
+export class AppModule { }
+
+//-----------------------------------
+//__Pure & Impure Pipe in Angular__//
