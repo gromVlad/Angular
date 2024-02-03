@@ -2749,3 +2749,226 @@ export class AppModule { }
 
 //-----------------------------------
 //__Pure & Impure Pipe in Angular__//
+//В Angular есть два типа Pipe: чистые (pure) и нечистые (impure). Эти типы определяются в метаданных Pipe и влияют на их поведение в приложении.
+
+/* 
+Чистые Pipe (Pure pipes):
+Чистые Pipe в Angular имеют несколько ключевых свойств:
+Они имеют иммутабельный (неизменяемый) входной параметр.
+Они не выполняют никаких побочных эффектов.
+Они кэшируют результаты и возвращают сохраненное значение, если входные данные не изменились.
+*/
+@Pipe({
+  name: 'multiply',
+  pure: true
+})
+export class MultiplyPipe implements PipeTransform {
+  transform(value: number, multiplier: number): number {
+    return value * multiplier;
+  }
+}
+
+/* 
+Нечистые Pipe (Impure pipes):
+Нечистые Pipe в Angular имеют следующие свойства:
+Они могут иметь изменяемые входные параметры.
+Они могут выполнять побочные эффекты.
+Они не кэшируют результаты и выполняют преобразование при каждом изменении данных.
+*/
+@Pipe({
+  name: 'filter',
+})
+export class FilterPipe implements PipeTransform {
+  transform(items: any[], filterValue: string): any[] {
+    // Пример фильтрации массива по значению
+    return items.filter(item => item.includes(filterValue));
+  }
+}
+//могут вызываться часто и могут оказывать негативное влияние на производительность вашего приложения, поэтому их использование следует ограничивать только необходимыми случаями
+
+//Чтобы сделать трубку нечистой (impure) в Angular, вам необходимо явно указать pure: false в метаданных трубки. Нечистые трубки выполняют преобразование при каждом изменении данных и могут выполнять побочные эффекты
+@Pipe({
+  name: 'filter',
+  pure: false
+})
+export class FilterPipe implements PipeTransform {
+  transform(items: any[], filterValue: string): any[] {
+    // Пример фильтрации массива по значению
+    return items.filter(item => item.includes(filterValue));
+  }
+}
+
+//Рекомендуется использовать нечистые трубки только в случаях, когда это необходимо для конкретных операций или обновления состояния.
+
+//!!!В итоге не использовать pipe для сортировки и фильтрации
+
+//-----------------------------------------------
+//__Adding Filter Functionality without Pipes__//
+
+//Если вы хотите добавить функциональность фильтрации без использования pipes в Angular, вы можете реализовать это напрямую в компоненте или сервисе
+
+//___
+@Injectable({
+  providedIn: 'root'
+})
+export class DataService {
+  items: any[];
+
+  constructor() {
+    // Здесь можно инициализировать массив данных
+    this.items = ['Item 1', 'Item 2', 'Item 3', 'Another Item', 'Something Else'];
+  }
+
+  filterItems(filterValue: string): any[] {
+    return this.items.filter(item => item.includes(filterValue));
+  }
+}
+
+//__
+import { Component } from '@angular/core';
+import { DataService } from './data.service';
+
+@Component({
+  selector: 'app-filter',
+  template: `
+    <input type="text" [(ngModel)]="filterValue" (input)="applyFilter()" placeholder="Введите критерий фильтрации">
+    <ul>
+      <li *ngFor="let item of filteredItems">{{ item }}</li>
+    </ul>
+  `
+})
+export class FilterComponent {
+  filterValue: string;
+  filteredItems: any[];
+
+  constructor(private dataService: DataService) { }
+
+  applyFilter() {
+    this.filteredItems = this.dataService.filterItems(this.filterValue);
+  }
+}
+
+//---------------------------
+//__Async Pipe in Angular__//
+//Async Pipe - это встроенная pipe в Angular, которая упрощает работу с асинхронными операциями и отображением данных, полученных из Observable или Promise в шаблоне компонента.
+
+//__
+@Injectable({
+  providedIn: 'root'
+})
+export class DataService {
+  getData(): Observable<string> {
+    // Имитация асинхронной операции с задержкой
+    return of('Привет, мир!').pipe(delay(2000));
+  }
+}
+
+//__
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <h2>{{ data$ | async }}</h2>
+  `
+})
+export class MyComponentComponent {
+  data$: Observable<string>;
+
+  constructor(private dataService: DataService) { }
+
+  ngOnInit() {
+    this.data$ = this.dataService.getData();
+  }
+}
+
+//------------------------------------------
+//__Introduction to Template Driven Form__//
+//Шаблонные формы (Template Driven Forms) - это один из двух подходов к созданию форм в Angular. В этом подходе шаблон компонента используется для определения структуры и поведения формы.
+
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-my-form',
+  templateUrl: './my-form.component.html',
+  styleUrls: ['./my-form.component.css']
+})
+export class MyFormComponent {
+  formData = {
+    name: '',
+    email: ''
+  };
+
+  onSubmit() {
+    console.log(this.formData);
+  }
+}
+/* 
+<form #myForm="ngForm" (ngSubmit)="onSubmit()">
+  <label for="name">Имя:</label>
+  <input type="text" id="name" name="name" [(ngModel)]="formData.name" required>
+
+  <label for="email">Email:</label>
+  <input type="email" id="email" name="email" [(ngModel)]="formData.email" required>
+
+  <button type="submit">Отправить</button>
+</form>
+*/
+
+//пример использования директивы ngFor
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+      <input type="text" formControlName="name">
+      <input type="email" formControlName="email">
+      <button type="submit">Submit</button>
+    </form>
+  `
+})
+export class MyComponent implements OnInit {
+
+  myForm: FormGroup;
+
+  constructor(private fb: FormBuilder) { }
+
+  ngOnInit() {
+    this.myForm = this.fb.group({
+      name: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]]
+    });
+  }
+
+  onSubmit() {
+    console.log(this.myForm.value);
+  }
+
+}
+
+//---------------------------------
+//__Reading Form Control Values__//
+
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <form #regForm="myForm" (ngSubmit)="onSubmit()">
+      <input type="text" formControlName="name" ngModel>
+      <input type="email" formControlName="email" ngModel>
+      <button type="submit">Submit</button>
+    </form>
+  `
+})
+export class MyComponent implements OnInit {
+
+  @ViewChild('regForm') myForm:NgForm
+
+  onSubmit() {
+    console.log(this.myForm.value.name);
+  }
+
+}
+
+//-----------------------------------
+//__Touched & Dirty Form Property__//
