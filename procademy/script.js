@@ -2571,7 +2571,7 @@ const routes: Routes = [
 this.activatedRoute.snapshot.data['data']
 
 //__в версии 15 и выше
-const resolve = ()  => {
+const resolve = () => {
   return this.dataService.getData()
 }
 
@@ -2591,7 +2591,7 @@ const routes: Routes = [
 
 //enableTracing:true - просматривать все Router событие в консоли
 @NgModule({
-  imports: [RouterModule.forRoot(routes),{enableTracing:true}],
+  imports: [RouterModule.forRoot(routes), { enableTracing: true }],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }
@@ -2882,6 +2882,7 @@ export class MyComponentComponent {
 
 //------------------------------------------
 //__Introduction to Template Driven Form__//
+//Форма, управляемая шаблоном
 //Шаблонные формы (Template Driven Forms) - это один из двух подходов к созданию форм в Angular. В этом подходе шаблон компонента используется для определения структуры и поведения формы.
 
 import { Component } from '@angular/core';
@@ -2947,8 +2948,7 @@ export class MyComponent implements OnInit {
 }
 
 //---------------------------------
-//__Reading Form Control Values__//
-
+//__Reading Form Control Values / Форма, управляемая шаблоном__//
 
 @Component({
   selector: 'app-my-component',
@@ -2962,7 +2962,7 @@ export class MyComponent implements OnInit {
 })
 export class MyComponent implements OnInit {
 
-  @ViewChild('regForm') myForm:NgForm
+  @ViewChild('regForm') myForm: NgForm
 
   onSubmit() {
     console.log(this.myForm.value.name);
@@ -2971,4 +2971,374 @@ export class MyComponent implements OnInit {
 }
 
 //-----------------------------------
-//__Touched & Dirty Form Property__//
+//__Touched & Dirty Form Property / Форма, управляемая шаблоном__//
+// Свойства touched и dirty формы в Angular используются для отслеживания состояния формы.
+
+// Свойство touched
+// Свойство touched формы указывает, было ли изменено хотя бы одно поле формы.Если хотя бы одно поле формы было изменено, свойство touched формы становится true.В противном случае свойство touched формы остается false.
+
+// Свойство dirty
+// Если хотя бы одно поле формы было изменено и его значениеdirty формы указывает, было ли изменено хотя бы одно поле формы и его значение отличается от первоначального значения.Свойство dirty формы становится true.В противном случае свойство dirty формы остается false.
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <form #regForm="myForm" (ngSubmit)="onSubmit()">
+      <input type="text" formControlName="name" ngModel>
+      <input type="email" formControlName="email" ngModel>
+       <button type="submit" [disabled]="!myForm.form.touched || !myForm.dirty">Submit</button>
+    </form>
+  `
+})
+export class MyComponent implements OnInit {
+
+  @ViewChild('regForm') myForm: NgForm
+
+  onSubmit() {
+    console.log(this.myForm.value.name);
+  }
+
+}
+
+//--------------------------------
+//__Working with Radio Buttons / Форма, управляемая шаблоном__//
+//Радиокнопки в Angular используются для создания группы взаимоисключающих элементов управления. Это означает, что только один радиокнопка в группе может быть выбран одновременно
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <form #regForm="myForm" (ngSubmit)="onSubmit()">
+      <input type="text" formControlName="name" ngModel>
+      <input type="email" formControlName="email" ngModel>
+      <div>
+        <input type="radio" formControlName="gender" value="male" ngModel> Male
+        <input type="radio" formControlName="gender" value="female" ngModel> Female
+      </div>
+      <button type="submit" [disabled]="!myForm.form.touched || !myForm.dirty">Submit</button>
+    </form>
+  `
+})
+export class MyComponent implements OnInit {
+
+  @ViewChild('regForm') myForm: NgForm;
+
+
+  onSubmit() {
+    console.log(this.myForm.value);
+  }
+
+}
+
+//---------------------------------------------------
+//__Form Validation / Форма, управляемая шаблоном__//
+//Валидация формы в Angular используется для проверки правильности введенных пользователем данных. Валидация формы может быть выполнена на стороне клиента или на стороне сервера.
+
+//Форма содержит два поля: name и email. Поле name является обязательным, а поле email является обязательным и должно быть в формате email.
+/* 
+<form #regForm="myForm" (ngSubmit)="onSubmit()">
+  <input type="text" formControlName="name" required ngModel>
+  <input type="email" formControlName="email" required email ngModel>
+  <button type="submit">Submit</button>
+</form>
+*/
+
+//----------------------------------------------------------------------------
+//__Showing Custom Validation Error Messages / Форма, управляемая шаблоном__//
+//В Angular можно настроить пользовательские сообщения об ошибках валидации для элементов формы.Это может быть полезно для предоставления более понятных и информативных сообщений об ошибках пользователю.
+
+/* 
+<form #regForm="myForm" (ngSubmit)="onSubmit()">
+  //можно свою ссылку на каждый инпут получить и в зависемости от значений влиять добовлять сообщения
+  <input type="text" formControlName="name" required ngModel #inputVal = 'ngModel'>
+  <p *ngIf = 'inputVal.inValid'>required<p>
+  <input type="email" formControlName="email" required email ngModel>
+  <button type="submit">Submit</button>
+</form>
+*/
+
+//можем влиять на стили которые добовляються в angular к форме и в зависемости от значений влиять на логуику
+/* 
+input.ng-touch.ng-invalid{
+  border:1px solid red;
+}
+*/
+
+//-------------------------------------------------------------
+//__Grouping of Form Controls / Форма, управляемая шаблоном__//
+//В Angular у вас есть возможность группировать элементы формы внутри контейнера, чтобы легче управлять ими.В случае шаблонных форм(Template - Driven Forms) вы можете использовать директиву ngModelGroup для группировки элементов формы.
+
+//Директива ngModelGroup позволяет создавать вложенные группы элементов формы внутри других групп или формы.Это полезно, когда у вас есть сложная структура формы или когда вы хотите группировать связанные элементы формы вместе.
+
+//Влияем на определенные группы форм по отдельности
+
+@Component({
+  selector: 'app-my-form',
+  template: `
+    <form #myForm="ngForm">
+      <div ngModelGroup="personalInfo" #personal ='ngModelGroup'>
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" name="firstName" ngModel required>
+
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" name="lastName" ngModel required>
+
+        <p *ngIf = 'personal.inValid && personal.touch'>required<p>
+      </div>
+
+      <div ngModelGroup="contactInfo">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" ngModel required>
+
+        <label for="phone">Phone:</label>
+        <input type="text" id="phone" name="phone" ngModel>
+      </div>
+
+      <button type="submit">Submit</button>
+    </form>
+  `,
+})
+export class MyFormComponent {
+  onSubmit() {
+    console.log(myForm.personalInfo.firstName);
+  }
+}
+
+//------------------------------------------------------------------
+//__setvalue and patchValue method / Форма, управляемая шаблоном__//
+// Метод setValue() полностью перезаписывает значение элемента управления формы.Это означает, что все существующие значения элемента управления формы будут удалены и заменены новым значением.
+// Метод patchValue() обновляет только указанные свойства элемента управления формы.Это означает, что существующие значения элемента управления формы сохраняются, а обновляются только те свойства, которые указаны в объекте, переданном методу patchValue().
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <form #userForm="ngForm" (ngSubmit)="onSubmit()">
+      <input type="text" name="firstName" [(ngModel)]="user.firstName" required>
+      <input type="text" name="lastName" [(ngModel)]="user.lastName" required>
+      <input type="date" name="dateOfBirth" [(ngModel)]="user.dateOfBirth" required>
+      <button type="submit" [disabled]="!userForm.form.valid">Create Username</button>
+    </form>
+  `
+})
+export class MyComponent implements OnInit {
+
+  user: any = {
+    firstName: '',
+    lastName: '',
+    dateOfBirth: ''
+  };
+
+  constructor() { }
+
+  ngOnInit() { }
+
+  generateUsername(firstName: string, lastName: string, dateOfBirth: string): string {
+    return firstName.charAt(0) + lastName.charAt(0) + dateOfBirth.slice(2, 4);
+  }
+
+  onSubmit() {
+    const username = this.generateUsername(this.user.firstName, this.user.lastName, this.user.dateOfBirth);
+    this.userForm.form.patchValue({
+      username: username
+    });
+  }
+
+}
+
+//--------------------------------------------------------------------
+//__Resseting a Template Driven Form / Форма, управляемая шаблоном__//
+//добавили кнопку сброса формы в форму. Когда пользователь нажимает кнопку сброса, метод resetForm() компонента вызывается и форма сбрасывается.
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <form #userForm="ngForm" (ngSubmit)="onSubmit()">
+      <input type="text" name="firstName" [(ngModel)]="user.firstName" required>
+      <input type="text" name="lastName" [(ngModel)]="user.lastName" required>
+      <input type="date" name="dateOfBirth" [(ngModel)]="user.dateOfBirth" required>
+      <button type="submit">Create Username</button>
+      <button type="reset">Reset Form</button>
+    </form>
+  `
+})
+export class MyComponent implements OnInit {
+
+  user: any = {
+    firstName: '',
+    lastName: '',
+    dateOfBirth: ''
+  };
+
+  constructor() { }
+
+  ngOnInit() { }
+
+  onSubmit() {
+    const username = this.generateUsername(this.user.firstName, this.user.lastName, this.user.dateOfBirth);
+    this.userForm.form.patchValue({
+      username: username
+    });
+  }
+
+  generateUsername(firstName: string, lastName: string, dateOfBirth: string): string {
+    return firstName.charAt(0) + lastName.charAt(0) + dateOfBirth.slice(2, 4);
+  }
+
+  resetForm() {
+    this.userForm.form.reset();
+    this.userForm.form.patchValue({
+      country: 'Japan'
+    });
+  }
+
+}
+
+//-------------------------------------------------------------
+//__#122 Retrieving Form Data / Форма, управляемая шаблоном__// 
+//Когда пользователь отправляет форму, метод onSubmit() компонента вызывается и свойство submitted устанавливается в true. Это приводит к отображению блока с данными пользователя.
+
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <form #userForm="ngForm" (ngSubmit)="onSubmit()">
+      <input type="text" name="firstName" [(ngModel)]="user.firstName" required>
+      <input type="text" name="lastName" [(ngModel)]="user.lastName" required>
+      <input type="email" name="email" [(ngModel)]="user.email" required>
+      <input type="date" name="dateOfBirth" [(ngModel)]="user.dateOfBirth" required>
+      <input type="text" name="address" [(ngModel)]="user.address" required>
+      <input type="text" name="country" [(ngModel)]="user.country" required>
+      <input type="text" name="city" [(ngModel)]="user.city" required>
+      <input type="text" name="region" [(ngModel)]="user.region" required>
+      <input type="text" name="postalCode" [(ngModel)]="user.postalCode" required>
+      <button type="submit">Submit</button>
+    </form>
+
+    <div *ngIf="submitted">
+      <h2>User Details</h2>
+      <p>Full Name: {{ user.firstName }} {{ user.lastName }}</p>
+      <p>Email: {{ user.email }}</p>
+      <p>Username: {{ user.username }}</p>
+      <p>Date of Birth: {{ user.dateOfBirth }}</p>
+      <p>Address: {{ user.address }}</p>
+      <p>Country: {{ user.country }}</p>
+      <p>City: {{ user.city }}</p>
+      <p>Region: {{ user.region }}</p>
+      <p>Postal Code: {{ user.postalCode }}</p>
+    </div>
+  `
+})
+export class MyComponent implements OnInit {
+
+  user: any = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    dateOfBirth: '',
+    address: '',
+    country: '',
+    city: '',
+    region: '',
+    postalCode: ''
+  };
+
+  submitted: boolean = false;
+
+  constructor() { }
+
+  ngOnInit() { }
+
+  onSubmit() {
+    this.submitted = true;
+  }
+
+}
+
+//-----------------------------------------------------------
+//__Working with Checkboxes / Форма, управляемая шаблоном__//
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <form #userForm="ngForm" (ngSubmit)="onSubmit()">
+      <input type="checkbox" name="agreed" [(ngModel)]="agreed"> I agree to the terms and conditions
+      <button type="submit">Submit</button>
+    </form>
+  `
+})
+export class MyComponent implements OnInit {
+
+  agreed: boolean = false;
+
+  constructor() { }
+
+  ngOnInit() { }
+
+  onSubmit() {
+    console.log(this.agreed);
+  }
+}
+
+//-----------------------------------------------------
+//__Introduction to Reactive Forms | Reactive Forms__//
+//Для создания реактивной формы в Angular мы определяем структуру формы в классе компонента и привязываем группу форм и элементы управления формой к HTML-форме в шаблоне представления. Это позволяет нам иметь больший контроль над отображением формы и элементов управления.
+
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+      <div>
+        <label for="firstName">Имя:</label>
+        <input type="text" id="firstName" formControlName="firstName">
+        <div *ngIf="myForm.get('firstName').invalid && myForm.get('firstName').touched">
+          Имя является обязательным полем.
+        </div>
+      </div>
+
+      <div>
+        <label for="lastName">Фамилия:</label>
+        <input type="text" id="lastName" formControlName="lastName">
+        <div *ngIf="myForm.get('lastName').invalid && myForm.get('lastName').touched">
+          Фамилия является обязательным полем.
+        </div>
+      </div>
+
+      <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" formControlName="email">
+        <div *ngIf="myForm.get('email').invalid && myForm.get('email').touched">
+          Пожалуйста, введите действительный адрес электронной почты.
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="myForm.invalid">Отправить</button>
+    </form>
+  `,
+  styleUrls: ['./my-component.component.css']
+})
+export class MyComponent implements OnInit {
+  myForm: FormGroup;
+
+  ngOnInit() {
+    this.myForm = new FormGroup({
+      firstName: new FormControl('', Validators.required),
+      lastName: new FormControl('', Validators.required),
+      email: new FormControl('', [Validators.required, Validators.email]),
+    });
+  }
+
+  onSubmit() {
+    if (this.myForm.invalid) {
+      // Обработка недопустимой формы
+      return;
+    }
+
+    console.log(this.myForm.value);
+    // Отправка данных формы на сервер или другая обработка
+  }
+}
