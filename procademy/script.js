@@ -3411,55 +3411,72 @@ export class MyFormComponent implements OnInit {
   }
 }
 
-//-------------------------------------------------------
-//__Creating and using Form Array | Reactive Forms__//
 //__Adding Form Controls Dynamically | Reactive Forms__//
 //Массив форм в Angular позволяет управлять набором элементов управления формами. Элементы формы могут быть группами форм, элементами управления формой или другими массивами форм. Группа форм используется для представления комплексных структур данных, а массив форм - для коллекций элементов управления формами.
-
-import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-my-form',
   template: `
     <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
-      <div formArrayName="skills">
-        <div *ngFor="let skillGroup of skills.controls; let i = index" [formGroupName]="i">
-          <input type="text" formControlName="skillName" placeholder="Skill Name" required>
-          <input type="text" formControlName="experience" placeholder="Experience" required>
-          <button type="button" (click)="removeSkill(i)">Remove Skill</button>
+      <div formArrayName="experience">
+        <div *ngFor="let experienceGroup of experience.controls; let i = index" [formGroupName]="i">
+          <h4>Опыт {{ i + 1 }}</h4>
+          <div>
+            <label>Название компании</label>
+            <input type="text" formControlName="company" placeholder="Название компании" required>
+          </div>
+          <div>
+            <label>Должность</label>
+            <input type="text" formControlName="position" placeholder="Должность" required>
+          </div>
+          <div>
+            <label>Опыт работы (в годах)</label>
+            <input type="number" formControlName="years" placeholder="Опыт работы" required>
+          </div>
+          <div>
+            <label>Дата начала работы</label>
+            <input type="date" formControlName="startDate" required>
+          </div>
+          <div>
+            <label>Дата окончания работы</label>
+            <input type="date" formControlName="endDate" required>
+          </div>
+          <button type="button" (click)="removeExperience(i)">Удалить опыт</button>
         </div>
       </div>
-      <button type="button" (click)="addSkill()">Add Skill</button>
-      <button type="submit">Submit</button>
+      <button type="button" (click)="addExperience()">Добавить опыт</button>
+      <button type="submit">Отправить</button>
     </form>
   `,
   styleUrls: ['./my-form.component.css']
 })
-export class MyFormComponent implements OnInit {
+export class MyFormComponent {
   myForm: FormGroup;
 
-  ngOnInit() {
+  constructor() {
     this.myForm = new FormGroup({
-      skills: new FormArray([])
+      experience: new FormArray([])
     });
   }
 
-  addSkill() {
-    const skillFormGroup = new FormGroup({
-      skillName: new FormControl('', Validators.required),
-      experience: new FormControl('', Validators.required)
+  get experience(): FormArray {
+    return this.myForm.get('experience') as FormArray;
+  }
+
+  addExperience() {
+    const experienceGroup = new FormGroup({
+      company: new FormControl('', Validators.required),
+      position: new FormControl('', Validators.required),
+      years: new FormControl('', Validators.required),
+      startDate: new FormControl('', Validators.required),
+      endDate: new FormControl('', Validators.required)
     });
 
-    this.skills.push(skillFormGroup);
+    this.experience.push(experienceGroup);
   }
 
-  removeSkill(index: number) {
-    this.skills.removeAt(index);
-  }
-
-  get skills() {
-    return this.myForm.get('skills') as FormArray;
+  removeExperience(index: number) {
+    this.experience.removeAt(index);
   }
 
   onSubmit() {
@@ -3470,5 +3487,736 @@ export class MyFormComponent implements OnInit {
   }
 }
 
-//---------------------------------------
+//--------------------------------------------------
+//__Creating a Custom Validator | Reactive Forms__//
+//создания пользовательского валидатора без пробелов
+
+export function noWhitespaceValidator() {
+  return (control: FormControl) => {
+    const value = control.value;
+    if (value && value.trim().length === 0) {
+      return { 'noWhitespace': true };
+    }
+    return null;
+  };
+}
+
+//___
+@Component({
+  selector: 'app-my-form',
+  template: `
+    <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+      <div>
+        <label>Имя и фамилия</label>
+        <input type="text" formControlName="name" placeholder="Имя и фамилия">
+        <div *ngIf="name?.errors['required'] && name.touched">
+          Имя и фамилия являются обязательными полями
+        </div>
+        <div *ngIf="name?.errors['noWhitespace'] && name.touched">
+          Имя и фамилия не могут содержать только пробелы
+        </div>
+      </div>
+      <button type="submit">Отправить</button>
+    </form>
+  `,
+  styleUrls: ['./my-form.component.css']
+})
+export class MyFormComponent {
+  myForm: FormGroup;
+
+  constructor() {
+    this.myForm = new FormGroup({
+      name: new FormControl('', [Validators.required, noWhitespaceValidator()])
+    });
+  }
+
+  get name() {
+    return this.myForm.get('name');
+  }
+
+  onSubmit() {
+    if (this.myForm.valid) {
+      console.log(this.myForm.value);
+      // Здесь можно выполнить дополнительные действия, например, отправку данных на сервер
+    }
+  }
+}
+
+//--------------------------------------------------------
+//__Creating a Custom Async Validator | Reactive Forms__//
+//создания пользовательского асинхронного валидатора в Angular 
+
+export function usernameAvailabilityValidator(): AsyncValidatorFn {
+  return (control: AbstractControl): Observable<ValidationErrors | null> => {
+    const username = control.value;
+    // Здесь вы можете выполнить HTTP-запрос к серверу для проверки доступности имени пользователя
+    // В данном примере просто эмулируется задержка и возвращается случайный результат
+    return checkUsernameAvailability(username).pipe(
+      delay(2000) // Задержка для эмуляции запроса к серверу
+    );
+  };
+}
+
+// Функция для эмуляции проверки доступности имени пользователя
+function checkUsernameAvailability(username: string): Observable<ValidationErrors | null> {
+  const availableUsernames = ['john', 'emma', 'alex']; // Пример доступных имен пользователей
+  const isUsernameAvailable = !availableUsernames.includes(username);
+  if (isUsernameAvailable) {
+    return of(null); // Имя пользователя доступно
+  } else {
+    return of({ 'usernameTaken': true }); // Имя пользователя занято
+  }
+}
+
+//___
+@Component({
+  selector: 'app-my-form',
+  template: `
+    <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+      <div>
+        <label>Имя и фамилия</label>
+        <input type="text" formControlName="name" placeholder="Имя и фамилия">
+        <div *ngIf="name?.errors['required'] && name.touched">
+          Имя и фамилия являются обязательными полями
+        </div>
+        <div *ngIf="name?.errors['noWhitespace'] && name.touched">
+          Имя и фамилия не могут содержать только пробелы
+        </div>
+        <div *ngIf="name?.pending">
+          Проверка доступности имени и фамилии...
+        </div>
+        <div *ngIf="name?.errors['usernameTaken'] && name.touched">
+          Имя и фамилия уже заняты
+        </div>
+      </div>
+      <button type="submit">Отправить</button>
+    </form>
+  `,
+  styleUrls: ['./my-form.component.css']
+})
+export class MyFormComponent {
+  myForm: FormGroup;
+
+  constructor() {
+    this.myForm = new FormGroup({
+      //3 параметром асинхронный валидатор
+      name: new FormControl('', [Validators.required, noWhitespaceValidator()], [usernameAvailabilityValidator()])
+    });
+  }
+
+  get name() {
+    return this.myForm.get('name');
+  }
+
+  onSubmit() {
+    if (this.myForm.valid) {
+      console.log(this.myForm.value);
+      // Здесь можно выполнить дополнительные действия, например, отправку данных на сервер
+    }
+  }
+}
+
+//---------------------------------------------------------
+//__valueChanges & statusChanges Events | Reactive Form__//
+//использование событий valueChanges и statusChanges в реактивных формах Angular
+ы
+@Component({
+  selector: 'app-my-form',
+  template: `
+    <form [formGroup]="myForm">
+      <div>
+        <label>Имя и фамилия</label>
+        <input type="text" formControlName="name">
+      </div>
+    </form>
+    <div>
+      <p>Значение: {{ nameValue }}</p>
+      <p>Состояние: {{ nameStatus }}</p>
+    </div>
+  `,
+  styleUrls: ['./my-form.component.css']
+})
+export class MyFormComponent {
+  myForm: FormGroup;
+  nameValue: string;
+  nameStatus: string;
+
+  constructor() {
+    this.myForm = new FormGroup({
+      name: new FormControl('', Validators.required)
+    });
+
+    // Подписываемся на событие изменения значения поля "name"
+    this.myForm.get('name').valueChanges.subscribe(value => {
+      this.nameValue = value; // Обновляем значение переменной nameValue
+      console.log('Значение поля "name" изменено:', value);
+    });
+
+    // Подписываемся на событие изменения состояния формы
+    this.myForm.statusChanges.subscribe(status => {
+      this.nameStatus = status; // Обновляем значение переменной nameStatus
+      console.log('Состояние формы изменено:', status);
+    });
+  }
+}
+
+//--------------------------------------------------------
+//__setValue() & patchValue() Methods | Reactive Forms__//
+
+@Component({
+  selector: 'app-my-form',
+  template: `
+    <form [formGroup]="myForm">
+      <div>
+        <label>1-е имя</label>
+        <input type="text" formControlName="firstName">
+      </div>
+      <div>
+        <label>Фамилия</label>
+        <input type="text" formControlName="lastName">
+      </div>
+      <div>
+        <label>Дата рождения</label>
+        <input type="text" formControlName="dob">
+      </div>
+      <button (click)="generateUsername()" [disabled]="!myForm.valid">Создать имя пользователя</button>
+    </form>
+    <div>
+      <label>Имя пользователя</label>
+      <input type="text" formControlName="username">
+    </div>
+  `,
+  styleUrls: ['./my-form.component.css']
+})
+export class MyFormComponent {
+  myForm: FormGroup;
+
+  constructor() {
+    this.myForm = new FormGroup({
+      firstName: new FormControl('', Validators.required),
+      lastName: new FormControl('', Validators.required),
+      dob: new FormControl('', Validators.required),
+      username: new FormControl('')
+    });
+  }
+
+  generateUsername() {
+    const fname = this.myForm.get('firstName').value;
+    const lname = this.myForm.get('lastName').value;
+    const dob = this.myForm.get('dob').value;
+
+    const generatedUsername = this.generateUsernameFromData(fname, lname, dob);
+
+    // Используем метод setValue() для установки значения в элемент управления формы "username"
+    this.myForm.get('username').setValue(generatedUsername);
+  }
+
+  generateUsernameFromData(fname: string, lname: string, dob: string): string {
+    return fname.toLowerCase() + lname.toLowerCase() + dob.replace('/', '');
+  }
+}
+
+//------------------------------------------------------------------------------------------
+//__Retrieving Form Data and Resetting Form | Reactive Forms | A Complete Angular Course__//
+// реактивные формы для извлечения данных из формы, их отображения и сброса
+
+@Component({
+  selector: 'app-my-form',
+  template: `
+    <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+      <div>
+        <label>Имя</label>
+        <input type="text" formControlName="firstName">
+      </div>
+      <div>
+        <label>Фамилия</label>
+        <input type="text" formControlName="lastName">
+      </div>
+      <div>
+        <label>Пол</label>
+        <select formControlName="gender">
+          <option value="male">Мужской</option>
+          <option value="female">Женский</option>
+        </select>
+      </div>
+      <div>
+        <label>Адрес</label>
+        <input type="text" formControlName="address.country">
+      </div>
+      <button type="submit">Отправить</button>
+    </form>
+    <div *ngIf="submitted">
+      <h2>Данные формы:</h2>
+      <p>Имя: {{ formData.firstName }}</p>
+      <p>Фамилия: {{ formData.lastName }}</p>
+      <p>Пол: {{ formData.gender }}</p>
+      <p>Страна: {{ formData.address?.country }}</p>
+    </div>
+    <button (click)="resetForm()">Сбросить форму</button>
+  `,
+  styleUrls: ['./my-form.component.css']
+})
+export class MyFormComponent implements OnInit {
+  myForm: FormGroup;
+  submitted = false;
+  formData: any;
+
+  ngOnInit() {
+    this.myForm = new FormGroup({
+      firstName: new FormControl('', Validators.required),
+      lastName: new FormControl('', Validators.required),
+      gender: new FormControl('male'),
+      address: new FormGroup({
+        country: new FormControl()
+      })
+    });
+  }
+
+  onSubmit() {
+    this.submitted = true;
+    this.formData = this.myForm.value;
+  }
+
+  resetForm() {
+    this.submitted = false;
+    this.formData = null;
+    this.myForm.reset({
+      gender: 'male',
+      address: { country: '' }
+    });
+  }
+}
+
+//-----------------------------------------------------------
+//__Introduction to HTTP Request & Response | HTTP Client__//
+//API взаимодействует с базой данных и возвращает данные. Существует различные типы API, такие как REST API, GraphQL API и другие
+//HTTP-запросы играют важную роль в обмене данными между клиентом и сервером. Они состоят из URL, HTTP-глагола (GET, POST, PUT, DELETE) и дополнительных метаданных, таких как заголовки и тело запроса. В этом разделе курса мы рассмотрим, как отправлять HTTP-запросы на сервер и обрабатывать ответы.
+//HTTP-запрос состоит из URL, типа запроса (GET, POST, PUT, DELETE), заголовков и тела. Не все запросы обязательно должны иметь тело. Например, GET-запросы используются для получения данных с сервера без передачи данных в теле запроса. В Angular мы можем использовать специальные модули, например, HttpClientModule, для отправки HTTP-запросов и получения ответов от сервера
+//Существуют различные типы баз данных. Реляционные базы данных имеют таблицы и строки, а базы данных NoSQL используют коллекции и документы.
+
+//-----------------------------------------------------------
+//__Creating Records with HTTP Post Request | HTTP Client__//
+//создание записей с использованием HTTP POST-запроса в Angular с помощью HTTP-клиент
+
+//______
+import { NgModule } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
+
+@NgModule({
+  imports: [HttpClientModule],
+  declarations: [/* Ваши компоненты */],
+  providers: [/* Ваши сервисы */],
+  bootstrap: [/* Ваш корневой компонент */]
+})
+export class AppModule { }
+
+//___
+@Injectable()
+export class DataService {
+  private apiUrl = 'http://example.com/api/tasks';
+
+  constructor(private http: HttpClient) { }
+
+  createTask(task: any) {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.post(this.apiUrl, task, { headers });
+  }
+}
+
 //__
+@Component({
+  selector: 'app-create-task',
+  template: `
+    <form (ngSubmit)="onSubmit()">
+      <!-- Ваша форма с необходимыми полями -->
+      <button type="submit">Создать задачу</button>
+    </form>
+  `
+})
+export class CreateTaskComponent {
+  constructor(private dataService: DataService) { }
+
+  onSubmit() {
+    // Получаем данные из формы и создаем объект задачи
+    const task = {
+      // Ваши поля задачи
+    };
+
+    this.dataService.createTask(task).subscribe(
+      (response) => {
+        console.log('Задача успешно создана', response);
+        // Дополнительные действия после успешного создания задачи
+      },
+      (error) => {
+        console.error('Ошибка при создании задачи', error);
+        // Обработка ошибок при создании задачи
+      }
+    );
+  }
+}
+
+//---------------------------------------------------------------
+//__Fetching Data with HTTP GET Request | Angular HTTP Client__//
+
+//___
+@Injectable()
+export class DataService {
+  private apiUrl = 'http://example.com/api/tasks'; // Замените на ваш URL-адрес API
+
+  constructor(private http: HttpClient) { }
+
+  getTasks() {
+    return this.http.get < Task[] > (this.apiUrl);
+  }
+}
+
+export class Task {
+  id: number;
+  // Дополнительные свойства вашей задачи
+}
+
+//__
+@Component({
+  selector: 'app-task-list',
+  template: `
+    <ul>
+      <li *ngFor="let task of tasks">{{ task.id }} - {{ task.name }}</li>
+    </ul>
+  `
+})
+export class TaskListComponent implements OnInit {
+  tasks: Task[] = [];
+
+  constructor(private dataService: DataService) { }
+
+  ngOnInit() {
+    this.dataService.getTasks().subscribe(
+      (response) => {
+        this.tasks = response;
+      },
+      (error) => {
+        console.error('Ошибка при получении задач', error);
+        // Обработка ошибок при получении задач
+      }
+    );
+  }
+}
+
+//----------------------------------------------
+//__Display Fetched Data in UI | HTTP Client__//
+//Отображение найденных данных в пользовательском интерфейсе
+
+@Component({
+  selector: 'app-task-list',
+  template: `
+    <ul>
+      <li *ngFor="let task of tasks" [ngClass]="getTaskStatusClass(task)">
+        {{ task.id }} - {{ task.name }} - {{ task.status }} - {{ task.assignedTo }}
+      </li>
+    </ul>
+
+    <button (click)="createNewTask()">Создать задачу</button>
+    <button (click)="fetchAllTasks()">Получить задачи</button>
+  `
+})
+export class TaskListComponent implements OnInit {
+  tasks: Task[] = [];
+
+  constructor(private dataService: DataService) { }
+
+  ngOnInit() {
+    this.fetchAllTasks();
+  }
+
+  fetchAllTasks() {
+    this.dataService.getTasks().subscribe(
+      (response) => {
+        this.tasks = response;
+      },
+      (error) => {
+        console.error('Ошибка при получении задач', error);
+        // Обработка ошибок при получении задач
+      }
+    );
+  }
+
+  createNewTask() {
+    const newTask: Task = {
+      id: null, // Новая задача будет получать id от сервера
+      name: 'Новая задача',
+      status: 'Открыто',
+      assignedTo: 'Не назначено'
+    };
+
+    this.dataService.createTask(newTask).subscribe(
+      (response) => {
+        console.log('Задача создана', response);
+      },
+      (error) => {
+        console.error('Ошибка при создании задачи', error);
+        // Обработка ошибок при создании задачи
+      }
+    );
+  }
+
+  getTaskStatusClass(task: Task) {
+    return {
+      'task-in-progress': task.status === 'Выполняется',
+      'task-completed': task.status === 'Завершено',
+      'task-started': task.status === 'Запущено',
+      'task-open': task.status === 'Открыто'
+    };
+  }
+}
+
+//-----------------------------------------------------------
+//__Delete Records with HTTP DELETE Request | HTTP Client__//
+//удаление записей с использованием HTTP DELETE
+
+//____
+@Injectable()
+export class DataService {
+  private apiUrl = 'http://example.com/api/tasks'; // Замените на ваш URL-адрес API
+
+  constructor(private http: HttpClient) { }
+
+  deleteTask(taskId: number) {
+    const deleteUrl = `${this.apiUrl}/${taskId}`;
+    return this.http.delete(deleteUrl);
+  }
+}
+
+//___
+@Component({
+  selector: 'app-task-list',
+  template: `
+    <ul>
+      <li *ngFor="let task of tasks">
+        {{ task.id }} - {{ task.name }}
+        <button (click)="deleteTask(task.id)">Удалить</button>
+      </li>
+    </ul>
+  `
+})
+export class TaskListComponent {
+  tasks: Task[] = [];
+
+  constructor(private dataService: DataService) { }
+
+  fetchAllTasks() {
+    // Загрузка задач из базы данных
+  }
+
+  deleteTask(taskId: number) {
+    this.dataService.deleteTask(taskId).subscribe(
+      () => {
+        console.log('Задача удалена');
+        this.fetchAllTasks(); // Обновление списка задач после удаления
+      },
+      (error) => {
+        console.error('Ошибка при удалении задачи', error);
+        // Обработка ошибок при удалении задачи
+      }
+    );
+  }
+}
+
+//---------------------------------------------------
+//__Using Services for HTTP Request | HTTP Client__//
+//с объяснениями, который демонстрирует использование сервисов для выполнения HTTP-запросов в Angular
+
+//___
+@Injectable()
+export class TaskService {
+  private apiUrl = 'http://example.com/api/tasks'; // Замените на ваш URL-адрес API
+
+  constructor(private http: HttpClient) { }
+
+  createTask(task: Task): Observable<Task> {
+    return this.http.post < Task > (this.apiUrl, task);
+  }
+
+  deleteTask(taskId: number): Observable<void> {
+    const deleteUrl = `${this.apiUrl}/${taskId}`;
+    return this.http.delete < void> (deleteUrl);
+  }
+
+  deleteAllTasks(): Observable<void> {
+    return this.http.delete < void> (this.apiUrl);
+  }
+
+  getAllTasks(): Observable<Task[]> {
+    return this.http.get < Task[] > (this.apiUrl);
+  }
+}
+
+//___
+@Component({
+  selector: 'app-task-list',
+  template: `
+    <ul>
+      <li *ngFor="let task of tasks">
+        {{ task.id }} - {{ task.name }}
+        <button (click)="deleteTask(task.id)">Удалить</button>
+      </li>
+    </ul>
+    <button (click)="deleteAllTasks()">Удалить все задачи</button>
+  `
+})
+export class TaskListComponent {
+  tasks: Task[] = [];
+
+  constructor(private taskService: TaskService) { }
+
+  ngOnInit() {
+    this.fetchAllTasks();
+  }
+
+  fetchAllTasks() {
+    this.taskService.getAllTasks().subscribe(
+      (tasks) => {
+        this.tasks = tasks;
+      },
+      (error) => {
+        console.error('Ошибка при загрузке задач', error);
+        // Обработка ошибок при загрузке задач
+      }
+    );
+  }
+
+  deleteTask(taskId: number) {
+    this.taskService.deleteTask(taskId).subscribe(
+      () => {
+        console.log('Задача удалена');
+        this.fetchAllTasks(); // Обновление списка задач после удаления
+      },
+      (error) => {
+        console.error('Ошибка при удалении задачи', error);
+        // Обработка ошибок при удалении задачи
+      }
+    );
+  }
+
+  deleteAllTasks() {
+    if (confirm('Вы уверены, что хотите удалить все задачи?')) {
+      this.taskService.deleteAllTasks().subscribe(
+        () => {
+          console.log('Все задачи удалены');
+          this.fetchAllTasks(); // Обновление списка задач после удаления всех задач
+        },
+        (error) => {
+          console.error('Ошибка при удалении всех задач', error);
+          // Обработка ошибок при удалении всех задач
+        }
+      );
+    }
+  }
+}
+
+//------------------------------------------------
+//__Creating an Update Task Form | HTTP Client__//
+// создание формы для обновления задачи с использованием HttpClient в Angular
+
+//____
+@Component({
+  selector: 'app-update-task',
+  template: `
+    <h2>Редактировать задачу</h2>
+    <form [formGroup]="updateTaskForm" (ngSubmit)="onSubmit()">
+      <div>
+        <label for="name">Название:</label>
+        <input type="text" id="name" formControlName="name">
+      </div>
+      <div>
+        <label for="description">Описание:</label>
+        <textarea id="description" formControlName="description"></textarea>
+      </div>
+      <div>
+        <label for="assignee">Кому назначена:</label>
+        <input type="text" id="assignee" formControlName="assignee">
+      </div>
+      <div>
+        <label for="priority">Приоритет:</label>
+        <select id="priority" formControlName="priority">
+          <option value="low">Низкий</option>
+          <option value="medium">Средний</option>
+          <option value="high">Высокий</option>
+        </select>
+      </div>
+      <div>
+        <label for="status">Статус:</label>
+        <select id="status" formControlName="status">
+          <option value="new">Новая</option>
+          <option value="in-progress">В процессе</option>
+          <option value="completed">Завершена</option>
+        </select>
+      </div>
+      <button type="submit">Обновить задачу</button>
+    </form>
+  `
+})
+export class UpdateTaskComponent implements OnInit {
+  taskId: number;
+  updateTaskForm: FormGroup;
+
+  constructor(
+    private route: ActivatedRoute,
+    private taskService: TaskService,
+    private formBuilder: FormBuilder
+  ) { }
+
+  ngOnInit() {
+    this.taskId = +this.route.snapshot.paramMap.get('id');
+    this.createForm();
+    this.fetchTask();
+  }
+
+  createForm() {
+    this.updateTaskForm = this.formBuilder.group({
+      name: ['', Validators.required],
+      description: ['', Validators.required],
+      assignee: ['', Validators.required],
+      priority: ['', Validators.required],
+      status: ['', Validators.required]
+    });
+  }
+
+  fetchTask() {
+    this.taskService.getTask(this.taskId).subscribe(
+      (task) => {
+        this.updateTaskForm.patchValue(task);
+      },
+      (error) => {
+        console.error('Ошибка при загрузке задачи', error);
+        // Обработка ошибок при загрузке задачи
+      }
+    );
+  }
+
+  onSubmit() {
+    if (this.updateTaskForm.invalid) {
+      return;
+    }
+
+    const updatedTask: Task = {
+      id: this.taskId,
+      ...this.updateTaskForm.value
+    };
+
+    this.taskService.updateTask(updatedTask).subscribe(
+      () => {
+        console.log('Задача обновлена');
+        // Добавьте обработку успешного обновления задачи
+      },
+      (error) => {
+        console.error('Ошибка при обновлении задачи', error);
+        // Обработка ошибок при обновлении задачи
+      }
+    );
+  }
+}
+
+//------------------------------
