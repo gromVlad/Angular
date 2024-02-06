@@ -3283,7 +3283,11 @@ export class MyComponent implements OnInit {
 
 //-----------------------------------------------------
 //__Introduction to Reactive Forms | Reactive Forms__//
+//__Form Validation in Reactive Form | Reactive Forms__//
 //Для создания реактивной формы в Angular мы определяем структуру формы в классе компонента и привязываем группу форм и элементы управления формой к HTML-форме в шаблоне представления. Это позволяет нам иметь больший контроль над отображением формы и элементов управления.
+//Проверка элементов управления формой:
+//Для каждого элемента управления формой вы можете добавить проверки валидации, используя Validators из @angular/forms. 
+//Можно использовать это свойство для обработки ошибок на уровне формы или на уровне каждого элемента управления формой
 
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
@@ -3342,3 +3346,129 @@ export class MyComponent implements OnInit {
     // Отправка данных формы на сервер или другая обработка
   }
 }
+
+//Состояние формы отображается с помощью классов CSS элемента управления формой. Вы можете использовать классы ng-untouched, ng-pristine и ng-invalid для определения состояния формы
+// input.ng - invalid {
+//   border: 1px solid red;
+// }
+
+//-------------------------------------------------------
+//__Showing Validation Error Messages | Reactive Forms__//
+//как отобразить сообщения об ошибках проверки для элементов управления формы в Angular.
+
+/* 
+<div *ngIf="myForm.get('firstName').invalid && myForm.get('firstName').touched">
+  Имя является обязательным полем.
+</div>
+
+<button type="submit" [disabled]="myForm.invalid">Отправить</button>
+*/
+
+//-----------------------------------------------
+//__Grouping of Form Controls| Reactive Forms__//
+//Директива ngModelGroup позволяет создавать вложенные группы элементов формы внутри других групп или формы. Это полезно, когда у вас есть сложная структура формы или когда вы хотите группировать связанные элементы формы вместе.
+//В этом шаблоне мы используем директиву formGroupName для указания имени вложенной группы формы address
+
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-my-form',
+  template: `
+    <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+      <div formGroupName="address">
+        <input type="text" formControlName="street" required>
+        <input type="text" formControlName="country" required>
+        <input type="text" formControlName="city" required>
+        <input type="text" formControlName="state" required>
+        <input type="text" formControlName="zip" required>
+      </div>
+      <button type="submit">Submit</button>
+    </form>
+  `,
+  styleUrls: ['./my-form.component.css']
+})
+export class MyFormComponent implements OnInit {
+  myForm: FormGroup;
+
+  ngOnInit() {
+    this.myForm = new FormGroup({
+      address: new FormGroup({
+        street: new FormControl('', Validators.required),
+        country: new FormControl('', Validators.required),
+        city: new FormControl('', Validators.required),
+        state: new FormControl('', Validators.required),
+        zip: new FormControl('', Validators.required)
+      })
+    });
+  }
+
+  onSubmit() {
+    if (this.myForm.valid) {
+      console.log(this.myForm.address.street);
+      // Здесь можно выполнить дополнительные действия, например, отправку данных на сервер
+    }
+  }
+}
+
+//-------------------------------------------------------
+//__Creating and using Form Array | Reactive Forms__//
+//__Adding Form Controls Dynamically | Reactive Forms__//
+//Массив форм в Angular позволяет управлять набором элементов управления формами. Элементы формы могут быть группами форм, элементами управления формой или другими массивами форм. Группа форм используется для представления комплексных структур данных, а массив форм - для коллекций элементов управления формами.
+
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-my-form',
+  template: `
+    <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+      <div formArrayName="skills">
+        <div *ngFor="let skillGroup of skills.controls; let i = index" [formGroupName]="i">
+          <input type="text" formControlName="skillName" placeholder="Skill Name" required>
+          <input type="text" formControlName="experience" placeholder="Experience" required>
+          <button type="button" (click)="removeSkill(i)">Remove Skill</button>
+        </div>
+      </div>
+      <button type="button" (click)="addSkill()">Add Skill</button>
+      <button type="submit">Submit</button>
+    </form>
+  `,
+  styleUrls: ['./my-form.component.css']
+})
+export class MyFormComponent implements OnInit {
+  myForm: FormGroup;
+
+  ngOnInit() {
+    this.myForm = new FormGroup({
+      skills: new FormArray([])
+    });
+  }
+
+  addSkill() {
+    const skillFormGroup = new FormGroup({
+      skillName: new FormControl('', Validators.required),
+      experience: new FormControl('', Validators.required)
+    });
+
+    this.skills.push(skillFormGroup);
+  }
+
+  removeSkill(index: number) {
+    this.skills.removeAt(index);
+  }
+
+  get skills() {
+    return this.myForm.get('skills') as FormArray;
+  }
+
+  onSubmit() {
+    if (this.myForm.valid) {
+      console.log(this.myForm.value);
+      // Здесь можно выполнить дополнительные действия, например, отправку данных на сервер
+    }
+  }
+}
+
+//---------------------------------------
+//__
