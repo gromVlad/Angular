@@ -4219,4 +4219,391 @@ export class UpdateTaskComponent implements OnInit {
   }
 }
 
+//-----------------------------------------------
+//__Showing a Loading Indicator | HTTP Client__//
+
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-monitoring-panel',
+  template: `
+    <div *ngIf="isLoading" class="loading-indicator">Loading...</div>
+
+    <div *ngIf="!isLoading">
+      <!-- Отображение задач -->
+    </div>
+  `,
+  styleUrls: ['./monitoring-panel.component.css']
+})
+export class MonitoringPanelComponent implements OnInit {
+  isLoading: boolean = false;
+
+  constructor(private http: HttpClient) { }
+
+  ngOnInit() {
+    this.isLoading = true;
+    this.loadData();
+  }
+
+  loadData() {
+    this.http.get('https://your-api-url/tasks')
+      .subscribe(
+        (response: any) => {
+          // Обработка полученных данных
+          this.isLoading = false;
+        },
+        (error: any) => {
+          // Обработка ошибок
+          this.isLoading = false;
+        }
+      );
+  }
+}
+
+//--------------------------------------------------------
+//__Handling HTTP Error Response | Angular HTTP Client__//
+//В случае возникновения ошибки, метод error() вызывается и сообщение об ошибке присваивается свойству errorMessage компонента.
+
+//___
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <ul>
+      <li *ngFor="let todo of todos">{{ todo.title }}</li>
+    </ul>
+    <button (click)="getTodos()">Get Todos</button>
+    <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+  `
+})
+export class MyComponent implements OnInit {
+
+  todos: any[] = [];
+  errorMessage: string = '';
+
+  constructor(private http: HttpClient) { }
+
+  ngOnInit() { }
+
+  getTodos() {
+    this.http.get('https://jsonplaceholder.typicode.com/todos')
+      .subscribe({
+        next: (data: any[]) => {
+          this.todos = data;
+        },
+        error: (error: any) => {
+          this.errorMessage = error.message;
+        }
+      });
+  }
+
+}
+
+//-------------------------------------------------------------
+//__Handling HTTP Error using Subject | Angular HTTP Client__//
+//Мы создали тему ошибки с помощью конструктора Subject. Тема ошибки будет выдавать ошибку HTTP при выполнении запроса post, get, put и т.д.
+//Мы создали свойство error в компоненте и присвоили ему тип "подписка". В функции ngOnDestroy мы отписываемся от подписки на тему ошибки.
+
+//__
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <ul>
+      <li *ngFor="let todo of todos">{{ todo.title }}</li>
+    </ul>
+    <button (click)="getTodos()">Get Todos</button>
+    <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+  `
+})
+export class MyComponent implements OnInit, OnDestroy {
+
+  todos: any[] = [];
+  errorMessage: string = '';
+  errorSubject = new Subject < string > ();
+  errorSubscription: Subscription;
+
+  constructor(private http: HttpClient) { }
+
+  ngOnInit() {
+    this.errorSubscription = this.errorSubject.subscribe((errorMessage: string) => {
+      this.errorMessage = errorMessage;
+    });
+  }
+
+  ngOnDestroy() {
+    this.errorSubscription.unsubscribe();
+  }
+
+  getTodos() {
+    this.http.get('https://jsonplaceholder.typicode.com/todos')
+      .subscribe({
+        next: (data: any[]) => {
+          this.todos = data;
+        },
+        error: (error: any) => {
+          if (error.status !== 403) {
+            this.errorSubject.next(error.message);
+          }
+        }
+      });
+  }
+
+}
+
+//--------------------------------------------------
+//__Logging Errors with catchError | HTTP Client__//
+// Мы использовали оператор catchError для обработки ошибок HTTP - запроса.Оператор catchError перехватывает ошибку и возвращает наблюдаемый объект, который выдает ошибку.
+// Мы использовали метод logError() для регистрации ошибки в консоли
+//также можем сделать logError который будет передовать нам запрос в виде ошибки для регистрации всех ошибок при использовании приложения
+
+//___
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <ul>
+      <li *ngFor="let todo of todos">{{ todo.title }}</li>
+    </ul>
+    <button (click)="getTodos()">Get Todos</button>
+  `
+})
+export class MyComponent implements OnInit {
+
+  todos: any[] = [];
+
+  constructor(private http: HttpClient) { }
+
+  ngOnInit() { }
+
+  getTodos() {
+    this.http.get('https://jsonplaceholder.typicode.com/todos')
+      .pipe(
+        catchError((error: any) => {
+          this.logError(error);
+          return throwError(() => new Error('Something bad happened; please try again later.'));
+        })
+      )
+      .subscribe((data: any[]) => {
+        this.todos = data;
+      });
+  }
+
+  logError(error: any) {
+    console.error(error);
+  }
+
+}
+
+//------------------------------------------------------------------------
+//__Fetching Single Record with HTTP GET Request | Angular HTTP Client__//
+//Компонент содержит подробную информацию о задаче и кнопку для закрытия подробной информации
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class TaskService {
+
+  constructor(private http: HttpClient) { }
+
+  getTasks() {
+    return this.http.get('https://jsonplaceholder.typicode.com/todos');
+  }
+
+  getTaskDetail(id: number) {
+    return this.http.get(`https://jsonplaceholder.typicode.com/todos/${id}`);
+  }
+}
+
+//___
+@Component({
+  selector: 'app-dashboard',
+  template: `
+    <div *ngFor="let task of tasks">
+      <button (click)="showTaskDetails(task)">Show Details</button>
+    </div>
+
+    <app-task-details *ngIf="showTaskDetails" (closeDetailView)="closeTaskDetails()"></app-task-details>
+  `
+})
+export class DashboardComponent implements OnInit {
+
+  tasks: any[] = [];
+  showTaskDetails: boolean = false;
+
+  constructor(private taskService: TaskService) { }
+
+  ngOnInit() {
+    this.taskService.getTasks().subscribe((data: any[]) => {
+      this.tasks = data;
+    });
+  }
+
+  showTaskDetails(task: any) {
+    this.taskService.getTaskDetail(task.id).subscribe((data: any) => {
+      this.showTaskDetails = true;
+    });
+  }
+
+  closeTaskDetails() {
+    this.showTaskDetails = false;
+  }
+
+}
+/* 
+<!-- dashboard.component.html -->
+<div *ngFor="let task of tasks">
+  <button (click)="showTaskDetails(task)">Show Details</button>
+</div>
+
+<app-task-details *ngIf="showTaskDetails" (closeDetailView)="closeTaskDetails()"></app-task-details>
+*/
+
+//-------------------------------------------------------------
+//__ Setting HTTP Headers for Request | Angular HTTP Client__//
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <ul>
+      <li *ngFor="let todo of todos">{{ todo.title }}</li>
+    </ul>
+    <button (click)="getTodos()">Get Todos</button>
+  `
+})
+export class MyComponent implements OnInit {
+
+  todos: any[] = [];
+
+  constructor(private http: HttpClient) { }
+
+  ngOnInit() { }
+
+  getTodos() {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer my-token'
+    });
+
+    this.http.get('https://jsonplaceholder.typicode.com/todos', { headers })
+      .subscribe((data: any[]) => {
+        this.todos = data;
+      });
+  }
+
+}
+
+//Метод append() класса HttpHeaders в Angular используется для добавления нового заголовка к существующему списку заголовков. В отличие от метода set(), который заменяет существующее значение заголовка новым значением, метод append() добавляет новое значение к существующему, не заменяя его.
+const headers = new HttpHeaders();
+headers.append('Content-Type', 'application/json');
+headers.append('Authorization', 'Bearer my-token');
+
+this.http.get('https://jsonplaceholder.typicode.com/todos', { headers })
+  .subscribe((data: any[]) => {
+    console.log(data);
+  });
+
+//-------------------------------------------------------------
+//__Sending Query String with Request | Angular HTTP Client__//
+//метод set() класса HttpParams для установки имени и значения строки запроса
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <ul>
+      <li *ngFor="let todo of todos">{{ todo.title }}</li>
+    </ul>
+    <button (click)="getTodos()">Get Todos</button>
+  `
+})
+export class MyComponent implements OnInit {
+
+  todos: any[] = [];
+
+  constructor(private http: HttpClient) { }
+
+  ngOnInit() { }
+
+  getTodos() {
+    const params = new HttpParams()
+      .set('page', '1')
+      .set('limit', '10');
+
+    this.http.get('https://jsonplaceholder.typicode.com/todos', { params })
+      .subscribe((data: any[]) => {
+        this.todos = data;
+      });
+  }
+
+}
+
+//-------------------------------------------------------------
+//__Observe Response & Response Types | Angular HTTP Client__//
+// observe: 'response' указывает клиенту Angular HTTP наблюдать за полным объектом ответа, включая заголовки и код статуса ответа.Если не указать это свойство, по умолчанию будет использоваться значение 'body', и мы получим только данные ответа.
+// responseType: 'text' задает тип ответа, который мы ожидаем получить.В этом примере мы ожидаем текстовый ответ.Вы также можете использовать 'json', 'blob' или другие варианты, в зависимости от типа данных, которые ожидаете получить.
+
+//____
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <button (click)="makeRequest()">Make Request</button>
+  `,
+  styleUrls: ['./my-component.component.css']
+})
+export class MyComponent {
+  constructor(private http: HttpClient) { }
+
+  makeRequest() {
+    this.http.get('https://api.example.com/data', { observe: 'response', responseType: 'text' })
+      .pipe(
+        tap((response: HttpResponse<any>) => {
+          //также можно использовать HttpResponseType доступный и типизировать коды событий и работать с логикой в зависемости от кода
+          console.log('Статус ответа:', response.status);
+          console.log('Заголовки ответа:', response.headers);
+        })
+      )
+      .subscribe((response: HttpResponse<any>) => {
+        console.log('Тело ответа:', response.body);
+      });
+  }
+}
+
+//---------------------------------------------------
+//__Interceptors in Angular | Angular HTTP Client__//
+//В методе intercept вы можете выполнять дополнительные действия перед отправкой запроса или после получения ответа, например, добавлять заголовки или изменять тело запроса
+
+//__
+import { Injectable } from '@angular/core';
+import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    console.log('Вызов перехватчика аутентификации');
+
+    // Выполнение дополнительных действий перед отправкой запроса
+    // или после получения ответа, например, добавление заголовков или изменение тела запроса
+
+    return next.handle(request); // Передача запроса следующему перехватчику
+  }
+}
+
+//___
+@NgModule({
+  declarations: [AppComponent],
+  imports: [BrowserModule, HttpClientModule],
+  providers: [
+    {
+      //multi: true говорит Angular, что мы предоставляем несколько перехватчиков с одним и тем же токеном
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
 //------------------------------

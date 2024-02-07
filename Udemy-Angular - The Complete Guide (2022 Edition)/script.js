@@ -284,7 +284,7 @@ export class Recipe {
   templateUrl: './recipe-list.component.html',
   styleUrls: ['./recipe-list.component.css']
 })
-export class RecipeListComponent  {
+export class RecipeListComponent {
   recipes: Recipe[] = [
     new Recipe('A Test Recipe', 'This is simply a test', 'https://upload.wikimedia.org/wikipedia/commons/1/15/Recipe_logo.jpeg'),
   ];
@@ -993,5 +993,3 @@ export class NewAccountComponent {
     // this.loggingService.logStatusChange(accountStatus);
   }
 }
-
-//-----------------------
