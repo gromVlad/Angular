@@ -2063,4 +2063,470 @@ export class AppComponent implements OnInit, OnDestroy {
 // Состояние отдельных полей формы(валидные / невалидные).
 
 //__//
+// Angular: два подхода к обработке форм
+
+// Angular предлагает два подхода к обработке форм:
+// Шаблонный подход(template - driven approach)
+// Реактивный подход(reactive approach)
+
+// Шаблонный подход
+// Шаблонный подход прост в использовании и подходит для большинства случаев.При использовании шаблонного подхода вы определяете структуру формы в HTML - шаблоне.Angular автоматически создает экземпляр формы и привязывает его к элементам управления формы.
+
+// Реактивный подход
+// Реактивный подход дает вам больше контроля над формой.При использовании реактивного подхода вы определяете структуру формы в TypeScript - коде.Затем вы создаете экземпляр формы и привязываете его к элементам управления формы вручную.
+
+// Шаблонный подход:
+// Преимущества:
+// Прост в использовании.
+// Подходит для большинства случаев.
+//   Недостатки:
+// Менее гибкий, чем реактивный подход.
+// Трудно тестировать.
+
+// Реактивный подход:
+// Преимущества:
+// Более гибкий, чем шаблонный подход.
+// Легко тестировать.
+// Недостатки:
+// Более сложен в использовании.
+// Требует больше кода.
+
+//__//
+// В шаблоне компонента создаем форму с помощью тега < form >.
+// Внутри формы добавляем поля ввода для имени пользователя, электронной почты и секретного вопроса.
+// Добавляем кнопку отправки формы.
+// К каждому полю ввода добавляем директиву ngModel.
+// К каждому полю ввода добавляем атрибут name.
+/* 
+<!-- app.component.html -->
+<form>
+  <input type="text" name="username" placeholder="Username" ngModel>
+  <input type="email" name="email" placeholder="Email" ngModel>
+  <select name="secret" ngModel>
+    <option value="question1">Question 1</option>
+    <option value="question2">Question 2</option>
+    <option value="question3">Question 3</option>
+  </select>
+  <button type="submit">Submit</button>
+</form>
+*/
+
+//__//
+// app.component.ts
+//К форме добавляем локальную ссылку #form.
+import { Component, ElementRef, NgForm } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <form (ngSubmit)="onSubmit(form) #form='ngForm'">
+      <input type="text" name="username" placeholder="Username" ngModel>
+      <input type="email" name="email" placeholder="Email" ngModel>
+      <select name="secret" ngModel>
+        <option value="question1">Question 1</option>
+        <option value="question2">Question 2</option>
+        <option value="question3">Question 3</option>
+      </select>
+      <button type="submit">Submit</button>
+    </form>
+  `
+})
+export class AppComponent {
+  onSubmit(form: NgForm) {
+    console.log(form);
+  }
+}
+
+//__//
+// Свойства формы
+
+// Форма, созданная Angular, имеет следующие свойства:
+// dirty: true, если форма была изменена пользователем.
+// disabled: true, если форма отключена.
+// enabled: true, если форма включена.
+// errors: объект, содержащий ошибки формы.
+// invalid: true, если форма невалидна.
+// pristine: true, если форма не была изменена пользователем.
+// submitted: true, если форма была отправлена.
+// touched: true, если пользователь коснулся какого-либо элемента управления формы.
+// valid: true, если форма валидна.
+// Свойства элементов управления формы
+
+// Элементы управления формы, созданные Angular, имеют следующие свойства:
+// dirty: true, если элемент управления формы был изменен пользователем.
+// disabled: true, если элемент управления формы отключен.
+// enabled: true, если элемент управления формы включен.
+// errors: объект, содержащий ошибки элемента управления формы.
+// invalid: true, если элемент управления формы невалиден.
+// pristine: true, если элемент управления формы не был изменен пользователем.
+// touched: true, если пользователь коснулся элемента управления формы.
+// valid: true, если элемент управления формы валиден.
+
+//__//
+//Получение доступа к форме с помощью @ViewChild
+// app.component.ts
+import { Component, ElementRef, NgForm, ViewChild } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <form (ngSubmit)="onSubmit(form)" #form="ngForm">
+      <input type="text" name="username" placeholder="Username" ngModel>
+      <input type="email" name="email" placeholder="Email" ngModel>
+      <select name="secret" ngModel>
+        <option value="question1">Question 1</option>
+        <option value="question2">Question 2</option>
+        <option value="question3">Question 3</option>
+      </select>
+      <button type="submit">Submit</button>
+    </form>
+  `
+})
+export class AppComponent {
+  @ViewChild('form') signupForm: NgForm;
+
+  onSubmit() {
+    console.log(this.signupForm);
+  }
+}
+
+//___//
+// Добавление валидаторов
+
+// Чтобы добавить валидаторы к полю ввода, можно использовать следующие способы:
+// Добавить атрибут required.
+// Добавить директиву email.
+// Добавить пользовательские валидаторы.
+
+/* 
+<!-- app.component.html -->
+<form (ngSubmit)="onSubmit(form)" #form="ngForm">
+  <input type="text" name="username" placeholder="Username" ngModel required>
+  <input type="email" name="email" placeholder="Email" ngModel required email>
+  <select name="secret" ngModel>
+    <option value="question1">Question 1</option>
+    <option value="question2">Question 2</option>
+    <option value="question3">Question 3</option>
+  </select>
+  <button type="submit">Submit</button>
+</form>
+*/
+
+//__//
+//Отключение кнопки отправки формы
+/* 
+<!-- app.component.html -->
+<form (ngSubmit)="onSubmit(form)" #form="ngForm">
+  <input type="text" name="username" placeholder="Username" ngModel required>
+  <input type="email" name="email" placeholder="Email" ngModel required email>
+  <select name="secret" ngModel>
+    <option value="question1">Question 1</option>
+    <option value="question2">Question 2</option>
+    <option value="question3">Question 3</option>
+  </select>
+  <button type="submit" [disabled]="!form.valid">Submit</button>
+</form>
+*/
+
+//Добавление красной границы к невалидным элементам управления формы
+/* 
+app.component.css 
+input.ng - invalid, select.ng - invalid {
+  border: 1px solid red;
+}
+
+input: not(.ng - touched).ng - invalid, select: not(.ng - touched).ng - invalid {
+  border: none;
+}
+*/
+
+//__//
+//Вывод сообщения об ошибке
+/* 
+<!-- app.component.html -->
+<form (ngSubmit)="onSubmit(form)" #form="ngForm">
+  <input type="text" name="username" placeholder="Username" ngModel required>
+
+  <input type="email" name="email" placeholder="Email" #email="ngForm" required email #email="ngModel">
+  //для вывода сообщения об ошибке
+  <span *ngIf="email.invalid && email.touched" class="help-block">Please enter a valid e-mail.</span>
+
+  <select name="secret" ngModel>
+    <option value="question1">Question 1</option>
+    <option value="question2">Question 2</option>
+    <option value="question3">Question 3</option>
+  </select>
+  <button type="submit" [disabled]="!form.valid">Submit</button>
+</form>
+*/
+
+//__//
+//Установка значения по умолчанию для элемента управления формы
+// app.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <form (ngSubmit)="onSubmit(form)" #form="ngForm">
+      <input type="text" name="username" placeholder="Username" ngModel required>
+      <input type="email" name="email" placeholder="Email" ngModel required email>
+      <select name="secret" [ngModel]="defaultQuestion">
+        <option value="question1">Question 1</option>
+        <option value="question2">Question 2</option>
+        <option value="question3">Question 3</option>
+      </select>
+      <button type="submit" [disabled]="!form.valid">Submit</button>
+    </form>
+  `
+})
+export class AppComponent {
+  defaultQuestion = 'pet';
+
+  onSubmit(form: NgForm) {
+    console.log(form);
+  }
+}
+
+//__//
+//Использование двухсторонней привязки данных
+// app.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <form (ngSubmit)="onSubmit(form)" #form="ngForm">
+      <input type="text" name="username" placeholder="Username" ngModel required>
+      <input type="email" name="email" placeholder="Email" ngModel required email>
+      <select name="secret" [ngModel]="defaultQuestion">
+        <option value="question1">Question 1</option>
+        <option value="question2">Question 2</option>
+        <option value="question3">Question 3</option>
+      </select>
+      <div class="form-group">
+        <label for="questionAnswer">Question Answer</label>
+        <textarea name="questionAnswer" [(ngModel)]="answer" class="form-control" rows="3"></textarea>
+      </div>
+      <p>Your reply: {{ answer }}</p>
+      <button type="submit" [disabled]="!form.valid">Submit</button>
+    </form>
+  `
+})
+export class AppComponent {
+  defaultQuestion = 'pet';
+  answer = '';
+
+  onSubmit(form: NgForm) {
+    console.log(form);
+  }
+}
+
+//__//
+//Группировка элементов управления формы (ngModelGroup)
+// app.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <form (ngSubmit)="onSubmit(form)" #form="ngForm">
+
+      <div class="form-group" id="userData" ngModelGroup="userData" #userData="ngModelGroup">
+        <input type="text" name="username" placeholder="Username" ngModel required>
+        <input type="email" name="email" placeholder="Email" ngModel required email>
+      </div>
+      <p *ngIf="userData.invalid && userData.touched">User data is invalid.</p>
+
+      <select name="secret" [ngModel]="defaultQuestion">
+        <option value="question1">Question1</option>
+        <option value="question2">Question 2</option>
+        <option value="question3">Question 3</option>
+      </select>
+      <div class="form-group">
+        <label for="questionAnswer">Question Answer</label>
+        <textarea name="questionAnswer" [(ngModel)]="answer" class="form-control" rows="3"></textarea>
+      </div>
+      <p>Your reply: {{ answer }}</p>
+      <button type="submit" [disabled]="!form.valid">Submit</button>
+    </form>
+  `
+})
+export class AppComponent {
+  defaultQuestion = 'pet';
+  answer = '';
+
+  onSubmit(form: NgForm) {
+    console.log(form.userData.username);
+  }
+}
+
+//__//
+//Использование радиокнопок
+// app.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <form (ngSubmit)="onSubmit(form)" #form="ngForm">
+        <label *ngFor="let gender of genders">
+          <input type="radio" name="gender" [value]="gender">
+          {{ gender }}
+        </label>
+      <button type="submit" [disabled]="!form.valid">Submit</button>
+    </form>
+  `
+})
+export class AppComponent {
+  genders = ['male', 'female'];
+  defaultQuestion = 'pet';
+  answer = '';
+
+  onSubmit(form: NgForm) {
+    console.log(form);
+  }
+}
+
+//__//
+// Использование метода setValue и patchValue
+
+// Чтобы установить значение всей формы, можно использовать метод setValue.Метод setValue принимает в качестве аргумента объект, который представляет собой значение формы.
+
+// Чтобы установить значение отдельных элементов управления формы, можно использовать метод patchValue.Метод patchValue также принимает в качестве аргумента объект, который представляет собой значение формы.Однако, в отличие от метода setValue, метод patchValue не перезаписывает значения элементов управления формы, которые уже имеют значение.
+// app.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <form (ngSubmit)="onSubmit(form)" #form="ngForm">
+      <div class="form-group" id="userData" ngModelGroup="userData">
+        <input type="text" name="username" placeholder="Username" ngModel required>
+        <input type="email" name="email" placeholder="Email" ngModel required email>
+      </div>
+      <select name="secret" [ngModel]="defaultQuestion">
+        <option value="question1">Question1</option>
+        <option value="question2">Question 2</option>
+        <option value="question3">Question 3</option>
+      </select>
+      <div class="form-group">
+        <label for="questionAnswer">Question Answer</label>
+        <textarea name="questionAnswer" [(ngModel)]="answer" class="form-control" rows="3"></textarea>
+      </div>
+      <p>Your reply: {{ answer }}</p>
+      <p *ngIf="userData.invalid && userData.touched">User data is invalid.</p>
+      <div class="radio">
+        <label *ngFor="let gender of genders">
+          <input type="radio" name="gender" [(ngModel)]="gender">
+          {{ gender }}
+        </label>
+      </div>
+      <button type="button" (click)="suggestUserName()">Suggest Username</button>
+      <button type="submit" [disabled]="!form.valid">Submit</button>
+    </form>
+  `
+})
+export class AppComponent {
+  genders = ['male', 'female'];
+  defaultQuestion = 'pet';
+  answer = '';
+
+  onSubmit(form: NgForm) {
+    console.log(form);
+  }
+
+  suggestUserName() {
+    // this.signupForm.setValue({
+    //   userData: {
+    //     username: 'super user',
+    //     email: '',
+    //     secret: 'pet',
+    //     questionAnswer: '',
+    //     gender: 'male'
+    //   }
+    // });
+
+    this.signupForm.form.patchValue({
+      userData: {
+        username: 'super user'
+      }
+    });
+  }
+}
+
+//__//
+//Вывод данных формы
+// app.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <form (ngSubmit)="onSubmit(form)" #form="ngForm">
+      <div class="form-group" id="userData" ngModelGroup="userData">
+        <input type="text" name="username" placeholder="Username" ngModel required>
+        <input type="email" name="email" placeholder="Email" ngModel required email>
+      </div>
+      <select name="secret" [ngModel]="defaultQuestion">
+        <option value="question1">Question1</option>
+        <option value="question2">Question 2</option>
+        <option value="question3">Question 3</option>
+      </select>
+      <div class="form-group">
+        <label for="questionAnswer">Question Answer</label>
+        <textarea name="questionAnswer" [(ngModel)]="answer" class="form-control" rows="3"></textarea>
+      </div>
+      <p>Your reply: {{ answer }}</p>
+      <p *ngIf="userData.invalid && userData.touched">User data is invalid.</p>
+      <div class="radio">
+        <label *ngFor="let gender of genders">
+          <input type="radio" name="gender" [(ngModel)]="gender">
+          {{ gender }}
+        </label>
+      </div>
+      <button type="submit" [disabled]="!form.valid">Submit</button>
+      <hr>
+      <div class="row" *ngIf="submitted">
+        <div class="col-md-6">
+          <strong>Username:</strong> {{ user.username }}
+        </div>
+        <div class="col-md-6">
+          <strong>Email:</strong> {{ user.email }}
+        </div>
+        <div class="col-md-6">
+          <strong>Secret Question:</strong> {{ user.secretQuestion }}
+        </div>
+        <div class="col-md-6">
+          <strong>Answer:</strong> {{ user.answer }}
+        </div>
+        <div class="col-md-6">
+          <strong>Gender:</strong> {{ user.gender }}
+        </div>
+      </div>
+    </form>
+  `
+})
+export class AppComponent {
+  genders = ['male', 'female'];
+  defaultQuestion = 'pet';
+  answer = '';
+  user = {
+    username: '',
+    email: '',
+    secretQuestion: '',
+    answer: '',
+    gender: ''
+  };
+  submitted = false;
+
+  onSubmit(form: NgForm) {
+    this.user.username = form.value.userData.username;
+    this.user.email = form.value.userData.email;
+    this.user.secretQuestion = form.value.secret;
+    this.user.answer = form.value.questionAnswer;
+    this.user.gender = form.value.gender;
+    this.submitted = true;
+  }
+}
 
