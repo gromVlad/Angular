@@ -993,3 +993,1074 @@ export class NewAccountComponent {
     // this.loggingService.logStatusChange(accountStatus);
   }
 }
+
+//____
+import { Ingredient } from "../shared/ingredient.model";
+import { EventEmitter } from "@angular/core";
+
+export class ShoppingListService {
+  //используем new EventEmitter чтобы подписываться на измнения
+  //чтобы происходила перерисовка и изменения данных
+  ingredientsChanged = new EventEmitter < Ingredient[] > ();
+  private ingredients: Ingredient[] = [
+    new Ingredient("Apples", 5),
+    new Ingredient("Tomatoes", 10),
+  ];
+
+  getIngredients() {
+    return this.ingredients.slice();
+  }
+
+  addIngredient(ingredient: Ingredient) {
+    this.ingredients.push(ingredient);
+    this.ingredientsChanged.emit(this.ingredients.slice());
+  }
+
+  addIngredients(ingredients: Ingredient[]) {
+    // for (let ingredient of ingredients) {
+    //   this.addIngredient(ingredient);
+    // }
+    this.ingredients.push(...ingredients);
+    this.ingredientsChanged.emit(this.ingredients.slice());
+  }
+}
+
+//___
+@Component({
+  selector: "app-shopping-list",
+  templateUrl: "./shopping-list.component.html",
+  styleUrls: ["./shopping-list.component.css"],
+})
+export class ShoppingListComponent implements OnInit {
+  ingredients: Ingredient[];
+
+  constructor(private slService: ShoppingListService) { }
+
+  ngOnInit() {
+    this.ingredients = this.slService.getIngredients();
+    //подписались на изменения(new EventEmitter) и получаем данные
+    this.slService.ingredientsChanged.subscribe((ingredients: Ingredient[]) => {
+      this.ingredients = ingredients;
+    });
+  }
+}
+
+//---------------------------------
+//---------------------------------
+//__Changing Pages with Routing__//
+
+//------------------------------------
+//___Setting up and Loading Routes__//
+//__Navigating with Router Links__//
+
+// Импорт необходимых модулей
+import { Component, OnInit } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+
+// Создание константы с маршрутами
+const appRoutes: Routes = [
+  { path: 'users', component: UsersComponent },
+  { path: 'servers', component: ServersComponent },
+  { path: '', component: HomeComponent } // Маршрут по умолчанию
+];
+
+// Компонент приложения
+@Component({
+  selector: 'app-root',
+  template: `
+    <ul>
+      <li><a [routerLink]="['/users']">Users</a></li>
+      <li><a [routerLink]="['/servers']">Servers</a></li>
+    </ul>
+
+    <router-outlet></router-outlet>
+  `
+})
+export class AppComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit() { }
+
+}
+
+// Регистрация маршрутов в модуле приложения
+@NgModule({
+  imports: [
+    RouterModule.forRoot(appRoutes) // Регистрация маршрутов с помощью метода forRoot()
+  ],
+  declarations: [
+    AppComponent,
+    UsersComponent,
+    ServersComponent,
+    HomeComponent
+  ]
+})
+export class AppModule { }
+
+//------------------------------------
+//__Understanding Navigation Paths__//
+//Относительный путь — это путь к файлу относительно текущего каталога
+//Абсолютный путь всегда начинается с корневого каталога файловой системы
+//относительные пути с "./" в начале, что эквивалентно отсутствию слэша, или использовать "../", чтобы перейти на один уровень выше и добавить путь.
+
+//---------------------------------
+//__Styling Active Router Links__//
+// В этом коде мы добавили директиву routerLinkActive к каждому элементу li. Директива routerLinkActive принимает значение active в качестве аргумента, что означает, что она будет добавлять класс active к элементу li, когда соответствующий маршрут активен.
+// Мы также добавили объект опций routerLinkActiveOptions к директиве routerLinkActive. Объект опций routerLinkActiveOptions содержит свойство exact, которое мы установили в значение true. Это означает, что директива routerLinkActive будет добавлять класс active к элементу li только тогда, когда полный путь к маршруту совпадает с путем к ссылке.
+/* 
+<ul>
+  <li routerLink="/" routerLinkActive="active" routerLinkActiveOptions = {exact:true}>
+    Home
+  </li>
+  <li routerLink="/servers" routerLinkActive="active">
+    Servers
+  </li>
+  <li routerLink="/users" routerLinkActive="active">
+    Users
+  </li>
+</ul>;
+ */
+
+//---------------------------------
+//__Navigating Programmatically__//
+
+import { Component, OnInit, Router } from "@angular/core";
+
+@Component({
+  selector: "app-home",
+  template: ` <button (click)="onLoadServers()">Load Servers</button> `,
+})
+export class HomeComponent implements OnInit {
+  private router: Router;
+
+  constructor(router: Router) {
+    this.router = router;
+  }
+
+  ngOnInit(): void { }
+
+  //Метод onLoadServers() использует метод navigate() класса Router для перехода на страницу /servers.
+  onLoadServers() {
+    this.router.navigate(["/servers"]);
+  }
+}
+
+//-----------------------------------------------------
+//__Using Relative Paths in Programmatic Navigation__//
+//Свойство relativeTo можно использовать для перехода на любой маршрут, относительно текущего маршрута. 
+
+import { Component, OnInit, Router, ActivatedRoute } from "@angular/core";
+
+@Component({
+  selector: "app-servers",
+  template: ` <button (click)="onReload()">Reload Page</button> `,
+})
+export class ServersComponent implements OnInit {
+  private router: Router;
+  private route: ActivatedRoute;
+
+  constructor(router: Router, route: ActivatedRoute) {
+    this.router = router;
+    this.route = route;
+  }
+
+  ngOnInit(): void { }
+
+  onReload() {
+    // this.router.navigate(['/servers']); // This will cause an error because it tries to navigate to /servers/servers
+    //Мы также передаем второй аргумент в метод navigate(). Это объект, который содержит свойство relativeTo. Свойство relativeTo указывает, относительно какого маршрута следует перейти на новый маршрут.
+    this.router.navigate(["./servers"], { relativeTo: this.route }); // В данном случае мы передаем в свойство relativeTo объект this.route. Это означает, что мы хотим перейти на страницу /servers относительно текущего маршрута.Метод navigate() переходит на страницу /servers без перезагрузки страницы.
+  }
+}
+
+//--------------------------------------
+//__Route  / Parameters / Error / ..__//
+
+// app.module.ts
+
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { UsersComponent } from './users/users.component';
+import { UserComponent } from './user/user.component';
+
+const routes: Routes = [
+  { path: "users", component: UsersComponent },
+  //Путь users/:id означает, что мы можем перейти на страницу пользователя с любым идентификатором. Например, мы можем перейти на страницу пользователя с идентификатором 1 по адресу /users/1.
+  { path: "users/:id", component: UserComponent }, // Added a dynamic segment to the path
+];
+
+@NgModule({
+  imports: [
+    RouterModule.forRoot(routes)
+  ],
+  exports: [
+    RouterModule
+  ]
+})
+export class AppModule { }
+
+// user.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+
+@Component({
+  selector: "app-user",
+  template: `
+    <h1>User</h1>
+    <p>ID: {{ id }}</p>
+    <p>Name: {{ name }}</p>
+  `,
+})
+export class UserComponent implements OnInit {
+  id: string;
+  name: string;
+
+  //Объект ActivatedRoute содержит информацию о текущем маршруте
+  constructor(private route: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    //Когда мы переходим на страницу пользователя, компонент UserComponent будет загружен
+    this.id = this.route.snapshot.params["id"];
+    this.name = "John Doe"; // Dummy data
+  }
+}
+
+//__//
+// Мы вызываем метод subscribe() на объекте route.params. Этот метод принимает функцию в качестве аргумента.
+// Функция, которую мы передаем в метод subscribe(), будет вызываться каждый раз, когда параметры маршрута изменяются.
+// В функции мы обновляем объект user новыми значениями параметров маршрута.
+@Component({
+  selector: "app-user",
+  template: `
+    <h1>User</h1>
+    <p>ID: {{ id }}</p>
+    <p>Name: {{ name }}</p>
+  `,
+})
+export class UserComponent implements OnInit {
+  id: string;
+  name: string;
+
+  constructor(private route: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    // Get the initial values of the route parameters
+    this.id = this.route.snapshot.params["id"];
+    this.name = this.route.snapshot.params["name"];
+
+    // Subscribe to changes in the route parameters
+    //подписались на изменения параметров маршрута. Когда параметры маршрута изменяются, функция, которую мы передали в метод subscribe(), вызывается и обновляет объект user новыми значениями параметров маршрута.
+    this.route.params.subscribe((params) => {
+      // Update the user object with the new values
+      this.id = params["id"];
+      this.name = params["name"];
+    });
+  }
+}
+
+//__
+@Component({
+  selector: "app-user",
+  template: `
+    <h1>User</h1>
+    <p>ID: {{ id }}</p>
+    <p>Name: {{ name }}</p>
+  `,
+})
+export class UserComponent implements OnInit, OnDestroy {
+  id: string;
+  name: string;
+  paramsSubscription: Subscription;
+
+  constructor(private route: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    this.id = this.route.snapshot.params["id"];
+    this.name = this.route.snapshot.params["name"];
+    this.paramsSubscription = this.route.params.subscribe((params) => {
+      this.id = params["id"];
+      this.name = params["name"];
+    });
+  }
+
+  ngOnDestroy(): void {
+    //Когда мы покинем страницу /users/.., подписка на изменения параметров маршрута будет отменена. Это предотвратит утечку памяти.
+    this.paramsSubscription.unsubscribe();
+  }
+}
+
+//_//
+//добавили код для получения параметров запроса и фрагмента из объекта ActivatedRoute
+import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+
+@Component({
+  selector: "app-servers",
+  template: `
+    <ul>
+      <li *ngFor="let server of servers">
+        <a
+          [routerLink]="['/servers', server.id, 'edit']"
+          [queryParams]="{ allowEdit: 1 }"
+          fragment="loading"
+          >Edit Server</a
+        >
+      </li>
+    </ul>
+    <button (click)="onLoadServer(1)">Load Server</button>
+  `,
+})
+export class ServersComponent implements OnInit {
+  servers: { id: number; name: string }[] = [];
+
+  constructor(private router: Router, private route: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    const queryParams = this.route.snapshot.queryParams;
+    const fragment = this.route.snapshot.fragment;
+
+    console.log(queryParams);
+    console.log(fragment);
+  }
+
+  onLoadServer(id: number) {
+    // Navigate to the server edit page with query parameters and fragment
+    this.router.navigate(["/servers", id, "edit"], {
+      queryParams: { allowEdit: 1 },
+      fragment: "loading", //#loading - для указания конкретного места в документе, к которому нужно перейти
+    });
+  }
+}
+
+//__//
+//добавили код для получения идентификатора сервера из параметров маршрута и для получения сервера с этим идентификатором из сервиса ServersService
+@Component({
+  selector: "app-server",
+  template: `
+    <h1>Server</h1>
+    <p>ID: {{ id }}</p>
+    <p>Name: {{ name }}</p>
+  `,
+})
+export class ServerComponent implements OnInit {
+  id: number;
+  name: string;
+
+  constructor(
+    private route: ActivatedRoute,
+    private serversService: ServersService
+  ) { }
+
+  ngOnInit(): void {
+    // Get the ID from the ActivatedRoute
+    this.id = +this.route.snapshot.params["id"];
+
+    // Get the server with the ID from the ServersService
+    this.serversService.getServer(this.id).subscribe((server) => {
+      this.name = server.name;
+    });
+
+    // Subscribe to changes in the route parameters
+    this.route.params.subscribe((params) => {
+      // Get the new ID from the route parameters
+      this.id = +params["id"];
+
+      // Get the server with the new ID from the ServersService
+      this.serversService.getServer(this.id).subscribe((server) => {
+        this.name = server.name;
+      });
+    });
+  }
+}
+
+//__//
+// app.component.html
+/*
+//В разметке AppComponent мы добавили разметку router-outlet после элемента <nav>. Это позволит нам загружать дочерние маршруты в этот компонент, также добавить router-outlet везде где импользуються дочерние маршруты
+ <nav>
+  <a routerLink="/">Home</a>
+  <a routerLink="/servers">Servers</a>
+  <a routerLink="/users">Users</a>
+</nav>
+<router-outlet></router-outlet> 
+*/
+
+// app-routing.module.ts
+
+const routes: Routes = [
+  { path: '', component: HomeComponent },
+  {
+    path: 'servers', component: ServersComponent, children: [
+      { path: ':id', component: ServerComponent },
+      { path: ':id/edit', component: EditServerComponent }
+    ]
+  },
+  {
+    path: 'users', component: UsersComponent, children: [
+      { path: ':id', component: UserComponent }
+    ]
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+//___//
+// что параметры запроса текущей страницы будут сохранены при переходе на новую страницу
+//this.router.navigate(['edit'], { queryParamsHandling: 'preserve', relativeTo: this.route });
+
+//__//
+//Мы перенаправляем все запросы, которые не соответствуют ни одному из других маршрутов, на маршрут not-found. Для этого мы используем свойство redirectTo в маршруте **
+// app-routing.module.ts
+const routes: Routes = [
+  { path: '', component: HomeComponent },
+  {
+    path: 'servers', component: ServersComponent, children: [
+      { path: ':id', component: ServerComponent },
+      { path: ':id/edit', component: EditServerComponent }
+    ]
+  },
+  {
+    path: 'users', component: UsersComponent, children: [
+      { path: ':id', component: UserComponent }
+    ]
+  },
+  { path: 'not-found', component: PageNotFoundComponent },
+  { path: '**', redirectTo: '/not-found' }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+//___//
+//отдельный модуль для маршрутизации, что делает наш код более организованным и удобным в обслуживании
+// app-routing.module.ts
+const routes: Routes = [
+  { path: '', component: HomeComponent },
+  {
+    path: 'servers', component: ServersComponent, children: [
+      { path: ':id', component: ServerComponent },
+      { path: ':id/edit', component: EditServerComponent }
+    ]
+  },
+  {
+    path: 'users', component: UsersComponent, children: [
+      { path: ':id', component: UserComponent }
+    ]
+  },
+  { path: 'not-found', component: PageNotFoundComponent },
+  { path: '**', redirectTo: '/not-found' }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+//__
+@NgModule({
+  declarations: [
+    AppComponent,
+    HomeComponent,
+    ServersComponent,
+    UsersComponent,
+    ServerComponent,
+    UserComponent,
+    EditServerComponent,
+    PageNotFoundComponent,
+  ],
+  imports: [BrowserModule, FormsModule, AppRoutingModule], // <-----AppRoutingModule
+  providers: [],
+  bootstrap: [AppComponent],
+})
+export class AppModule { }
+
+//__//
+//AuthGuard - это сервис, который реализует интерфейс CanActivate из Angular Router. Этот интерфейс позволяет определить, может ли пользователь получить доступ к определенному маршруту или нет.
+//canActivate - это метод интерфейса CanActivate, который возвращает true или false в зависимости от того, может ли пользователь получить доступ к маршруту
+// auth-guard.service.ts
+import { Injectable } from '@angular/core';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate {
+  constructor(private authService: AuthService, private router: Router) { }
+
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
+    return this.authService.isAuthenticated().then((loggedIn) => {
+      if (loggedIn) {
+        return true;
+      } else {
+        this.router.navigate(['/']);
+        return false;
+      }
+    });
+  }
+}
+
+// app-routing.module.ts
+const routes: Routes = [
+  { path: "", component: HomeComponent },
+  {
+    path: "servers",
+    component: ServersComponent,
+    children: [
+      { path: ":id", component: ServerComponent },
+      //Если пользователь авторизован, то компонент EditServerComponent будет загружен
+      {
+        path: ":id/edit",
+        component: EditServerComponent,
+        canActivate: [AuthGuard],
+      },
+    ],
+  },
+  {
+    path: "users",
+    component: UsersComponent,
+    children: [{ path: ":id", component: UserComponent }],
+  },
+  { path: "not-found", component: PageNotFoundComponent },
+  { path: "**", redirectTo: "/not-found" },
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+//__//
+//CanActivateChild - перед загрузкой любого из дочерних компонентов маршрута servers будет выполнен код из класса AuthGuard.
+//auth-guard.service.ts
+import { Injectable } from '@angular/core';
+import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, Router, RouterStateSnapshot } from '@angular/router';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate, CanActivateChild {
+  constructor(private authService: AuthService, private router: Router) { }
+
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
+    return this.authService.isAuthenticated().then((loggedIn) => {
+      if (loggedIn) {
+        return true;
+      } else {
+        this.router.navigate(['/']);
+        return false;
+      }
+    });
+  }
+
+  canActivateChild(childRoute: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
+    return this.canActivate(childRoute, state);
+  }
+}
+
+// app-routing.module.ts
+const routes: Routes = [
+  { path: '', component: HomeComponent },
+  {
+    path: 'servers', component: ServersComponent, canActivateChild: [AuthGuard], children: [
+      { path: ':id', component: ServerComponent },
+      { path: ':id/edit', component: EditServerComponent }
+    ]
+  },
+  {
+    path: 'users', component: UsersComponent, children: [
+      { path: ':id', component: UserComponent }
+    ]
+  },
+  { path: 'not-found', component: PageNotFoundComponent },
+  { path: '**', redirectTo: '/not-found' }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+//__//
+//Метод canDeactivate возвращает true или false в зависимости от того, может ли пользователь покинуть страницу. В данном случае мы проверяем, были ли сохранены изменения на странице. Если изменения не были сохранены, то мы показываем пользователю диалоговое окно с подтверждением
+// can-deactivate-guard.service.ts
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { ActivatedRouteSnapshot, CanComponentDeactivate, CanDeactivateGuard, RouterStateSnapshot } from '@angular/router';
+
+export interface CanComponentDeactivate {
+  canDeactivate: () => Observable<boolean | Promise<boolean>> | boolean;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class CanDeactivateGuard<T extends CanComponentDeactivate> implements CanDeactivate<T> {
+  canDeactivate(component: T, currentRoute: ActivatedRouteSnapshot, currentState: RouterStateSnapshot, nextState?: RouterStateSnapshot): Observable<boolean | Promise<boolean>> | boolean {
+    return component.canDeactivate();
+  }
+}
+
+// edit-server.component.ts
+@Component({
+  selector: 'app-edit-server',
+  templateUrl: './edit-server.component.html',
+  styleUrls: ['./edit-server.component.css']
+})
+export class EditServerComponent implements OnInit, CanComponentDeactivate {
+  server: Server;
+  serverName = '';
+  serverStatus = '';
+  changesSaved = false;
+
+  constructor(private serversService: ServersService, private route: ActivatedRoute, private router: Router) { }
+
+  ngOnInit(): void {
+    this.route.params.subscribe((params) => {
+      this.server = this.serversService.getServer(params['id']);
+      this.serverName = this.server.name;
+      this.serverStatus = this.server.status;
+    });
+  }
+
+  onUpdateServer() {
+    this.serversService.updateServer(this.server.id, { name: this.serverName, status: this.serverStatus });
+    this.changesSaved = true;
+    this.router.navigate(['../'], { relativeTo: this.route });
+  }
+
+  canDeactivate(): Observable<boolean | Promise<boolean>> | boolean {
+    if (!this.allowEdit) {
+      return true;
+    }
+    if ((this.serverName !== this.server.name || this.serverStatus !== this.server.status) && !this.changesSaved) {
+      return confirm('Do you want to discard the changes?');
+    } else {
+      return true;
+    }
+  }
+}
+
+// app-routing.module.ts
+const routes: Routes = [
+  { path: '', component: HomeComponent },
+  {
+    path: 'servers', component: ServersComponent, children: [
+      { path: ':id', component: ServerComponent },
+      { path: ':id/edit', component: EditServerComponent, canDeactivate: [CanDeactivateGuard] }
+    ]
+  },
+  {
+    path: 'users', component: UsersComponent, children: [
+      { path: ':id', component: UserComponent }
+    ]
+  },
+  { path: 'not-found', component: PageNotFoundComponent },
+  { path: '**', redirectTo: '/not-found' }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+//__//
+//при загрузке компонента ErrorPageComponent ему будет передан объект data, содержащий свойство message со значением Page Not Found
+// app-routing.module.ts
+const routes: Routes = [
+  { path: "", component: HomeComponent },
+  {
+    path: "servers",
+    component: ServersComponent,
+    children: [
+      { path: ":id", component: ServerComponent },
+      { path: ":id/edit", component: EditServerComponent },
+    ],
+  },
+  {
+    path: "users",
+    component: UsersComponent,
+    children: [{ path: ":id", component: UserComponent }],
+  },
+  {
+    path: "not-found",
+    component: ErrorPageComponent,
+    data: { message: "Page Not Found" },
+  },
+  { path: "**", redirectTo: "/not-found" },
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+// error-page.component.ts
+@Component({
+  selector: 'app-error-page',
+  templateUrl: './error-page.component.html',
+  styleUrls: ['./error-page.component.css']
+})
+export class ErrorPageComponent implements OnInit {
+  errorMessage: string;
+
+  constructor(private route: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    // this.errorMessage = this.route.snapshot.data['message'];
+
+    this.route.data.subscribe((data) => {
+      this.errorMessage = data['message'];
+    });
+  }
+}
+
+//__//
+//Resolver-  Это позволяет отображать данные сервера сразу же после загрузки компонента, без необходимости отправки отдельного запроса к серверу
+// Гард ServerResolver нужен для того, чтобы данные сервера были загружены до того, как будет загружен компонент ServerComponent.Это позволяет отображать данные сервера сразу же после загрузки компонента, без необходимости отправки отдельного запроса к серверу.
+
+// Это особенно важно для страниц, которые содержат много данных, которые необходимо загрузить с сервера.Например, страница со списком всех серверов может содержать сотни или даже тысячи серверов.Если бы данные серверов загружались после загрузки компонента, то пользователю пришлось бы ждать, пока все данные будут загружены, прежде чем он сможет увидеть страницу.
+
+// Используя гард ServerResolver, мы можем загрузить данные серверов до того, как будет загружен компонент ServerComponent.Это позволяет отобразить данные серверов сразу же после загрузки компонента, без необходимости заставлять пользователя ждать.
+// server-resolver.service.ts
+import { Injectable } from '@angular/core';
+import { ActivatedRouteSnapshot, Resolve, RouterStateSnapshot } from '@angular/router';
+import { Observable } from 'rxjs';
+import { Server } from './server.model';
+import { ServersService } from './servers.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ServerResolver implements Resolve<Server> {
+  constructor(private serversService: ServersService) { }
+
+  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<Server> | Promise<Server> | Server {
+    return this.serversService.getServer(+route.params['id']);
+  }
+}
+
+// server.component.ts
+@Component({
+  selector: 'app-server',
+  templateUrl: './server.component.html',
+  styleUrls: ['./server.component.css']
+})
+export class ServerComponent implements OnInit {
+  server: Server;
+
+  constructor(private route: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    // this.server = this.route.snapshot.params['id'];
+
+    this.route.data.subscribe((data: Data) => {
+      this.server = data['server'];
+    });
+  }
+}
+
+// app-routing.module.ts
+const routes: Routes = [
+  { path: "", component: HomeComponent },
+  {
+    path: "servers",
+    component: ServersComponent,
+    children: [
+      //перед загрузкой компонента ServerComponent будет выполнен код из класса ServerResolver
+      {
+        path: ":id",
+        component: ServerComponent,
+        resolve: { server: ServerResolver },
+      },
+    ],
+  },
+  {
+    path: "users",
+    component: UsersComponent,
+    children: [{ path: ":id", component: UserComponent }],
+  },
+  {
+    path: "not-found",
+    component: ErrorPageComponent,
+    data: { message: "Page Not Found" },
+  },
+  { path: "**", redirectTo: "/not-found" },
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+//__//
+// app-routing.module.ts
+//Когда мы переходим на страницу /.., в URL появится хэш #/...
+//Преимущества использования хэшей в URL:
+// Хэши в URL поддерживаются всеми браузерами, даже старыми.
+// Хэши в URL не требуют специальной конфигурации сервера.
+const routes: Routes = [
+  { path: '', component: HomeComponent },
+  {
+    path: 'servers', component: ServersComponent, children: [
+      { path: ':id', component: ServerComponent }
+    ]
+  },
+  {
+    path: 'users', component: UsersComponent, children: [
+      { path: ':id', component: UserComponent }
+    ]
+  },
+  { path: 'not-found', component: ErrorPageComponent, data: { message: 'Page Not Found' } },
+  { path: '**', redirectTo: '/not-found' }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes, {useHash:true})],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+//-----------------------------------
+//__Understanding Observables__//
+// Observable - это источник данных, который может испускать данные с течением времени.
+// Observer - это объект, который подписывается на observable и получает данные, когда они испускаются.
+// Observable может испускать три типа данных:
+// Обычные данные
+// Ошибки
+// Завершение
+//В Angular observables используются для обработки асинхронных задач, таких как сетевые запросы и события пользовательского интерфейса.
+
+// Преимущества использования observable
+// Observables позволяют обрабатывать асинхронные задачи в реактивном стиле.
+// Observables имеют ряд операторов, которые можно использовать для обработки данных.
+// Observables являются мощным инструментом для создания сложных приложений.
+
+// Недостатки использования observables
+// Observables могут быть сложными для понимания и использования.
+// Observables могут привести к утечкам памяти, если они не отписаны должным образом.
+
+// Когда следует использовать observables
+// Observables следует использовать для обработки асинхронных задач.
+// Observables следует использовать для создания сложных приложений.
+
+// Когда не следует использовать observables
+// Observables не следует использовать для обработки синхронных задач.
+// Observables не следует использовать для создания простых приложений.
+
+//__//
+//мы подписываемся на observable params, который содержит параметры маршрута. Когда параметры маршрута изменяются, вызывается функция обратного вызова, и мы извлекаем из нее параметр id
+// user.component.ts
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+
+@Component({
+  selector: 'app-user',
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.css']
+})
+export class UserComponent implements OnInit {
+  id: number;
+
+  constructor(private route: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    this.route.params.subscribe((params) => {
+      this.id = params['id'];
+    });
+  }
+}
+
+//__//
+//В этом коде мы создаем новый observable с помощью метода interval() из пакета rxjs. Метод interval() создает observable, который испускает значение каждые 1000 миллисекунд
+// home.component.ts
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { interval, Subscription } from 'rxjs';
+
+@Component({
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css']
+})
+export class HomeComponent implements OnInit, OnDestroy {
+  firstObsSubscription: Subscription;
+
+  ngOnInit(): void {
+    this.firstObsSubscription = interval(1000).subscribe((count) => {
+      console.log(count);
+    });
+  }
+
+  //Чтобы предотвратить утечку памяти, мы отписываемся от observable в методе ngOnDestroy()
+  ngOnDestroy(): void {
+    this.firstObsSubscription.unsubscribe();
+  }
+}
+
+//__//
+//мы создаем новый observable с помощью метода create() из пакета rxjs. Метод create() принимает функцию в качестве аргумента, которая будет вызываться, когда кто-то подписывается на observable
+import { Observable } from 'rxjs';
+
+const customIntervalObservable = Observable.create((observer) => {
+  let count = 0;
+  const interval = setInterval(() => {
+    observer.next(count);
+    count++;
+  }, 1000);
+
+  //В этой функции мы очищаем интервал с помощью метода clearInterval()
+  return () => {
+    clearInterval(interval);
+  };
+});
+
+// Subscribe to the observable
+customIntervalObservable.subscribe((data) => {
+  console.log(data);
+});
+
+//__//
+//Метод next() используется для передачи данных наблюдателю. Метод error() используется для передачи ошибки наблюдателю. Метод complete() используется для завершения observable.
+import { Observable } from 'rxjs';
+
+const customIntervalObservable = Observable.create((observer) => {
+  let count = 0;
+  const interval = setInterval(() => {
+    if (count === 3) {
+      observer.error(new Error('Count is greater than 3'));
+    } else if (count === 2) {
+      observer.complete();
+    } else {
+      observer.next(count);
+    }
+    count++;
+  }, 1000);
+
+  return () => {
+    clearInterval(interval);
+  };
+});
+
+//В первой функции мы просто выводим испускаемое значение в консоль. Во второй функции мы выводим сообщение об ошибке в консоль и показываем алерт с сообщением об ошибке. В третьей функции мы просто выводим сообщение о завершении в консоль
+customIntervalObservable.subscribe(
+  (data) => {
+    console.log(`Data: ${data}`);
+  },
+  (error) => {
+    console.log(`Error: ${error.message}`);
+    alert(error.message);
+  },
+  () => {
+    console.log('Completed');
+  }
+);
+
+//__//
+//операторы могут использоваться для преобразования и фильтрации данных, испускаемых наблюдаемой переменной
+//используем оператор pipe()
+import { Observable, of } from 'rxjs';
+import { map, filter } from 'rxjs/operators';
+
+// Создаём наблюдаемую переменную, которая испускает числа 0, 1, 2, 3, а затем завершается с ошибкой
+const observable = of(0, 1, 2, 3).pipe(
+  // Используем оператор map для преобразования данных
+  map((data) => `Раунд ${data + 1}`),
+  // Используем оператор filter для фильтрации первого значения
+  filter((data) => data !== 'Раунд 1')
+);
+
+// Подписываемся на наблюдаемую переменную и выводим данные в консоль
+observable.subscribe((data) => {
+  console.log(data);
+});
+
+//__//
+// В Angular subject - это объект, который представляет собой поток данных, который может быть подпиской и на который можно подписаться.Subjects используются для передачи данных между компонентами, сервисами и другими частями приложения.
+
+// Subjects похожи на Observables, но имеют несколько ключевых отличий:
+// Subjects могут быть как источником, так и получателем данных.
+// Subjects могут быть завершены, что означает, что они больше не будут испускать значения.
+// Subjects могут быть повторно подписываемы, что означает, что новые подписчики могут подписаться на них и получать все значения, испускаемые после того, как они подписались.
+
+// user.service.ts
+@Injectable({
+  providedIn: 'root'
+})
+export class UserService {
+  activatedEmitter = new Subject < boolean > ();
+}
+
+// user.component.ts
+@Component({
+  selector: 'app-user',
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.css']
+})
+export class UserComponent implements OnInit {
+  constructor(private userService: UserService) { }
+
+  ngOnInit(): void {
+  }
+
+  onActivate() {
+    this.userService.activatedEmitter.next(true);
+  }
+}
+
+// app.component.ts
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit, OnDestroy {
+  userActivated = false;
+  activatedSub: Subscription;
+
+  constructor(private userService: UserService) { }
+
+  ngOnInit(): void {
+    this.activatedSub = this.userService.activatedEmitter.subscribe((didActivate) => {
+      this.userActivated = didActivate;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.activatedSub.unsubscribe();
+  }
+}
+
+//------------------------------------
+//__Handling Forms in Angular Apps__//
+// Как Angular работает с формами
+
+// Angular предоставляет мощные инструменты для работы с формами.С помощью Angular вы можете:
+// Получать значения, введенные пользователем в поля формы.
+// Проверять валидность формы и отдельных полей.
+// Изменять внешний вид формы в зависимости от ее состояния.
+// Сбрасывать форму.
+// Как Angular представляет формы
+
+// Angular представляет формы в виде объектов JavaScript.Эти объекты содержат следующую информацию:
+// Значения полей формы.
+// Состояние формы(валидная / невалидная).
+// Состояние отдельных полей формы(валидные / невалидные).
+
+//__//
+
