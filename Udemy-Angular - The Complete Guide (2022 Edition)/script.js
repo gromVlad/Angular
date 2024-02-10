@@ -1832,7 +1832,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, {useHash:true})],
+  imports: [RouterModule.forRoot(routes, { useHash: true })],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }
@@ -2530,3 +2530,1090 @@ export class AppComponent {
   }
 }
 
+//__//
+//Чтобы сбросить форму, можно вызвать метод reset() на объекте формы. Метод reset() сбрасывает все поля формы в их начальное состояние.
+@Component({
+  selector: 'app-root',
+  template: `
+    ..//
+  `
+})
+export class AppComponent {
+  genders = ['male', 'female'];
+  defaultQuestion = 'pet';
+  answer = '';
+
+  onSubmit(form: NgForm) {
+    console.log(form);
+  }
+
+  resetForm() {
+    this.signupForm.reset();
+  }
+}
+
+//---------------- --//
+//__Reactive_ Form__//
+//используем реактивный подход к обработке форм
+
+@NgModule({
+  imports: [
+    ReactiveFormsModule
+  ]
+})
+export class AppModule { }
+
+// app.component.ts
+import { Component } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <form [formGroup]="signupForm">
+    </form>
+  `
+})
+export class AppComponent {
+  signupForm: FormGroup;
+
+  constructor() {
+    this.signupForm = new FormGroup({});
+  }
+}
+
+//__//
+// В этом фрагменте кода мы настраиваем форму в Angular, используя реактивные формы.
+
+@Component({
+})
+export class MyComponent implements OnInit {
+  signupForm: FormGroup;
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      'username': new FormControl(null),
+      'email': new FormControl(null),
+      'gender': new FormControl('male')
+    });
+  }
+}
+
+//__//
+//привязываем к форме в HTML с помощью директив formGroup и formControlName
+
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormControl } from '@angular/forms';
+
+@Component({
+  selector: 'app-your-component',
+  template: `
+    <form [formGroup]="signupForm">
+      <input type="text" formControlName="username">
+      <input type="email" formControlName="email">
+      <select formControlName="gender">
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+    </form>
+  `
+})
+export class YourComponent implements OnInit {
+  signupForm: FormGroup;
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      username: new FormControl(''),
+      email: new FormControl(''),
+      gender: new FormControl('male')
+    });
+  }
+}
+
+//__//
+//при отправке формы вызывается метод onSubmit()
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormControl } from '@angular/forms';
+
+@Component({
+  selector: 'app-your-component',
+  template: `
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+      <input type="text" formControlName="username">
+      <input type="email" formControlName="email">
+      <select formControlName="gender">
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+      <button type="submit">Submit</button>
+    </form>
+  `
+})
+export class YourComponent implements OnInit {
+  signupForm: FormGroup;
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      username: new FormControl(''),
+      email: new FormControl(''),
+      gender: new FormControl('male')
+    });
+  }
+
+  onSubmit() {
+    console.log(this.signupForm.value);
+  }
+}
+
+//__//
+//валидаторы для полей формы
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-your-component',
+  template: `
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+      <input type="text" formControlName="username" placeholder="Username">
+      <input type="email" formControlName="email" placeholder="Email">
+      <button type="submit">Submit</button>
+    </form>
+  `
+})
+export class YourComponent implements OnInit {
+  signupForm: FormGroup;
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      username: new FormControl('', Validators.required),
+      email: new FormControl('', [Validators.required, Validators.email])
+    });
+  }
+
+  onSubmit() {
+    console.log(this.signupForm.value);
+    if (this.signupForm.valid) {
+    }
+  }
+}
+
+//__//
+//добавлены сообщения об ошибках, которые отображаются, если поля формы недопустимы и были касаемы
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-your-component',
+  template: `
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+      <input type="text" formControlName="username" placeholder="Username">
+      <span class="help-block" *ngIf="signupForm.get('username').invalid && signupForm.get('username').touched">
+        Please enter a valid username
+      </span>
+
+      <input type="email" formControlName="email" placeholder="Email">
+      <span class="help-block" *ngIf="signupForm.get('email').invalid && signupForm.get('email').touched">
+        Please enter a valid email
+      </span>
+
+      <button type="submit">Submit</button>
+    </form>
+  `
+})
+export class YourComponent implements OnInit {
+  signupForm: FormGroup;
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      username: new FormControl('', Validators.required),
+      email: new FormControl('', [Validators.required, Validators.email])
+    });
+  }
+
+  onSubmit() {
+    console.log(this.signupForm.value);
+    if (this.signupForm.valid) {
+    }
+  }
+}
+
+//__//
+//создании формы с вложенными группами полей
+// Код компонента
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-signup',
+  template: `
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+      <div formGroupName="userData">
+        <div>
+          <label>Username</label>
+          <input type="text" formControlName="username">
+        </div>
+        <div>
+          <label>Email</label>
+          <input type="email" formControlName="email">
+        </div>
+      </div>
+
+      <button type="submit">Submit</button>
+    </form>
+  `,
+  styleUrls: ['./signup.component.css']
+})
+export class SignupComponent implements OnInit {
+  signupForm: FormGroup;
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      userData: new FormGroup({
+        username: new FormControl('', Validators.required),
+        email: new FormControl('', [Validators.required, Validators.email])
+      })
+    });
+  }
+
+  onSubmit() {
+    console.log(this.signupForm.value);
+  }
+}
+
+//__//
+//Динамически созданные контролы
+
+import { Component } from '@angular/core';
+import { FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-my-form',
+  template: `
+    <form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+      <!-- ... остальной код формы ... -->
+
+      <div formArrayName="hobbies">
+        <!-- Динамически созданные контролы хобби -->
+        <div *ngFor="let hobbyControl of hobbies.controls; let i = index">
+          <input type="text" [formControlName]="i" class="form-control">
+        </div>
+      </div>
+
+      <button type="button" (click)="addHobby()">Добавить хобби</button>
+
+      <button type="submit">Отправить</button>
+    </form>
+  `,
+})
+export class MyFormComponent {
+  myForm: FormGroup;
+
+  constructor() {
+    this.myForm = new FormGroup({
+      // ... остальные контролы формы ...
+      hobbies: new FormArray([]),
+    });
+  }
+
+  get hobbies(): FormArray {
+    return this.myForm.get('hobbies') as FormArray;
+  }
+
+  addHobby(): void {
+    const hobbyControl = new FormControl('', Validators.required);
+    this.hobbies.push(hobbyControl);
+  }
+
+  onSubmit(): void {
+    console.log(this.myForm.value);
+  }
+}
+
+//__//
+//создании собственных валидаторов форм в Angular.
+
+import { Component } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-your-component',
+  template: `
+    <form [formGroup]="signupForm">
+      <input type="text" formControlName="username">
+      <p *ngIf="username.invalid && username.touched">Имя пользователя недопустимо!</p>
+    </form>
+  `,
+})
+export class YourComponent {
+  signupForm: FormGroup;
+
+  // Запрещенные имена пользователей
+  forbiddenUsernames = ['Chris', 'Anna'];
+
+  constructor() {
+    this.signupForm = new FormGroup({
+      username: new FormControl(null, [this.forbiddenNames.bind(this)])
+    });
+  }
+
+  // Собственный валидатор
+  forbiddenNames(control: FormControl): { [key: string]: boolean } | null {
+    const enteredUsername = control.value;
+
+    // Проверяем, есть ли имя пользователя в списке запрещенных имен
+    if (this.forbiddenUsernames.indexOf(enteredUsername) !== -1) {
+      return { nameIsForbidden: true };
+    }
+
+    return null; // Возвращаем null, если валидация успешна
+  }
+}
+
+//__//
+//соответствующие сообщения об ошибке собственных валидаторов форм
+import { Component } from '@angular/core';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+      <div>
+        <label for="username">Username</label>
+        <input type="text" id="username" formControlName="username">
+        <div *ngIf="signupForm.get('userData.username').invalid && (signupForm.get('userData.username').dirty || signupForm.get('userData.username').touched)">
+          <span *ngIf="signupForm.get('userData.username').errors['required']>Поле обязательно для заполнения.</span>
+          <span *ngIf="signupForm.get('userData.username').errors['forbidden']>Недопустимое имя пользователя.</span>
+        </div>
+      </div>
+      <button type="submit" [disabled]="signupForm.invalid">Submit</button>
+    </form>
+  `
+})
+export class MyComponent {
+  signupForm: FormGroup;
+
+  forbiddenUsernames = ['admin', 'user'];
+
+  constructor() {
+    this.signupForm = new FormGroup({
+      'userData': new FormGroup({
+        'username': new FormControl(null, [Validators.required, this.forbiddenNames])
+      })
+    });
+  }
+
+  forbiddenNames(control: FormControl): { [s: string]: boolean } {
+    if (this.forbiddenUsernames.indexOf(control.value) !== -1) {
+      return { 'forbidden': true };
+    }
+    return null;
+  }
+
+  onSubmit() {
+    console.log(this.signupForm.value);
+  }
+}
+
+//__//
+//создали асинхронный валидатор
+
+import { Component } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Observable } from 'rxjs';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" formControlName="email" class="form-control">
+        <div *ngIf="signupForm.get('email').invalid && (signupForm.get('email').dirty || signupForm.get('email').touched)">
+          <div *ngIf="signupForm.get('email').errors.required">Email is required.</div>
+          <div *ngIf="signupForm.get('email').errors.email">Please enter a valid email address.</div>
+          <div *ngIf="signupForm.get('email').errors.emailIsForbidden">This email is forbidden.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" formControlName="password" class="form-control">
+        <div *ngIf="signupForm.get('password').invalid && (signupForm.get('password').dirty || signupForm.get('password').touched)">
+          <div *ngIf="signupForm.get('password').errors.required">Password is required.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input type="password" id="confirmPassword" formControlName="confirmPassword" class="form-control">
+        <div *ngIf="signupForm.get('confirmPassword').invalid && (signupForm.get('confirmPassword').dirty || signupForm.get('confirmPassword').touched)">
+          <div *ngIf="signupForm.get('confirmPassword').errors.required">Confirm Password is required.</div>
+        </div>
+      </div>
+      <button type="submit" [disabled]="signupForm.invalid">Submit</button>
+    </form>
+  `,
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  signupForm: FormGroup;
+
+  ngOnInit() {
+    this.signupForm = new FormGroup({
+      email: new FormControl(null, [Validators.required, Validators.email], [this.forbiddenEmails]),
+      password: new FormControl(null, Validators.required),
+      confirmPassword: new FormControl(null, Validators.required)
+    });
+  }
+
+  forbiddenEmails(control: FormControl): Promise<any> | Observable<any> {
+    const promise = new Promise < any > ((resolve, reject) => {
+      setTimeout(() => {
+        if (control.value === 'test@test.com') {
+          resolve({ emailIsForbidden: true });
+        } else {
+          resolve(null);
+        }
+      }, 1500);
+    });
+    return promise;
+  }
+}
+
+//__//
+// подписываемся на изменения значений формы с помощью метода valueChanges, который является Observable и вызывает переданный callback при каждом изменении значений формы
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit {
+  signupForm: FormGroup;
+
+  ngOnInit() {
+    // Создаем форму с тремя полями: email, password и confirmPassword
+    this.signupForm = new FormGroup({
+      email: new FormControl(null, [Validators.required, Validators.email]),
+      password: new FormControl(null, Validators.required),
+      confirmPassword: new FormControl(null, Validators.required)
+    });
+
+    // Подписываемся на изменения значений формы
+    this.signupForm.valueChanges.subscribe(value => {
+      console.log(value); // Выводим значения формы в консоль при изменении
+    });
+
+    // Подписываемся на изменения состояния формы
+    this.signupForm.statusChanges.subscribe(status => {
+      console.log(status); // Выводим состояние формы в консоль при изменении
+    });
+  }
+
+  onSubmit() {
+    // Обработка отправки формы
+  }
+}
+
+//__//
+//используем метод setValue для установки начальных значений формы. Мы передаем объект с соответствующими значениями для каждого поля формы
+//метод patchValue для обновления отдельного значения формы
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit {
+  signupForm: FormGroup;
+
+  ngOnInit() {
+    // Создаем форму с тремя полями: username, email и password
+    this.signupForm = new FormGroup({
+      username: new FormControl(null, Validators.required),
+      email: new FormControl(null, [Validators.required, Validators.email]),
+      password: new FormControl(null, Validators.required)
+    });
+
+    // Используем метод setValue для установки начальных значений формы
+    this.signupForm.setValue({
+      username: 'Max',
+      email: 'max@test.com',
+      password: ''
+    });
+
+    // Используем метод patchValue для обновления отдельного значения формы
+    this.signupForm.patchValue({
+      username: 'Anna'
+    });
+  }
+
+  onSubmit() {
+    // Обработка отправки формы
+
+    // Сбрасываем значения формы после отправки
+    this.signupForm.reset();
+  }
+}
+
+//------------------------------------//
+//__Using Pipes to Transform Output__//
+//пайпы позволяют преобразовывать данные перед их выводом в шаблон. Это удобный способ форматирования вывода
+
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html'
+})
+export class AppComponent {
+
+
+  servers = [
+    {
+      name: 'Test Server 1',
+      instanceType: 'medium',
+      started: new Date()
+    },
+    {
+      name: 'Test Server 2',
+      instanceType: 'large',
+      started: new Date()
+    }
+  ];
+}
+
+/* 
+<div 
+  *ngFor="let server of servers"
+  class="panel panel-default">
+
+  <div class="panel-heading">
+    <h2>
+      {{ server.name }}
+    </h2>
+  </div>
+
+  <div class="panel-body">
+
+    <p>
+      Тип: {{ server.instanceType | uppercase }}
+    </p>
+
+    <p>
+      Запущен: {{ server.started | date }} 
+    </p>
+
+  </div>
+</div>
+*/
+
+//__//
+//date
+//fullDate' в данном случае указывает, что мы хотим отформатировать дату в полном формате
+//{{ currentDate | date:'fullDate' }}
+
+//__//
+//Комбинирование "pipe" в Angular можно использовать в различных ситуациях, в которых требуется преобразование данных перед их отображением на пользовательском интерфейсе.
+//{{ serverStarted | date:'dd/MM/yyyy' | uppercase }}
+//{{ serverName | slice:0:5 | uppercase }}
+//{{ serverName | uppercase | uppercase }}
+
+//__//
+//кастомный пайп
+@Pipe({
+  name: 'shorten'
+})
+export class ShortenPipe implements PipeTransform {
+  transform(value: string): string {
+    if (value.length > 10) {
+      return value.substr(0, 10) + '...';
+    }
+    return value;
+  }
+}
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html'
+})
+export class AppComponent {
+
+  servers = [
+    {
+      name: 'Productionserver',
+      started: new Date()
+    },
+    {
+      name: 'Longservernamewithmorethan10letters',
+      started: new Date()
+    }
+  ];
+
+}
+/* 
+<app-server *ngFor="let server of servers">
+  <h3> {{server.name | shorten}} </h3> 
+  <p> Запущен: {{server.started | date}} </p>
+ </app-server>
+*/
+
+//__//
+//позволяет использовать пользовательский пайп с параметром для сокращения значений в зависимости от указанного лимит
+@Pipe({
+  name: 'shorten'
+})
+export class ShortenPipe implements PipeTransform {
+  transform(value: string, limit: number): string {
+    if (value.length > limit) {
+      return value.substr(0, limit) + '...';
+    }
+    return value;
+  }
+}
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html'
+})
+export class AppComponent {
+  servers = [
+    {
+      name: 'Productionserver',
+      started: new Date()
+    },
+    {
+      name: 'Longservernamewithmorethan10letters',
+      started: new Date()
+    }
+  ];
+}
+/* 
+<app-server 
+  *ngFor="let server of servers">
+  <h3>
+    {{server.name | shorten:10}}
+  </h3>
+  <p>
+    Запущен: {{server.started | date}}
+  </p>
+</app-server>
+*/
+
+//__//
+//фильтруем массив значений
+
+@Pipe({
+  name: 'filter'
+})
+export class FilterPipe implements PipeTransform {
+  transform(value: any[], filterString: string, propName: string): any[] {
+    if (value.length === 0 || filterString === '') {
+      return value;
+    }
+    const resultArray = [];
+    for (const item of value) {
+      if (item[propName] === filterString) {
+        resultArray.push(item);
+      }
+    }
+    return resultArray;
+  }
+
+}
+
+// Использование пайпа в шаблоне:
+// servers - массив объектов, filterString - фильтрующая строка, propName - имя свойства объекта,
+// по которому производится фильтрация
+// <div *ngFor="let server of servers | filter: filterString: 'status'">
+// {{ server.name }}
+// </div>
+
+//__//
+//статичный режим изменения или динамичный режим в pipe
+//добавление или изменение в pipe вызовет перерасчет, применение pipe к данным снова, но изменение данных не произойдет
+//высокую стоимость производительности при фильтрации
+//Чтобы указать Angular, что метод transform не является чистым, мы можем установить флаг pure в false в декораторе Pipe.
+@Pipe({
+  name: 'serverFilter',
+  pure: false
+})
+export class ServerFilterPipe implements PipeTransform {
+  // ...
+}
+//Теперь Angular будет пересчитывать pipe каждый раз, когда данные изменяются.
+
+//__//
+//используем пайп async для автоматической обработки асинхронных данных и отображения их на экране
+@Component({
+  selector: 'app-example',
+  template: `
+    <h1>appStatus</h1>
+    <p>{{ appStatus | async }}</p>
+  `,
+})
+export class ExampleComponent {
+  appStatus: Promise<string>;
+
+  constructor() {
+    this.appStatus = new Promise < string > ((resolve, reject) => {
+      setTimeout(() => {
+        resolve('stable');
+      }, 2000);
+    });
+  }
+}
+
+//-------------------------//
+//__Making Http Requests__//
+//Angular может взаимодействовать с сервером и базой данных
+//вместо прямого подключения Angular к базе данных, мы отправляем HTTP-запросы и получаем HTTP-ответы от сервера. Сервер в этом случае представляет собой API (REST API или GraphQL API), с которым мы общаемся.
+//взаимодействие с сервером может использоваться не только для работы с базой данных, но и для загрузки файлов, отправки аналитических данных и других задач
+
+//__//
+//HttpClient
+//добовлять посты на сервер
+
+import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <button (click)="sendRequest()">Send Request</button>
+    <p>{{ response }}</p>
+  `,
+})
+export class AppComponent {
+  response: string;
+
+  constructor(private http: HttpClient) { }
+
+  sendRequest() {
+    const url = 'http://example.com/api';
+    const data = {
+      name: 'John',
+      age: 30
+    };
+
+    this.http.post(url, data)
+      .subscribe(
+        (response: any) => {
+          this.response = response.message;
+        },
+        (error: any) => {
+          this.response = 'Error: ' + error.message;
+        }
+      );
+  }
+}
+
+//__//
+//получать посты с сервера и отображать их на странице
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <button (click)="onFetchPosts()">Fetch Posts</button>
+    <ul>
+      <li *ngFor="let post of posts">{{ post.title }}</li>
+    </ul>
+  `,
+})
+export class AppComponent implements OnInit {
+  posts: any[] = [];
+
+  constructor(private http: HttpClient) { }
+
+  ngOnInit() {
+    this.fetchPosts();
+  }
+
+  fetchPosts() {
+    const url = 'https://jsonplaceholder.typicode.com/posts';
+
+    this.http.get(url)
+      .subscribe((response: any[]) => {
+        this.posts = response;
+      });
+  }
+
+  onFetchPosts() {
+    this.fetchPosts();
+  }
+}
+
+//__//
+//map для преобразования данных, полученных с сервера
+//используем оператор pipe, который позволяет применять несколько операторов к данным до того, как они достигнут метода subscribe
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit {
+  posts: any[] = [];
+
+  constructor(private http: HttpClient) { }
+
+  ngOnInit() {
+    this.fetchPosts();
+  }
+
+  fetchPosts() {
+    this.http.get('https://example.com/posts').pipe(
+      map(responseData => {
+        const postsArray = [];
+        for (const key in responseData) {
+          if (responseData.hasOwnProperty(key)) {
+            postsArray.push({ ...responseData[key], ID: key });
+          }
+        }
+        return postsArray;
+      })
+    ).subscribe(posts => {
+      this.posts = posts;
+    });
+  }
+}
+
+//__//
+//типизируем http
+
+interface Post {
+  id?: string;
+  title: string;
+  content: string;
+}
+
+@Injectable()
+export class PostService {
+  private apiUrl = 'https://api.example.com/posts';
+
+  constructor(private http: HttpClient) { }
+
+  getPosts(): Observable<Post[]> {
+    return this.http.get < any[] > (this.apiUrl).pipe(
+      map(response => {
+        return response.map(postData => {
+          const post: Post = {
+            id: postData.id,
+            title: postData.title,
+            content: postData.content
+          };
+          return post;
+        });
+      })
+    );
+  }
+}
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit {
+  posts: any[] = [];
+
+  constructor(private postService: PostService) { }
+
+  ngOnInit() {
+    this.fetchPosts();
+  }
+
+  getPosts(): void {
+    this.postService.getPosts().subscribe(posts => {
+      console.log(posts);
+    });
+  }
+}
+
+//__//
+//индикатор загрузки
+@Injectable()
+export class PostService {
+  private apiUrl = 'https://api.example.com/posts';
+  loadedPosts: Post[] = [];
+  isFetching = false;
+
+  constructor(private http: HttpClient) { }
+
+  getPosts(): Observable<Post[]> {
+    this.isFetching = true;
+    return this.http.get < any[] > (this.apiUrl).pipe(
+      map(response => {
+        return response.map(postData => {
+          const post: Post = {
+            id: postData.id,
+            title: postData.title,
+            content: postData.content
+          };
+          return post;
+        });
+      }),
+      //для выполнения побочных эффектов без изменения потока данных
+      tap(posts => {
+        this.loadedPosts = posts;
+        this.isFetching = false;
+      })
+    );
+  }
+}
+
+//__//
+//полное CRUD-действие над данными через HTTP-запросы
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PostService {
+
+  constructor(private http: HttpClient) { }
+
+  createPost(post: Post) {
+    return this.http.post < Post > ('https://jsonplaceholder.typicode.com/posts', post);
+  }
+
+  getPosts() {
+    return this.http.get < Post[] > ('https://jsonplaceholder.typicode.com/posts')
+      .pipe(
+        map(posts => {
+          // transformation logic
+          return posts;
+        })
+      );
+  }
+
+  updatePost(post: Post) {
+    return this.http.put < Post > ('https://jsonplaceholder.typicode.com/posts/' + post.id, post);
+  }
+
+  deletePost(id: number) {
+    return this.http.delete < void> ('https://jsonplaceholder.typicode.com/posts/' + id);
+  }
+
+}
+
+@Component({ ...})
+export class PostComponent {
+
+  posts: Post[] = [];
+
+  constructor(private postService: PostService) { }
+
+  ngOnInit() {
+    this.getPosts();
+  }
+
+  getPosts() {
+    this.postService.getPosts()
+      .subscribe(posts => {
+        this.posts = posts;
+      });
+  }
+
+  // other methods calling post service
+
+}
+
+//__//
+//Отображение данных/ошибок
+
+@Component({ ...})
+export class PostComponent {
+
+  loading = false;
+  error = null;
+  posts: Post[] = [];
+
+  constructor(private postService: PostService) { }
+
+  getPosts() {
+    this.loading = true;
+
+    this.postService.getPosts()
+      .subscribe(
+        posts => {
+          this.loading = false;
+          this.posts = posts;
+        },
+        error => {
+          this.loading = false;
+          this.error = error;
+        }
+      );
+  }
+
+  // template
+
+}
+/* 
+<div *ngIf="loading">Loading...</div>
+
+<div *ngIf="error">
+  Error: {{error}}
+</div> 
+
+<div *ngIf="!loading && !error">
+  Posts: {{posts}}
+</div>
+*/
+
+//__//
+//Subject, которые выполнит нужные действия при получении ошибки
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject, Subscription } from 'rxjs';
+
+@Component({
+  selector: 'app-example',
+  templateUrl: './example.component.html',
+  styleUrls: ['./example.component.css']
+})
+export class ExampleComponent implements OnInit, OnDestroy {
+  errorSub: Subscription;
+  error = '';
+
+  private errorSubject = new Subject < string > ();
+  error$ = this.errorSubject.asObservable();
+
+  ngOnInit() {
+    this.errorSub = this.error$.subscribe((errorMessage) => {
+      this.error = errorMessage;
+    });
+  }
+
+  ngOnDestroy() {
+    this.errorSub.unsubscribe();
+  }
+
+  // Метод, в котором происходит обработка ошибки и передача ее в Subject
+  handleError(errorMessage: string) {
+    this.errorSubject.next(errorMessage);
+  }
+}
+
+//__//
+//добавить оператор catchError в наш поток данных, перед вызовом метода subscribe. Например, если мы хотим обработать ошибку при получении данных
+fetchPosts() {
+  this.http.get('https://example.com/posts')
+    .pipe(
+      catchError((error) => {
+        // Обработка ошибки
+        console.log('An error occurred:', error);
+        throw error; // Пробрасываем ошибку дальше, чтобы она могла быть обработана в методе `subscribe`
+      })
+    )
+    .subscribe(
+      (response) => {
+        // Обработка успешного ответа
+        console.log('Received response:', response);
+      },
+      (error) => {
+        // Обработка ошибки
+        console.log('An error occurred in subscribe:', error);
+      }
+    );
+}
+
+//__//
