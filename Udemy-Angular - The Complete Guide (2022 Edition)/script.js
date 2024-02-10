@@ -3617,3 +3617,825 @@ fetchPosts() {
 }
 
 //__//
+//заголовки в опции запроса с помощью объекта { headers }
+
+// Импортируем необходимые модули
+import { Component } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http'; // Импортируем HttpHeaders для работы с заголовками
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  posts: any[] = []; // Переменная для хранения данных
+
+  constructor(private http: HttpClient) { }
+
+  fetchPosts() {
+    const headers = new HttpHeaders().set('custom-header', 'hello'); // Создаем новый экземпляр HttpHeaders с нашим заголовком
+    this.http.get('https://example.com/posts', { headers }) // Передаем заголовки в опции запроса
+      .subscribe(
+        (response) => {
+          this.posts = response; // Устанавливаем полученные данные
+        }
+      );
+  }
+}
+
+//__//
+//HttpParams
+
+// Импортируем необходимые модули
+import { Component } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http'; // Импортируем HttpParams для работы с параметрами запроса
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  posts: any[] = []; // Переменная для хранения данных
+
+  constructor(private http: HttpClient) { }
+
+  fetchPosts() {
+    const headers = new HttpHeaders().set('custom-header', 'hello'); // Создаем новый экземпляр HttpHeaders с нашим заголовком
+
+    const params = new HttpParams().set('print', 'pretty'); // Создаем новый экземпляр HttpParams с нашими параметрами
+
+    //использовать метод append() для добавления нового параметра в объект HttpParams / append() добавляет новое значение в конец объекта без удаления или замены существующих значений
+    params.append('q', 'angular');
+    params.append('sort', 'desc');
+
+    this.http.get('https://example.com/posts', { headers, params }) // Передаем заголовки и параметры в опции запроса
+      .subscribe(
+        (response) => {
+          this.posts = response; // Устанавливаем полученные данные
+        }
+      );
+  }
+}
+
+//__//
+//При использовании Angular HttpClient для выполнения HTTP-запросов, мы можем наблюдать различные типы событий ответа
+
+/* 
+HttpEventType.Sent: Это событие отправки запроса. Оно генерируется сразу же после отправки запроса.
+HttpEventType.ResponseHeader: Это событие получения заголовков ответа. Оно генерируется после получения заголовков ответа от сервера.
+HttpEventType.DownloadProgress: Это событие прогресса загрузки данных. Оно генерируется во время загрузки данных с сервера, позволяя отслеживать прогресс загрузки.
+HttpEventType.UploadProgress: Это событие прогресса загрузки данных на сервер. Оно генерируется во время загрузки данных на сервер, позволяя отслеживать прогресс загрузки.
+HttpEventType.Response: Это событие получения полного ответа от сервера. Оно генерируется после получения полного ответа, который можно использовать для обработки данных.
+*/
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpEventType } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PostService {
+  constructor(private http: HttpClient) { }
+
+  getPosts(): Observable<any> {
+    return this.http.get < Post[] > ('posts', { observe: 'events' }).pipe(
+      tap(event => {
+        if (event.type === HttpEventType.Sent) {
+          console.log('Request sent');
+        }
+        if (event.type === HttpEventType.ResponseHeader) {
+          console.log('Response headers received');
+        }
+        if (event.type === HttpEventType.DownloadProgress) {
+          const percentDone = Math.round((100 * event.loaded) / event.total);
+          console.log(`Download Progress: ${percentDone}%`);
+        }
+        if (event.type === HttpEventType.UploadProgress) {
+          const percentDone = Math.round((100 * event.loaded) / event.total);
+          console.log(`Upload Progress: ${percentDone}%`);
+        }
+        if (event.type === HttpEventType.Response) {
+          console.log('Full response received');
+        }
+      })
+    );
+  }
+}
+
+//observe: 'body': По умолчанию, если значение observe не указано, HttpClient возвращает только тело ответа в виде наблюдаемого объекта. Нет необходимости наблюдать за событиями или заголовками ответа
+//observe: 'response': HttpClient возвращает полный объект ответа, включая тело, заголовки, статус и другую информацию.Это полезно, когда вам нужно получить доступ к полному ответу, а не только к телу.
+//observe: 'response' as 'body': Это комбинация предыдущих двух параметров.HttpClient возвращает полный объект ответа, но внутри него только тело.Это полезно, если вы хотите получить доступ к полному объекту ответа, но вам нужно только тело.
+
+//__//
+//responseType: 'json' указывает, что данные в теле ответа являются JSON и должны быть преобразованы в объект JavaScript
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PostService {
+  constructor(private http: HttpClient) { }
+
+  getPosts(): Observable<any> {
+    // Опция observe позволяет настраивать режим наблюдения
+    // По умолчанию используется observe: 'body', что означает, что будет наблюдаться только тело ответа
+
+    // Опция responseType позволяет настраивать тип ответа
+    // По умолчанию используется responseType: 'json', что означает, что данные в теле ответа являются JSON и будут автоматически преобразованы в объект JavaScript
+
+    // Пример использования опций observe и responseType
+    return this.http.get < Post[] > ('posts', { observe: 'body', responseType: 'json' });
+
+    // В этом примере мы указываем, что нам нужно наблюдать только за телом ответа и что данные в теле являются JSON
+
+    // Другие варианты для опции responseType:
+    // - 'text': Означает, что данные в теле ответа являются текстом и не нужно их преобразовывать в объект JavaScript
+    // - 'blob': Означает, что ответ является файлом (например, изображение или документ)
+
+    // Пример использования опций observe и responseType для текстового ответа:
+    //return this.http.get < string > ('posts', { observe: 'body', responseType: 'text' });
+
+    // В этом примере мы указываем, что нам нужно наблюдать только за телом ответа и что данные в теле являются текстом
+
+    // Пример использования опций observe и responseType для получения файла (blob):
+    //return this.http.get('file.pdf', { observe: 'body', responseType: 'blob' });
+
+    // В этом примере мы указываем, что нам нужно наблюдать только за телом ответа и что ответ является файлом (blob)
+  }
+}
+
+//__//
+//intercept - мы можем выполнять какую - либо логику перед отправкой запроса
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+
+import { AppComponent } from './app.component';
+import { AuthInterceptor } from './auth-interceptor.service';
+
+@NgModule({
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    BrowserModule,
+    HttpClientModule
+  ],
+  providers: [
+    //Указываем, что используемый провайдер - интерцептор с помощью provide: HTTP_INTERCEPTORS. И устанавливаем multi: true, чтобы добавить интерцептор к уже существующим провайдерам.
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+import { Injectable } from '@angular/core';
+import {
+  HttpRequest,
+  HttpHandler,
+  HttpEvent,
+  HttpInterceptor
+} from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    console.log('Request is on its way');
+
+    // Можно добавить заголовки к запросу
+    const authReq = req.clone({
+      setHeaders: {
+        Authorization: 'Bearer ' + localStorage.getItem('token')
+      }
+    });
+
+    // Позволяет продолжить отправку запроса
+    return next.handle(authReq);
+  }
+}
+
+//or
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    if (req.url.includes('api/posts')) {
+      // Применить интерсептор только для запросов на URL-адресе `api/posts`
+      const modifiedRequest = req.clone({
+        headers: req.headers.append('Authorization', 'Bearer ' + localStorage.getItem('token'))
+      });
+      return next.handle(modifiedRequest);
+    }
+    return next.handle(req);
+  }
+}
+
+//возможности взаимодействия с ответом сервера в интерсепторе HTTP
+//в интерсепторе также можно взаимодействовать с ответом сервера
+import { tap } from 'rxjs/operators';
+
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    return next.handle(req).pipe(
+      tap((event: HttpEvent<any>) => {
+        if (event instanceof HttpResponse) {
+          console.log('Response arrived, body data:', event.body);
+        }
+      })
+    );
+  }
+}
+
+//__//
+//Для добавления нескольких интерцепторов, нам необходимо создать каждый интерцептор в отдельном файле и затем добавить их в нужном порядке в приложение
+
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    const modifiedRequest = request.clone({
+      headers: request.headers.set('Authorization', 'xyz') // добавляем заголовок Authorization
+    });
+    return next.handle(modifiedRequest);
+  }
+}
+
+@Injectable()
+export class LoggingInterceptor implements HttpInterceptor {
+  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    console.log('Исходящий запрос:', request.url); // логируем URL исходящего запроса
+    return next.handle(request).pipe(
+      tap(event => {
+        if (event.type === 4) { // проверяем, является ли событие ответом
+          console.log('Входящий ответ:', event.body); // логируем тело ответа
+        }
+      })
+    );
+  }
+}
+
+//порядок, в котором мы добавляем интерцепторы, определяет порядок их выполнения
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+
+import { AppComponent } from './app.component';
+import { AuthInterceptor } from './auth-interceptor.service';
+import { LoggingInterceptor } from './logging-interceptor.service';
+
+@NgModule({
+  declarations: [AppComponent],
+  imports: [BrowserModule, HttpClientModule],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: LoggingInterceptor, multi: true }
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+//------------------------------------------------//
+//__Authentication & Route Protection in Angular__//
+
+//создания страницы аутентификации
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-auth',
+  templateUrl: './auth.component.html',
+  styleUrls: ['./auth.component.css']
+})
+export class AuthComponent {
+  isLoginMode = true;
+
+  onSwitchMode() {
+    this.isLoginMode = !this.isLoginMode;
+  }
+
+  onSubmitForm(form: NgForm) {
+    if (form.invalid) {
+      return;
+    }
+    // Обработка отправки формы
+  }
+}
+/* 
+<h2>{{ isLoginMode ? 'Вход' : 'Регистрация' }}</h2>
+<form (ngSubmit)="onSubmitForm(authForm)" #authForm="ngForm">
+  <!-- Поля для ввода данных -->
+  <button type="submit">{{ isLoginMode ? 'Войти' : 'Зарегистрироваться' }}</button>
+</form>
+<button (click)="onSwitchMode()">{{ isLoginMode ? 'Переключить на регистрацию' : 'Переключить на вход' }}</button>
+*/
+
+//__//
+//isLoginMode определяет текущий режим(вход или регистрация).Метод onSwitchMode() переключает режим между true и false.Метод onSubmitForm() обрабатывает отправку формы
+
+import { Component } from '@angular/core';
+import { NgForm } from '@angular/forms';
+
+@Component({
+  selector: 'app-auth',
+  templateUrl: './auth.component.html',
+  styleUrls: ['./auth.component.css']
+})
+export class AuthComponent {
+  isLoginMode = true;
+
+  onSwitchMode() {
+    this.isLoginMode = !this.isLoginMode;
+  }
+
+  onSubmitForm(form: NgForm) {
+    if (form.invalid) {
+      return; // Если форма невалидна, просто выходим из функции
+    }
+
+    const email = form.value.email; // Получаем значение email из формы
+    const password = form.value.password; // Получаем значение password из формы
+
+    if (this.isLoginMode) {
+      // Код для входа пользователя
+      console.log('Вход:', email, password);
+    } else {
+      // Код для регистрации пользователя
+      console.log('Регистрация:', email, password);
+    }
+
+    form.reset(); // Сбрасываем значения формы
+  }
+}
+/* 
+<h2>{{ isLoginMode ? 'Вход' : 'Регистрация' }}</h2>
+<form (ngSubmit)="onSubmitForm(authForm)" #authForm="ngForm">
+  <label for="email">E-mail</label>
+  <input type="email" id="email" name="email" ngModel required>
+  
+  <label for="password">Пароль</label>
+  <input type="password" id="password" name="password" ngModel minlength="6" required>
+  
+  <button type="submit" [disabled]="!authForm.valid">
+    {{ isLoginMode ? 'Войти' : 'Зарегистрироваться' }}
+  </button>
+</form>
+<button (click)="onSwitchMode()">
+  {{ isLoginMode ? 'Переключить на регистрацию' : 'Переключить на вход' }}
+</button>
+*/
+
+//__//
+//сервис AuthService для работы с API Firebase
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+
+  constructor(private http: HttpClient) { }
+  signup(email: string, password: string) {
+    return this.http.post < AuthResponse > (
+      'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=[API_KEY]',
+      {
+        email,
+        password,
+        returnSecureToken: true
+      }
+    );
+  }
+
+}
+
+interface AuthResponse {
+  //...
+}
+
+export class AuthComponent {
+
+  constructor(private authService: AuthService) { }
+  onSubmit() {
+    this.authService.signup(
+      this.email.value,
+      this.password.value
+    ).subscribe()
+  }
+}
+
+//__//
+
+@Component({
+  // ...
+})
+export class AuthComponent {
+  isLoginMode = true;
+
+  constructor(private authService: AuthService) { }
+
+  onSubmit(form: NgForm) {
+    const email = form.value.email;
+    const password = form.value.password;
+
+    if (!form.valid) {
+      return;
+    }
+
+    if (this.isLoginMode) {
+      // Логика для входа
+    } else {
+      this.authService.signUp(email, password).subscribe(
+        responseData => {
+          console.log(responseData);
+          form.reset();
+        },
+        error => {
+          console.log(error);
+        }
+      );
+    }
+  }
+}
+
+//__//
+//лоадер при загрузке данных
+
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-loading-spinner',
+  template: <div class="loadingio-eclipse">       <div class="ldio-rpinwye8j0b">         <div></div>       </div>     </div>,
+  styleUrls: ['./loading-spinner.component.css']
+})
+export class LoadingSpinnerComponent { }
+
+//_
+@NgModule({
+  declarations: [
+    AppComponent,
+    LoadingSpinnerComponent // добавляем компонент лоадера
+  ],
+  imports: [],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+//_
+@Component({
+  selector: 'app-auth',
+  templateUrl: './auth.component.html',
+  styleUrls: ['./auth.component.css']
+})
+export class AuthComponent {
+  isLoading = false;
+
+  onSubmit() {
+    this.isLoading = true;
+
+
+    this.isLoading = false;
+  }
+}
+
+//__//
+//обработку ошибки
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UserService {
+  private apiUrl = 'https://api.example.com/users';
+
+  constructor(private http: HttpClient) { }
+
+  registerUser(user: any) {
+    return this.http.post(this.apiUrl, user).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(error: any) {
+    let errorMessage = 'An unknown error occurred';
+    if (error.error && error.error.message) {
+      errorMessage = error.error.message;
+    }
+    return throwError(errorMessage);
+  }
+}
+
+@Component({
+  selector: 'app-user',
+  template: `
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <form (ngSubmit)="registerUser()">
+      <!-- form fields -->
+      <button type="submit">Register</button>
+    </form>
+  `,
+  styles: [
+    `
+    .error-message {
+      color: red;
+      margin-bottom: 10px;
+    }
+    `
+  ]
+})
+export class UserComponent {
+  errorMessage: string;
+
+  constructor(private userService: UserService) { }
+
+  registerUser() {
+    const user = {/* user data from form */ };
+    this.userService.registerUser(user).subscribe(
+      () => {
+        // Registration successful
+        // Redirect or show success message
+      },
+      (error) => {
+        this.errorMessage = error;
+      }
+    );
+  }
+}
+
+//__//
+//final auth example
+
+//auth.guard.ts
+@Injectable({ providedIn: 'root' })
+export class AuthGuard implements CanActivate {
+  constructor(private authService: AuthService, private router: Router) { }
+
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    router: RouterStateSnapshot
+  ):
+    | boolean
+    | UrlTree
+    | Promise<boolean | UrlTree>
+    | Observable<boolean | UrlTree> {
+    return this.authService.user.pipe(
+      take(1),
+      map(user => {
+        const isAuth = !!user;
+        if (isAuth) {
+          return true;
+        }
+        return this.router.createUrlTree(['/auth']);
+      })
+      // tap(isAuth => {
+      //   if (!isAuth) {
+      //     this.router.navigate(['/auth']);
+      //   }
+      // })
+    );
+  }
+}
+
+//user.model.ts
+export class User {
+  constructor(
+    public email: string,
+    public id: string,
+    private _token: string,
+    private _tokenExpirationDate: Date
+  ) { }
+
+  get token() {
+    if (!this._tokenExpirationDate || new Date() > this._tokenExpirationDate) {
+      return null;
+    }
+    return this._token;
+  }
+}
+
+//auth-interceptor.service.ts
+@Injectable()
+export class AuthInterceptorService implements HttpInterceptor {
+  constructor(private authService: AuthService) { }
+
+  intercept(req: HttpRequest<any>, next: HttpHandler) {
+    return this.authService.user.pipe(
+      //арантирует, что будет взят только первый элемент из потока данных authService.user
+      //Оператор exhaustMap применяет функцию, которая обрабатывает элемент из потока данных authService.use
+      take(1),
+      exhaustMap(user => {
+        if (!user) {
+          return next.handle(req);
+        }
+        const modifiedReq = req.clone({
+          params: new HttpParams().set('auth', user.token)
+        });
+        return next.handle(modifiedReq);
+      })
+    );
+  }
+}
+
+//auth.service.ts
+export interface AuthResponseData {
+  kind: string;
+  idToken: string;
+  email: string;
+  refreshToken: string;
+  expiresIn: string;
+  localId: string;
+  registered?: boolean;
+}
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  user = new BehaviorSubject < User > (null);
+  private tokenExpirationTimer: any;
+
+  constructor(private http: HttpClient, private router: Router) { }
+
+  signup(email: string, password: string) {
+    return this.http
+      .post < AuthResponseData > (
+        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyDb0xTaRAoxyCgvaDF3kk5VYOsTwB_3o7Y',
+        {
+          email: email,
+          password: password,
+          returnSecureToken: true
+        }
+      )
+        .pipe(
+          catchError(this.handleError),
+          tap(resData => {
+            this.handleAuthentication(
+              resData.email,
+              resData.localId,
+              resData.idToken,
+              +resData.expiresIn
+            );
+          })
+        );
+  }
+
+  login(email: string, password: string) {
+    return this.http
+      .post < AuthResponseData > (
+        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyDb0xTaRAoxyCgvaDF3kk5VYOsTwB_3o7Y',
+        {
+          email: email,
+          password: password,
+          returnSecureToken: true
+        }
+      )
+        .pipe(
+          catchError(this.handleError),
+          tap(resData => {
+            this.handleAuthentication(
+              resData.email,
+              resData.localId,
+              resData.idToken,
+              +resData.expiresIn
+            );
+          })
+        );
+  }
+
+  autoLogin() {
+    const userData: {
+      email: string;
+      id: string;
+      _token: string;
+      _tokenExpirationDate: string;
+    } = JSON.parse(localStorage.getItem('userData'));
+    if (!userData) {
+      return;
+    }
+
+    const loadedUser = new User(
+      userData.email,
+      userData.id,
+      userData._token,
+      new Date(userData._tokenExpirationDate)
+    );
+
+    if (loadedUser.token) {
+      this.user.next(loadedUser);
+      const expirationDuration =
+        new Date(userData._tokenExpirationDate).getTime() -
+        new Date().getTime();
+      this.autoLogout(expirationDuration);
+    }
+  }
+
+  logout() {
+    this.user.next(null);
+    this.router.navigate(['/auth']);
+    localStorage.removeItem('userData');
+    if (this.tokenExpirationTimer) {
+      clearTimeout(this.tokenExpirationTimer);
+    }
+    this.tokenExpirationTimer = null;
+  }
+
+  autoLogout(expirationDuration: number) {
+    this.tokenExpirationTimer = setTimeout(() => {
+      this.logout();
+    }, expirationDuration);
+  }
+
+  private handleAuthentication(
+    email: string,
+    userId: string,
+    token: string,
+    expiresIn: number
+  ) {
+    const expirationDate = new Date(new Date().getTime() + expiresIn * 1000);
+    const user = new User(email, userId, token, expirationDate);
+    this.user.next(user);
+    this.autoLogout(expiresIn * 1000);
+    localStorage.setItem('userData', JSON.stringify(user));
+  }
+
+  private handleError(errorRes: HttpErrorResponse) {
+    let errorMessage = 'An unknown error occurred!';
+    if (!errorRes.error || !errorRes.error.error) {
+      return throwError(errorMessage);
+    }
+    switch (errorRes.error.error.message) {
+      case 'EMAIL_EXISTS':
+        errorMessage = 'This email exists already';
+        break;
+      case 'EMAIL_NOT_FOUND':
+        errorMessage = 'This email does not exist.';
+        break;
+      case 'INVALID_PASSWORD':
+        errorMessage = 'This password is not correct.';
+        break;
+    }
+    return throwError(errorMessage);
+  }
+}
+
+//auth.component.ts
+@Component({
+  selector: 'app-auth',
+  templateUrl: './auth.component.html'
+})
+export class AuthComponent {
+  isLoginMode = true;
+  isLoading = false;
+  error: string = null;
+
+  constructor(private authService: AuthService, private router: Router) { }
+
+  onSwitchMode() {
+    this.isLoginMode = !this.isLoginMode;
+  }
+
+  onSubmit(form: NgForm) {
+    if (!form.valid) {
+      return;
+    }
+    const email = form.value.email;
+    const password = form.value.password;
+
+    let authObs: Observable<AuthResponseData>;
+
+    this.isLoading = true;
+
+    if (this.isLoginMode) {
+      authObs = this.authService.login(email, password);
+    } else {
+      authObs = this.authService.signup(email, password);
+    }
+
+    authObs.subscribe(
+      resData => {
+        console.log(resData);
+        this.isLoading = false;
+        this.router.navigate(['/recipes']);
+      },
+      errorMessage => {
+        console.log(errorMessage);
+        this.error = errorMessage;
+        this.isLoading = false;
+      }
+    );
+
+    form.reset();
+  }
+}
+
+//---------------------------
