@@ -4540,5 +4540,354 @@ export class AuthComponent implements OnDestroy {
 }
 //<ng-template appPlaceholder></ng-template>
 
-//-----------------------------//
+//---------------------------------------------//
+//__Angular Modules & Optimizing Angular Apps__//
+
+//__//
+@NgModule({
+  //объявляет компоненты, которые будут использоваться в приложении
+  declarations: [
+    AppComponent,
+    AuthComponent,
+    AlertComponent
+  ],
+  //импортирует необходимые модули
+  imports: [
+    BrowserModule,
+    FormsModule
+  ],
+  //включает провайдеры, которые определяют сервисы и зависимости, необходимые приложению
+  providers: [],
+  //Корневой компонент приложения AppComponent используется как точка входа и указан в bootstrap массиве
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+//__//
+// AppModule (Апп модуль) - корневой модуль, где определены бутстрап и импорты для корневого компонента AppComponent.
+// AppRoutingModule (Модуль маршрутизации) - модуль, который конфигурирует роутинг приложения.
+// features Module  - модуль, который объединяет компоненты, связанные с рецептами, и определяет роуты для них.
+// SharedModule (Общий модуль) - модуль, который объединяет компоненты и другие функциональности, используемые в разных модулях приложения.
+
+//__//
+//Understanding feater Modules
+//все компоненты, директивы, и другие фичи, которые используются в шаблонах, должны быть импортированы в модуль, где они будут использоваться.Недостаточно просто импортировать их в главный модуль приложения
+//модуль BrowserModule, который выполняет общую работу по запуску приложения, должен быть импортирован только один раз в главном модуле приложения. Все остальные модули должны использовать модуль CommonModule
+//создать отдельный модуль (recipes-routing.module) для конфигурации маршрутов, связанных с функциональностью  модуля
+@NgModule({
+  imports: [
+    CommonModule
+  ],
+  declarations: [
+    CustomerDashboardComponent
+  ],
+})
+
+//__//
+//Understanding Shared Modules
+//Общие модули в Angular используются для организации и повторного использования кода в различных частях приложения. Они позволяют группировать связанные компоненты, директивы, сервисы и другие элементы в один модуль, который можно затем импортировать и использовать в других модулях.
+//Чтобы использовать декларацию из одного модуля в другом, нужно экспортировать ее
+@NgModule({
+  declarations: [
+    MyComponent
+  ],
+  imports: [
+    CommonModule
+  ],
+  //экспортировали компонент MyComponent, чтобы он был доступен извне модуля
+  exports: [
+    MyComponent
+  ]
+})
+export class MyModule { }
+
+//__//
+//Core module в Angular - это модуль, который содержит общие компоненты, директивы, сервисы и другие функции, которые используются во всем приложении.Он предназначен для организации кода, который является общим для разных модулей приложения
+@NgModule({
+  imports: [
+    HttpClientModule
+  ],
+  providers: [
+    ShoppingListService,
+    RecipeService,
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptorService, multi: true }
+  ]
+})
+export class CoreModule { }
+
+//__//
+//Implementing Lazy Loading
+//позволяет загружать только нужные модули в момент их использования, что улучшает производительность вашего приложения.
+
+const routes: Routes = [
+  { path: '', component: AdminComponent }
+];
+
+@NgModule({
+  declarations: [
+    AdminComponent
+  ],
+  imports: [
+    CommonModule,
+    RouterModule.forChild(routes)
+  ]
+})
+export class AdminModule { }
+
+//_
+const routes: Routes = [
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: 'home', loadChildren: () => import('./home/home.module').then(m => m.HomeModule) },
+  { path: 'admin', loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule) }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
 //__
+@NgModule({
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+//__//
+//предварительную загрузку всех модулей
+//Добавьте { preloadingStrategy: PreloadAllModules } в RouterModule.forRoot(routes)
+const routes: Routes = [
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: 'home', loadChildren: () => import('./home/home.module').then(m => m.HomeModule) },
+  { path: 'recipes', loadChildren: () => import('./recipes/recipes.module').then(m => m.RecipesModule) },
+  { path: 'shopping-list', loadChildren: () => import('./shopping-list/shopping-list.module').then(m => m.ShoppingListModule) },
+  { path: 'auth', loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule) }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+//__//
+// Сервисы могут быть предоставлены в AppModule, AppComponent, лениво загружаемом модуле или с помощью provided in root.
+// Если сервис предоставлен в AppModule или с помощью provided in root, то он доступен во всем приложении и используется один экземпляр сервиса.
+// Если сервис предоставлен в компоненте, то он доступен только для инжекции зависимостей внутри этой компоненты и компоненты, являющиеся ее потомками, будут использовать один экземпляр сервиса.
+// Если сервис предоставлен в лениво загружаемом модуле, то он доступен только в этом модуле и используется отдельный экземпляр сервиса.
+// Всегда рекомендуется предоставлять сервисы с помощью provided in root или добавлять их в providers AppModule.
+// Избегайте предоставления сервисов в eagerly loaded модулях, так как это может привести к непредсказуемому поведению и усложнить отладку и поддержку кода.
+
+//__
+@Injectable({
+  providedIn: 'root'
+})
+export class MyService {
+  // implementation
+}
+
+//__
+@NgModule({
+  providers: [MyService]
+})
+export class AppModule { }
+
+//__//
+//Перед сборкой для продакшена нужно выполнить команду ng build --prod
+//при компиляции абстактные формы на прямую не работают
+// компонент рецепта
+@Component({
+  //...
+})
+export class RecipeComponent {
+
+  recipeForm: FormGroup;
+
+  constructor(private slService: RecipeService) { }
+
+  ngOnInit() {
+    this.recipeForm = new FormGroup({
+      //...
+      ingredients: new FormArray([])
+    });
+  }
+
+  //обращаемся через getter
+  get ingredients() {
+    return (this.recipeForm.get('ingredients') as FormArray);
+  }
+
+  onIngredientAdded() {
+    this.ingredients.push(
+      new FormGroup({
+        name: '',
+        amount: ''
+      })
+    );
+  }
+}
+/* 
+<!-- template компонента -->
+
+<form [formGroup]="recipeForm">
+
+  <app-recipe-item 
+    //*ngFor="let ingredientCtrl of recipeForm.get['ingredients'].controls; let i = index" - not work
+    *ngFor="let ingredientCtrl of ingredients.controls; let i = index"
+    [ingredient]="ingredientCtrl"
+    [index]="i">
+  </app-recipe-item>
+
+  <button
+    (click)="onIngredientAdded()">
+    Добавить ингредиент
+  </button>
+
+</form>
+*/
+
+//------------------------------
+//__Deploying an Angular App__//
+// Подготовка Angular приложения для развертывания:
+// Использование и проверка переменных среды
+// Оптимизация и тестирование кода
+// Сборка приложения для продакшн с помощью команды ng build--prod
+
+//__//
+//Мы использовали файлы среды environment.ts и environment.prod.ts, чтобы хранить константы, такие как API-ключи. Затем мы использовали эти переменные среды в нашем сервисе auth.service.ts. Это позволяет нам легко менять значения переменных среды при сборке для разработки или продакшн
+
+// environment.ts
+export const environment = {
+  production: false,
+  firebaseAPIKey: 'your_firebase_api_key_here'
+};
+
+// environment.prod.ts
+export const environment = {
+  production: true,
+  firebaseAPIKey: 'your_firebase_api_key_here'
+};
+
+// auth.service.ts
+import { environment } from '../environments/environment';
+
+@Injectable()
+export class AuthService {
+  private firebaseAPIKey: string = environment.firebaseAPIKey;
+
+  // Rest of the code
+}
+
+//----------------------------------//
+//__Preview_ Standalone Components__//
+//Это компоненты, которые могут использоваться в любой части приложения. Они предоставляют возможность создавать компоненты, которые могут быть переиспользованы без привязки к определенному модулю или компоненту
+//Стэндалон компоненты не нуждаются в объявлении в NgModule. Добавляется флаг standalone: true в декоратор компонента. Компоненты импортируются в NgModule или другие компоненты
+
+@Component({
+  standalone: true,
+  selector: 'photo-gallery',
+  //Автономные компоненты указывают свои зависимости напрямую, а не получают их через NgModules. Например, если PhotoGalleryComponent является автономным компонентом, он может напрямую импортировать другой автономный компонент ImageGridComponent
+  imports: [ImageGridComponent],
+  template: `
+    ... <image-grid [images]="imageList"></image-grid>
+  `,
+})
+export class PhotoGalleryComponent {
+  // component logic
+}
+
+//__
+@NgModule({
+  declarations: [AlbumComponent],
+  exports: [AlbumComponent],
+  imports: [PhotoGalleryComponent],
+})
+export class AlbumModule { }
+
+//__//
+//перевели директиву в стэндалон
+
+// highlight.directive.ts
+@Directive({
+  selector: '[appHighlight]',
+  standalone: true
+})
+export class HighlightDirective {
+
+  constructor(private el: ElementRef) { }
+
+  @HostListener('mouseenter') onMouseEnter() {
+    this.highlight('yellow');
+  }
+
+  @HostListener('mouseleave') onMouseLeave() {
+    this.highlight(null);
+  }
+
+  private highlight(color: string) {
+    this.el.nativeElement.style.backgroundColor = color;
+  }
+
+}
+
+// details.component.ts
+@Component({
+  imports: [HighlightDirective],
+  selector: 'app-details',
+  template: <h1 appHighlight>Details</h1>,
+  standalone: true
+})
+export class DetailsComponent {
+
+  constructor() { }
+
+}
+
+//__//
+//Bootstrapping an application using a standalone component
+
+bootstrapApplication(PhotoAppComponent, {
+  providers: [
+    { provide: BACKEND_URL, useValue: 'https://photoapp.looknongmodules.com/api' },
+    importProvidersFrom(
+      LibraryModule.forRoot()
+    ),
+  ]
+});
+
+//__//
+//Lazy loading a standalone component
+// In the main application:
+export const ROUTES: Route[] = [
+  { path: 'admin', loadChildren: () => import('./admin/routes').then(mod => mod.ADMIN_ROUTES) },
+  // ...
+];
+
+// In admin/routes.ts:
+export const ADMIN_ROUTES: Route[] = [
+  { path: 'home', component: AdminHomeComponent },
+  { path: 'users', component: AdminUsersComponent },
+  // ...
+];
+
+//------------------------------------//
+//__Working with NgRx in our Project__//
+//NgRx позволяет эффективно масштабировать state management при росте сложности приложения за счет стандартизированной архитектуре
+// Вот выжимка из основных моментов урока о state management в Angular с помощью NgRx:
+// Под state понимается любая информация(данные), которая влияет на отображение интерфейса.
+// В простых приложениях state можно управлять компонентами и сервисами.
+// При больших и сложных приложениях такой подход может привести к хаосу в управлении state.
+// RxJS и Subjects позволяют управлять потоками данных и подписываться на изменения state.
+
+// NgRx - это библиотека для управления состоянием в приложениях Angular с использованием паттерна Redux.Она предоставляет набор инструментов и методов для управления состоянием приложения таким образом, чтобы это было предсказуемо и эффективно.
+// NgRx позволяет разработчикам определить центральное хранилище, которое содержит состояние приложения.Изменения состояния обрабатываются через действия(actions), которые отправляются компонентами или сервисами.Затем редьюсеры(reducers) обрабатывают эти действия и обновляют состояние в неизменяемой манере.Компоненты могут подписываться на определенные части состояния и реагировать на изменения.
+// NgRx также предоставляет дополнительные функции, такие как эффекты(effects), которые позволяют обрабатывать побочные эффекты, такие как асинхронные операции, а также селекторы(selectors), которые обеспечивают эффективный доступ к состоянию приложения.
+// Используя NgRx, разработчики получают преимущества единого источника истины для состояния приложения, улучшенной тестируемости и лучшего разделения ответственности.Он поддерживает однонаправленный поток данных и поощряет использование неизменяемых структур данных, что приводит к более предсказуемому и поддерживаемому коду.
