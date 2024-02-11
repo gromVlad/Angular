@@ -4438,4 +4438,107 @@ export class AuthComponent {
   }
 }
 
-//---------------------------
+//---------------------------//
+//__Dynamic Components__----//
+//В этом модуле мы рассмотрим динамические компоненты. Динамические компоненты - это компоненты, которые создаются динамически во время выполнения. Например, если вы хотите показать предупреждение или модальное окно, которое должно загружаться только при определенном действии, вы можете использовать динамические компоненты. 
+//Таким образом, динамическая компонента загружается и отображается только тогда, когда это необходимо, и удаляется, когда она больше не нужна. Это позволяет создавать гибкие и интерактивные пользовательские интерфейсы
+
+//placeholder.directive.ts
+import { Directive, ViewContainerRef } from '@angular/core';
+
+@Directive({
+  selector: '[appPlaceholder]'
+})
+export class PlaceholderDirective {
+  constructor(public viewContainerRef: ViewContainerRef) { }
+}
+
+//alert.component.ts
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+
+@Component({
+  selector: 'app-alert',
+  templateUrl: './alert.component.html',
+  styleUrls: ['./alert.component.css']
+})
+export class AlertComponent {
+  @Input() message: string;
+  @Output() close = new EventEmitter < void> ();
+
+  onClose() {
+    this.close.emit();
+  }
+}
+
+//app.module.ts
+@NgModule({
+  declarations: [
+    AppComponent,
+   //...
+  ],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    ReactiveFormsModule,
+    HttpClientModule,
+    AppRoutingModule
+  ],
+  providers: [
+    ShoppingListService,
+    RecipeService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptorService,
+      multi: true
+    }
+  ],
+  bootstrap: [AppComponent],
+  entryComponents: [
+    AlertComponent // <------ 
+  ]
+})
+export class AppModule { }
+
+//auth.component.ts
+@Component({
+  selector: 'app-auth',
+  templateUrl: './auth.component.html'
+})
+export class AuthComponent implements OnDestroy {
+  isLoginMode = true;
+  isLoading = false;
+  error: string = null;
+  @ViewChild(PlaceholderDirective, { static: false }) alertHost: PlaceholderDirective;
+
+  private closeSub: Subscription;
+
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private componentFactoryResolver: ComponentFactoryResolver
+  ) { }
+
+  //Метод showErrorAlert() использует фабрику компонентов (componentFactoryResolver) для создания нового экземпляра AlertComponent
+  private showErrorAlert(message: string) {
+  // const alertCmp = new AlertComponent();
+  const alertCmpFactory = this.componentFactoryResolver.resolveComponentFactory(
+    AlertComponent
+  );
+  const hostViewContainerRef = this.alertHost.viewContainerRef;
+  hostViewContainerRef.clear();
+
+  const componentRef = hostViewContainerRef.createComponent(alertCmpFactory);
+
+  //Когда пользователь закрывает компонент AlertComponent, генерируется событие close
+  componentRef.instance.message = message;
+  this.closeSub = componentRef.instance.close.subscribe(() => {
+    //AuthComponent подписан на это событие и, когда оно происходит, удаляет компонент AlertComponent из контейнера представлений
+    this.closeSub.unsubscribe();
+    hostViewContainerRef.clear();
+  });
+  }
+}
+//<ng-template appPlaceholder></ng-template>
+
+//-----------------------------//
+//__
