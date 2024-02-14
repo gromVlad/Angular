@@ -4878,5 +4878,212 @@ export const ADMIN_ROUTES: Route[] = [
   // ...
 ];
 
+//------------------------
+//__Angular Animations__//
+//мы можем использовать анимации в Angular для создания более интерактивных приложений
+//Триггеры определяют имена, которые можно использовать в шаблонах для запуска анимаций
+//Анимации определяют стили, применяемые к элементу при активации триггера
+
+//__//
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css'],
+  animations: [
+    trigger('divState', [
+      state('normal', style({
+        backgroundColor: 'red',
+        transform: 'translateX(0)'
+      })),
+      state('highlighted', style({
+        backgroundColor: 'blue',
+        transform: 'translateX(100px)'
+      })),
+      transition('normal => highlighted', animate('1s')),
+      transition('highlighted => normal', animate('1s'))
+    ])
+  ]
+})
+export class AppComponent {
+  state = 'normal';
+
+  onAnimate() {
+    this.state = this.state === 'normal' ? 'highlighted' : 'normal';
+  }
+}
+//<div [@divState]="state" style="width: 100px; height: 100px;"  (click) = 'onAnimate()'></div>
+//Измените значение свойства state, чтобы переключить состояние анимации
+//Нажатие на квадрат изменит его цвет на синий и переместит на 100 пикселей вправо
+
+//__//
+//transition
+// В триггер добавьте метод transition().
+// Первый аргумент метода transition() - начальное состояние.
+// Второй аргумент метода transition() - стрелка, указывающая направление перехода(например, => ).
+// Третий аргумент метода transition() - конечное состояние.
+// В качестве четвертого аргумента методу transition() передается метод animate().
+// Метод animate() принимает один аргумент - продолжительность анимации в миллисекундах.
+transition('normal => highlighted', animate('1s')),
+transition('highlighted => normal', animate('1s'))
+
+//__//
+// новое состояние
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css'],
+  animations: [
+    trigger('wildState', [
+      state('normal', style({
+        backgroundColor: 'red',
+        transform: 'translateX(0)'
+      })),
+      state('highlighted', style({
+        backgroundColor: 'blue',
+        transform: 'translateX(100px)'
+      })),
+      state('shrunken', style({
+        backgroundColor: 'green',
+        transform: 'translate(0) scale(0.5)'
+      })),
+      transition('normal => highlighted', animate('1s')),
+      transition('highlighted => normal', animate('1s')),
+      //* - означает, что переход будет срабатывать независимо от того, в каком состоянии находится элемент в данный момент
+      transition('* => shrunken', animate('500ms')),
+      transition('shrunken => *', animate('500ms'))
+    ])
+  ]
+})
+export class AppComponent {
+  state = 'normal';
+  wildState = 'normal';
+
+  onAnimate() {
+    this.state = this.state === 'normal' ? 'highlighted' : 'normal';
+  }
+
+  onShrink() {
+    this.wildState = 'shrunken';
+  }
+}
+
+//__//
+//Создание сложных анимаций с промежуточными стилями
+//Для добавления промежуточных стилей передайте массив
+transition('* => shrunken', [
+  {
+    backgroundColor: 'orange',
+  },
+  animate('1s', {
+    borderRadius: '50px'
+  }),
+  animate('0.5s')
+])
+// При переходе в состояние shrunken квадрат сначала изменит цвет на оранжевый.
+// Затем в течение 1 секунды радиус его границы будет увеличиваться до 50 пикселей.
+// Затем в течение 0, 5 секунды радиус границы будет уменьшаться до 0 пикселей, и квадрат перейдет в конечное состояние.
+
+//__//
+//Анимация добавления и удаления элементов
+animations: [
+  trigger('listOne', [
+    state('in', style({
+      opacity: 1,
+      transform: 'translateX(0)'
+    })),
+    //При добавлении нового элемента в список он будет плавно появляться с анимацией
+    transition('void => *', [
+      style({
+        opacity: 0,
+        transform: 'translateX(-100px)'
+      }),
+      animate('1s')
+    ]),
+    //При удалении элемента из списка он будет плавно исчезать с анимацией
+    transition('* => void', [
+      animate('300ms', style({
+        opacity: 0,
+        transform: 'translateX(100px)'
+      }))
+    ])
+  ]), 
+]
+
+//__//
+//Управление отдельными этапами анимации
+//Метод keyframes() принимает массив объектов, каждый из которых представляет собой ключевой кадр
+// Каждый объект ключевого кадра содержит следующие свойства:
+// offset: временной сдвиг ключевого кадра(от 0 до 1).
+// style: стиль, который должен быть применен на этом временном сдвиге.
+transition('void => *', [
+  animate('1s', keyframes([
+    { offset: 0, style: { transform: 'translateX(-100px)' } },
+    { offset: 0.3, style: { transform: 'translateX(-50px)', opacity: 0.5 } },
+    { offset: 0.8, style: { transform: 'translateX(-20px)', opacity: 1 } },
+    { offset: 1, style: { transform: 'translateX(0)', opacity: 1 } }
+  ]))
+])
+// Сначала элемент будет перемещаться с левой стороны экрана на середину.
+// Затем его непрозрачность будет увеличиваться до 50 %.
+// Затем элемент будет перемещаться на свою окончательную позицию.
+// Наконец, его непрозрачность увеличится до 100 %.
+
+//__//
+//Анимация нескольких элементов одновременно
+// Чтобы анимировать несколько элементов одновременно, используйте метод group().
+// Метод group() принимает массив функций animate().
+// Все функции animate(), переданные в метод group(), будут выполняться одновременно.
+transition('* => void', [
+  group([
+    animate('1s', style({
+      color: 'red'
+    })),
+    animate('0.5s', style({
+      transform: 'translateX(100px)'
+    }))
+  ])
+])
+//При удалении элемента из списка он будет одновременно менять цвет на красный и перемещаться вправо
+
+//__//
+//Обработка событий анимации
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css'],
+  animations: [
+    trigger('listOne', [
+      state('in', style({
+        opacity: 1,
+        transform: 'translateX(0)'
+      })),
+      transition('void => *', [
+        style({
+          opacity: 0,
+          transform: 'translateX(-100px)'
+        }),
+        animate('1s')
+      ])
+    ])
+  ]
+})
+export class AppComponent {
+  @HostListener('animationstart', ['$event'])
+  animationStarted(event: AnimationEvent) {
+    console.log('Animation started', event);
+  }
+
+  @HostListener('animationend', ['$event'])
+  animationEnded(event: AnimationEvent) {
+    console.log('Animation ended', event);
+  }
+}
+//Оба метода будут передавать объект события, содержащий информацию об анимации
+
+//------------------------------------------------------
+//__Adding Offline Capabilities with Service Workers__//
+// Service Worker - это скрипт, который работает независимо от вашего веб - приложения.
+// Он может перехватывать запросы и ответы, кешировать файлы и управлять событиями жизненного цикла приложения.
+// Это позволяет веб - приложению работать в автономном режиме, даже когда нет подключения к Интернету.
 
 
