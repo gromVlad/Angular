@@ -5504,3 +5504,343 @@ describe('RewordsPipe', () => {
   });
 });
 
+//----------------------------------------------------
+//__Angular as a Platform & Closer Look at the CLI__//
+//Angular CLI и инфраструктура проекта предоставляют набор инструментов и функций, которые упрощают создание, сборку, публикацию и развертывание приложений Angular.
+
+//Создание нового проекта Angular
+//ng new <имя-проекта>
+
+//Чтобы получить более подробную информацию о параметрах команды ng new, используйте параметр --help:
+//ng new --help
+
+//__//
+//Файлы конфигурации Angular
+// editorconfig: Настраивает правила форматирования кода.
+// .prettierrc: Настраивает инструмент для автоматического форматирования кода Prettier.
+// .gitignore: Указывает файлы, которые следует игнорировать системой контроля версий Git.
+// angular.json: Файл конфигурации Angular, содержащий настройки проекта, такие как имя приложения, пути к файлам и параметры сборки.
+// package.json: Файл конфигурации NPM, содержащий информацию о проекте, такую как имя, версия и зависимости.
+// tsconfig.json: Файл конфигурации TypeScript, содержащий настройки для компилятора TypeScript.
+// browserslist: Файл, который сообщает Angular CLI, какие браузеры поддерживает приложение.
+// karma.conf.js: Файл, используемый для настройки тестов с помощью Karma.
+// package-lock.json: Файл, который блокирует точные версии зависимостей, используемых в проекте.
+// tslint.json: Файл, используемый для настройки инструмента проверки качества кода TSLint.
+
+// Angular CLI предоставляет несколько команд для управления проектом и приложением:
+// ng new: Создает новый проект Angular.
+// ng build: Собирает приложение для производства.
+// ng serve: Запускает приложение в режиме разработки.
+// ng test: Запускает тесты для приложения.
+// ng lint: Проверяет качество кода приложения.
+// ng generate: Генерирует компоненты, службы и другие файлы для приложения.
+
+//__//
+//angular.json
+// {
+//   // Версия файла конфигурации Angular
+//   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+//     "version": 1,
+
+//       // Настройки нового проекта
+//       "newProjectRoot": "projects",
+
+//         // Настройки проекта по умолчанию
+//         "defaultProject": "my-app",
+
+//           // Настройки проекта "my-app"
+//           "projects": {
+//     "my-app": {
+//       // Тип проекта: веб-приложение
+//       "projectType": "application",
+
+//         // Корневой каталог проекта
+//         "root": "",
+
+//           // Префикс для именования компонентов
+//           "prefix": "app",
+
+//             // Настройки сборки
+//             "architect": {
+//         // Настройки сборки для production
+//         "build": {
+//           // Инструмент сборки
+//           "builder": "@angular-devkit/build-angular:browser",
+
+//             // Опции сборки
+//             "options": {
+//             // Включить оптимизацию кода
+//             "optimization": true,
+
+//               // Выходной каталог для собранных файлов
+//               "outputPath": "dist/my-app",
+
+//                 // Файл индекса для приложения
+//                 "index": "src/index.html",
+
+//                   // Основной файл стилей для приложения
+//                   "main": "src/main.css",
+
+//                     // Основной файл JavaScript для приложения
+//                     "polyfills": "src/polyfills.ts",
+
+//                       // Файл скриптов для приложения
+//                       "scripts": [],
+
+//                         // Файлы стилей для приложения
+//                         "styles": [
+//                           "src/styles.css"
+//                         ],
+
+//                           // Карты источников для отладки
+//                           "sourceMap": true,
+
+//                             // Включить предварительную компиляцию
+//                             "aot": true,
+
+//                               // Включить экстракцию CSS
+//                               "extractCss": true,
+
+//                                 // Включить сжатие кода
+//                                 "minimize": true,
+
+//                                   // Включить кеширование
+//                                   "cache": true,
+
+//                                     // Включить слияние чанков
+//                                     "buildOptimizer": true
+//           },
+
+//           // Конфигурации для разных сред
+//           "configurations": {
+//             // Конфигурация для production
+//             "production": {
+//               // Включить дополнительные оптимизации
+//               "optimization": true,
+
+//                 // Включить слияние чанков
+//                 "buildOptimizer": true,
+
+//                   // Включить сжатие кода
+//                   "extractCss": true,
+
+//                     // Включить кеширование
+//                     "cache": true
+//             }
+//           }
+//         },
+
+//         // Настройки сервера для разработки
+//         "serve": {
+//           // Инструмент сервера
+//           "builder": "@angular-devkit/build-angular:dev-server",
+
+//             // Опции сервера
+//             "options": {
+//             // Порт для сервера
+//             "port": 4200,
+
+//               // Корневой каталог для статических файлов
+//               "root": "src",
+
+//                 // Файл индекса для приложения
+//                 "index": "src/index.html",
+
+//                   // Основной файл стилей для приложения
+//                   "main": "src/main.css",
+
+//                     // Основной файл JavaScript для приложения
+//                     "polyfills": "src/polyfills.ts",
+
+//                       // Файлы скриптов для приложения
+//                       "scripts": [],
+
+//                         // Файлы стилей для приложения
+//                         "styles": [
+//                           "src/styles.css"
+//                         ],
+
+//                           // Включить карты источников для отладки
+//                           "sourceMap": true,
+
+//                             // Включить открытие приложения в браузере
+//                             "open": true
+//           },
+
+//           // Конфигурации для разных сред
+//           "configurations": {
+//             // Конфигурация для production
+//             "production": {
+//               // Использовать опции сборки для production
+//               "browserTarget": "my-app:build:production"
+//             }
+//           }
+//         },
+
+//         // Настройки для запуска тестов
+//         "test": {
+//           // Инструмент для запуска тестов
+//           "builder": "@angular-devkit/build-angular:karma",
+
+//             // Опции для запуска тестов
+//             "options": {
+//             // Файл конфигурации для тестов
+//             "karmaConfig": "src/karma.conf.js",
+
+//               // Каталог для выходных файлов тестов
+//               "coverage": "coverage/my-app"
+//           }
+//         },
+
+//         // Настройки для линтинга кода
+//         "lint": {
+//           // Инструмент для линтинга кода
+//           "builder": "@angular-devkit/build-angular:tslint",
+
+//             // Опции для линтинга кода
+//             "options": {
+//             // Файл конфигурации для линтинга кода
+//             "tsConfig": [
+//               "tsconfig.json"
+//             ],
+
+//               // Файлы для линтинга
+//               "files": [
+//                 "src/**/*.ts",
+//                 "src/**/*.html"
+//               ]
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
+
+//__//
+// Angular CLI Schematics\
+// Angular CLI Schematics являются мощным инструментом, который позволяет генерировать новые компоненты приложения и выполнять другие задачи.Schematics предоставляют готовые шаблоны, которые можно использовать для автоматизации создания кода.
+
+//__//
+//Angular Material
+//Angular Material - это сторонний пакет, который предоставляет готовые компоненты для приложений Angular, соответствующие спецификации Material Design от Google.
+
+//пример использования пользовательской схемы ng generate, предоставляемой пакетом Angular Material
+//ng generate @angular/material:navigation main-nav
+
+//__//
+//Использование пользовательских схем ng generate
+import { Rule, SchematicContext } from '@angular-devkit/schematics';
+import { Tree } from '@angular-devkit/schematics/src/tree/interface';
+
+export function mySchematic(options: any): Rule {
+  return (tree: Tree, context: SchematicContext) => {
+    // ...
+  };
+}
+
+//Регистрация схемы в проекте
+// {
+//   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+//     "version": 1,
+//       "newProjectRoot": "projects",
+//         "defaultProject": "my-project",
+//           "projects": {
+//     "my-project": {
+//       "schematics": {
+//         "my-schematic": {
+//           "factory": "./src/schematics/my-schematic.ts",
+//             "description": "My custom schematic"
+//         }
+//       }
+//     }
+//   }
+// }
+
+//Использование пользовательской схемы
+//ng generate my-schematic
+
+//__//
+//ng update
+//ng update используется для обновления проекта Angular до последней версии. Она анализирует проект и определяет, какие пакеты и зависимости необходимо обновить
+//обновит все пакеты Angular и сам Angular CLI до последней версии - ng update @angular/core @angular/cli
+
+//Builders
+//представляют собой функции, которые могут выполнять различные задачи, такие как сборка, тестирование и развертывание приложения
+//ng build
+
+//__//
+//Дифференциальная загрузка
+//позволяет создавать несколько версий приложения для поддержки разных браузеров
+//Дифференциальная загрузка настраивается с помощью следующих параметров:
+//Browser list: Указывает, какие браузеры вы хотите поддерживать.
+//Target JavaScript: Указывает, для какой версии JavaScript вы хотите скомпилировать код.
+
+//__//
+//Создание нескольких проектов в одном репозитории
+//ng generate application <имя-приложения>
+//создать новую библиотеку в существующем репозитории
+//ng generate library <имя-библиотеки>
+
+//Структура проекта с несколькими проектами
+/* 
+- projects
+  - <имя-приложения>
+    - src
+    - ...
+  - <имя-библиотеки>
+    - src
+    - ...
+*/
+
+//Управление проектами
+//ng serve --project backend
+
+//Библиотеки можно использовать в других проектах в том же репозитории
+import { MyLibraryModule } from 'my-library';
+
+@NgModule({
+  imports: [
+    MyLibraryModule
+  ]
+})
+export class AppModule { }
+
+//__//
+//Создание библиотек
+//модульные пакеты кода, которые можно повторно использовать в нескольких приложениях Angular
+//ng generate library <имя-библиотеки>
+
+//_Создание библиотеки
+//ng generate library my-like-button
+//В файле public-api.ts экспортируйте компонент LikeButtonComponent
+
+//like-button.component.ts
+import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'my-like-button',
+  template: `
+    <button (click)="onClick()">Нравится</button>
+  `
+})
+export class LikeButtonComponent {
+  @Input() likes: number = 0;
+
+  onClick() {
+    this.likes++;
+  }
+}
+
+//Соберите библиотеку с помощью следующей команды
+//ng build my-like-button
+
+//Импортируйте библиотеку в файл app.module.ts приложения
+import { MyLikeButtonModule } from 'my-like-button';
+
+@NgModule({
+  imports: [
+    MyLikeButtonModule
+  ]
+})
+export class AppModule { }
+//<my-like-button></my-like-button>
