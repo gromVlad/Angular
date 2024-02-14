@@ -4474,7 +4474,7 @@ export class AlertComponent {
 @NgModule({
   declarations: [
     AppComponent,
-   //...
+    //...
   ],
   imports: [
     BrowserModule,
@@ -4520,22 +4520,22 @@ export class AuthComponent implements OnDestroy {
 
   //Метод showErrorAlert() использует фабрику компонентов (componentFactoryResolver) для создания нового экземпляра AlertComponent
   private showErrorAlert(message: string) {
-  // const alertCmp = new AlertComponent();
-  const alertCmpFactory = this.componentFactoryResolver.resolveComponentFactory(
-    AlertComponent
-  );
-  const hostViewContainerRef = this.alertHost.viewContainerRef;
-  hostViewContainerRef.clear();
-
-  const componentRef = hostViewContainerRef.createComponent(alertCmpFactory);
-
-  //Когда пользователь закрывает компонент AlertComponent, генерируется событие close
-  componentRef.instance.message = message;
-  this.closeSub = componentRef.instance.close.subscribe(() => {
-    //AuthComponent подписан на это событие и, когда оно происходит, удаляет компонент AlertComponent из контейнера представлений
-    this.closeSub.unsubscribe();
+    // const alertCmp = new AlertComponent();
+    const alertCmpFactory = this.componentFactoryResolver.resolveComponentFactory(
+      AlertComponent
+    );
+    const hostViewContainerRef = this.alertHost.viewContainerRef;
     hostViewContainerRef.clear();
-  });
+
+    const componentRef = hostViewContainerRef.createComponent(alertCmpFactory);
+
+    //Когда пользователь закрывает компонент AlertComponent, генерируется событие close
+    componentRef.instance.message = message;
+    this.closeSub = componentRef.instance.close.subscribe(() => {
+      //AuthComponent подписан на это событие и, когда оно происходит, удаляет компонент AlertComponent из контейнера представлений
+      this.closeSub.unsubscribe();
+      hostViewContainerRef.clear();
+    });
   }
 }
 //<ng-template appPlaceholder></ng-template>
@@ -4924,7 +4924,7 @@ export class AppComponent {
 // В качестве четвертого аргумента методу transition() передается метод animate().
 // Метод animate() принимает один аргумент - продолжительность анимации в миллисекундах.
 transition('normal => highlighted', animate('1s')),
-transition('highlighted => normal', animate('1s'))
+  transition('highlighted => normal', animate('1s'))
 
 //__//
 // новое состояние
@@ -5006,7 +5006,7 @@ animations: [
         transform: 'translateX(100px)'
       }))
     ])
-  ]), 
+  ]),
 ]
 
 //__//
@@ -5067,6 +5067,7 @@ transition('* => void', [
     ])
   ]
 })
+
 export class AppComponent {
   @HostListener('animationstart', ['$event'])
   animationStarted(event: AnimationEvent) {
@@ -5086,4 +5087,420 @@ export class AppComponent {
 // Он может перехватывать запросы и ответы, кешировать файлы и управлять событиями жизненного цикла приложения.
 // Это позволяет веб - приложению работать в автономном режиме, даже когда нет подключения к Интернету.
 
+//__//
+//ng add @angular/pwa
+//Создает файл конфигурации сервисного рабочего под названием ngsw-config.json, в котором указывается поведение кэширования и другие настройки
+//Обновляет файл index.html:
+//Включает ссылку для добавления файла manifest.webmanifest.
+//ng build
+
+//Чтобы включить поддержку сервисных работников во время локальной разработки - ng serve --prod
+
+//В качестве альтернативы можно использовать пакет http - server из npm, который поддерживает рабочие приложения.Запустите его без установки, используя: 
+//npx http-server -p 8080 -c-1 dist/<project-name>/browser
+
+//Без доступа в интернет с добавлением Angular service worker поведение приложения меняется. При обновлении страница загружается нормально
+
+//Все файлы, необходимые браузеру для рендеринга этого приложения, кэшируются
+// index.html
+// favicon.ico
+// Артефакты сборки(пакеты JS и CSS)
+// Все, что находится в разделе assets
+// Изображения и шрифты непосредственно в настроенном пути outputPath
+
+//__//
+//Конфигурация Service Worker
+//ngsw-config.json позволяет настроить поведение Service Worker
+
+{
+  "index": "/index.html",
+    //Группы активов определяют, какие статические активы должны быть кэшированы и как они должны быть кэшированы
+    "assetGroups": [
+      {
+        "name": "app",
+        //следует ли предварительно загружать активы (prefetch) или загружать их только по мере необходимости (lazy)
+        //Вы также можете указать режим обновления (update), который определяет, как Service Worker будет обрабатывать новые версии активов
+        "installMode": "prefetch",
+        //Ресурсы определяют, какие конкретные файлы должны быть кэшированы
+        "resources": {
+          "files": [
+            "/favicon.ico",
+            "/index.html",
+            "/manifest.json",
+            "/main.js",
+            "/polyfills.js",
+            "/runtime.js",
+            "/styles.css"
+          ]
+        }
+      },
+      {
+        "name": "assets",
+        "installMode": "lazy",
+        "resources": {
+          "files": [
+            "/assets/font.woff2"
+          ]
+        }
+      }
+    ],
+      "dataGroups": [
+        {
+          "name": "api",
+          //URL-шаблоны позволяют кэшировать ресурсы, которые не являются файлами в вашем проекте
+          //вы можете кэшировать запросы к внешнему API
+          "urls": [
+            "https://example.com/api/*"
+          ]
+        }
+      ]
+}
+
+//__//
+//Конфигурация данных для кэширования API
+//Конфигурация кэша позволяет настроить, как данные должны быть кэшированы.
+//Вы можете указать максимальный размер кэша, максимальный возраст данных в кэше и время ожидания ответа
+{
+  "index": "/index.html",
+    "assetGroups": [
+      {
+        "name": "app",
+        "installMode": "prefetch",
+        "resources": {
+          "files": [
+            "/favicon.ico",
+            "/index.html",
+            "/manifest.json",
+            "/main.js",
+            "/polyfills.js",
+            "/runtime.js",
+            "/styles.css"
+          ]
+        }
+      },
+      {
+        "name": "assets",
+        "installMode": "lazy",
+        "resources": {
+          "files": [
+            "/assets/font.woff2"
+          ]
+        }
+      }
+    ],
+      //После добавления конфигурации для кэширования данных API Service Worker будет кэшировать ответы на запросы к API, и эти данные будут доступны в автономном режиме.
+      "dataGroups": [
+        {
+          "name": "api",
+          "urls": [
+            "https://example.com/api/*"
+          ],
+          "cacheConfig": {
+            "maxSize": 5,
+            "maxAge": "6h",
+            "timeout": "10s",
+            "strategy": "freshness"
+          }
+        }
+      ]
+}
+
+//--------------------------------------------------------//
+//__A Basic Introduction to Unit Testing in Angular Apps__//
+// Типы тестов
+// Юнит - тесты проверяют отдельные функции или компоненты программного обеспечения.
+// Интеграционные тесты проверяют взаимодействие между различными компонентами программного обеспечения.
+// Системные тесты проверяют всю систему в целом.
+
+//__//
+//Зачем писать юнит-тесты
+
+// Вопросы, на которые отвечают юнит-тесты
+// Работает ли компонент так, как ожидается?
+// Работает ли труба так, как ожидается?
+// Работает ли сервис так, как ожидается?
+// Работает ли ввод так, как ожидается?
+// Работает ли вывод так, как ожидается?
+
+// Преимущества юнит-тестов
+// Защита от непреднамеренных изменений
+// Анализ текущего поведения для выявления ожидаемых и неожиданных результатов
+// Выявление ошибок проектирования
+// Помощь в написании правильного кода
+
+//__//
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MyComponent } from './my.component';
+
+//начало блока описания для компонента MyComponent. Он группирует тесты, связанные с этим компонентом
+describe('MyComponent', () => {
+  let component: MyComponent;
+  //Она будет хранить фикстуру компонента, которая предоставляет доступ к компоненту и его свойствам
+  let fixture: ComponentFixture<MyComponent>;
+
+  //Это блок, который выполняется перед каждым тестом в блоке описания. Он используется для настройки среды тестирования
+  beforeEach(() => {
+    //Настраивает модуль тестирования, указывая компоненты, которые должны быть объявлены в тестах
+    TestBed.configureTestingModule({
+      declarations: [MyComponent]
+    });
+
+    //Создает компонент MyComponent и сохраняет его фикстуру в переменной fixture
+    fixture = TestBed.createComponent(MyComponent);
+    //Извлекает экземпляр компонента из фикстуры и сохраняет его в переменной component
+    component = fixture.componentInstance;
+    //Обнаруживает изменения в компоненте и обновляет его представление. Это необходимо для запуска жизненного цикла компонента и инициализации его свойств
+    fixture.detectChanges();
+  });
+
+  //начало теста с названием "should create"
+  it('should create', () => {
+    //Ожидает, что переменная component не равна null или undefined
+    expect(component).toBeTruthy();
+  });
+});
+
+//__//
+//Создание теста для компонента UserComponent
+
+//user.component.ts
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-user',
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.css']
+})
+export class UserComponent implements OnInit {
+  user: { name: string } | null = null;
+  isUserLoggedIn = false;
+
+  constructor() { }
+
+  ngOnInit(): void {
+  }
+}
+{/* <h1>{{ user?.name }}</h1>
+<p *ngIf="isUserLoggedIn">You are logged in.</p>
+<p *ngIf="!isUserLoggedIn">Please log in first.</p> */}
+
+//user.component.spec.ts
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { UserComponent } from './user.component';
+
+describe('UserComponent', () => {
+  let component: UserComponent;
+  let fixture: ComponentFixture<UserComponent>;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      declarations: [UserComponent]
+    });
+
+    fixture = TestBed.createComponent(UserComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+//__//
+//Тестирование сервиса
+
+//user.service.ts
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UserService {
+  user = { name: 'Max' };
+
+  constructor() { }
+
+  getUser() {
+    return this.user;
+  }
+}
+
+//user.component.ts
+import { Component, OnInit, Inject } from '@angular/core';
+import { UserService } from './user.service';
+
+@Component({
+  selector: 'app-user',
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.css']
+})
+export class UserComponent implements OnInit {
+  user: { name: string } | null = null;
+
+  constructor(@Inject(UserService) private userService: UserService) { }
+
+  ngOnInit(): void {
+    this.user = this.userService.getUser();
+  }
+}
+
+//user.component.spec.ts
+import { ComponentFixture, TestBed, inject } from '@angular/core/testing';
+import { UserComponent } from './user.component';
+import { UserService } from './user.service';
+
+describe('UserComponent', () => {
+  let component: UserComponent;
+  let fixture: ComponentFixture<UserComponent>;
+  let userService: UserService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      declarations: [UserComponent],
+      providers: [UserService]
+    });
+
+    fixture = TestBed.createComponent(UserComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    userService = fixture.debugElement.injector.get(UserService);
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should get username from service', () => {
+    expect(component.userService.user.name).toEqual(userService.user.name);
+  });
+
+  it('should display username if user is logged in', () => {
+    component.isUserLoggedIn = true;
+    fixture.detectChanges();
+
+    const compiledTemplate = fixture.debugElement.nativeElement;
+    expect(compiledTemplate.querySelector('p').textContent).toContain(component.user.name);
+  });
+
+  it('should not display username if user is not logged in', () => {
+    component.isUserLoggedIn = false;
+    fixture.detectChanges();
+
+    const compiledTemplate = fixture.debugElement.nativeElement;
+    expect(compiledTemplate.querySelector('p').textContent).not.toContain(component.user.name);
+  });
+});
+
+//__//
+//Тестирование асинхронных задач
+
+//data.service.ts
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DataService {
+  getDetails(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve('data');
+      }, 1500);
+    });
+  }
+}
+
+//user.component.ts
+import { Component, OnInit, Inject } from '@angular/core';
+import { DataService } from './data.service';
+
+@Component({
+  selector: 'app-user',
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.css']
+})
+export class UserComponent implements OnInit {
+  data: string;
+
+  constructor(@Inject(DataService) private dataService: DataService) { }
+
+  ngOnInit(): void {
+    this.dataService.getDetails().then(data => {
+      this.data = data;
+    });
+  }
+}
+
+//user.component.spec.ts
+
+//тест не пройден, потому что мы ожидаем, что component.data будет равно 'data', но в данный момент он не определен т.к. сам тест проверяет все синхронно
+it('should fetch data successfully if called synchronously', () => {
+  const fixture = TestBed.createComponent(UserComponent);
+  const component = fixture.componentInstance;
+  fixture.detectChanges();
+  component.dataService.getDetails().then(data => {
+    expect(component.data).toEqual('data');
+  });
+});
+
+//тест с использованием asynс
+it('should fetch data successfully if called asynchronously', async () => {
+  const fixture = TestBed.createComponent(UserComponent);
+  const component = fixture.componentInstance;
+  fixture.detectChanges();
+  //мы используем async и fixture.whenStable(), чтобы дождаться завершения всех асинхронных задач, прежде чем выполнять проверку
+  await fixture.whenStable();
+  component.dataService.getDetails().then(data => {
+    expect(component.data).toEqual('data');
+  });
+});
+
+//__//
+//Использование fakeAsync
+//Это позволяет выполнять асинхронные задачи синхронно в теста
+//tick() - это функция из пакета @angular/core/testing, которая завершает все асинхронные задачи в фиктивной асинхронной зоне
+
+it('should fetch data successfully if called asynchronously', fakeAsync(() => {
+  const fixture = TestBed.createComponent(UserComponent);
+  const component = fixture.componentInstance;
+  fixture.detectChanges();
+
+  component.dataService.getDetails().then(data => {
+    expect(component.data).toEqual('data');
+  });
+  tick();
+}));
+
+//__//
+//Изолированное тестирование
+//Изолированное тестирование подходит для тестирования компонентов или сервисов, которые не зависят от других частей вашего приложения
+
+//rewords-пайп
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({
+  name: 'rewords'
+})
+export class RewordsPipe implements PipeTransform {
+  transform(value: string): string {
+    return value.split('').reverse().join('');
+  }
+}
+
+//Пример изолированного теста для rewords-пайпа
+import { RewordsPipe } from './rewords.pipe';
+
+describe('RewordsPipe', () => {
+  let pipe: RewordsPipe;
+
+  beforeEach(() => {
+    pipe = new RewordsPipe();
+  });
+
+  it('should reverse a string', () => {
+    expect(pipe.transform('Hello')).toEqual('olleH');
+  });
+});
 
