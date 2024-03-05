@@ -4606,4 +4606,607 @@ export class AuthInterceptor implements HttpInterceptor {
 })
 export class AppModule { }
 
-//------------------------------
+//----------------------------------------------------
+//__Modify Request & Response| Angular HTTP Client__//
+
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // Клонируем объект запроса, чтобы не изменять оригинальный
+    const clonedReq = req.clone({
+      headers: req.headers.set('auth', 'abc xyz'),
+    });
+
+    // Возвращаем измененный объект запроса
+    return next.handle(clonedReq).pipe(
+      // позволяет регистрировать сообщения о получении ответа и изменять его позволяет регистрировать сообщения о получении ответа и изменять его
+      tap((event: HttpEvent<any>) => {
+        if (event instanceof HttpResponse) {
+          console.log('Получен ответ:', event);
+        }
+      })
+    );
+  }
+}
+
+//------------------------------------------------------
+//__Using Multiple Interceptors| Angular HTTP Client__//
+
+//Перехватчики выполняются в том порядке, в котором они зарегистрированы. Это означает, что перехватчик, зарегистрированный первым, будет выполняться первым, а перехватчик, зарегистрированный последним, будет выполняться последним.
+
+@NgModule({
+  imports: [HttpClientModule],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: MyInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: MyInterceptorTwo,
+      multi: true,
+    },
+  ],
+})
+export class AppModule { }
+
+//-----------------------------------------------------------------------
+//__How Authentication Works | Angular Authentication & Authorization__//
+
+// Процесс аутентификации и авторизации обычно включает следующие шаги:
+// Пользователь отправляет свои учетные данные на сервер.
+// Сервер проверяет учетные данные и, если они верны, генерирует токен.
+// Сервер отправляет токен обратно клиенту.
+// Клиент хранит токен и включает его в последующие запросы на сервер.
+// Сервер проверяет токен при каждом запросе и, если он действителен, разрешает доступ к запрошенному ресурсу.
+
+//--------------------------------------------------------//
+//__Creating Signup & Login Page |Angular Authentication__//
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent implements OnInit {
+  mode = 'login';
+  form: FormGroup;
+
+  constructor(private fb: FormBuilder) { }
+
+  ngOnInit(): void {
+    this.form = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+  }
+
+  switchMode() {
+    this.mode = this.mode === 'login' ? 'register' : 'login';
+  }
+
+  onSubmit() {
+    const value = this.form.value;
+
+    if (this.mode === 'login') {
+      // Отправить запрос на вход в систему
+    } else {
+      // Отправить запрос на регистрацию
+    }
+  }
+}
+/* 
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <label for="email">Email</label>
+  <input type="email" id="email" formControlName="email" required email>
+
+  <label for="password">Password</label>
+  <input type="password" id="password" formControlName="password" required minlength="6">
+
+  <button type="submit" [disabled]="form.invalid">Submit</button>
+
+  <button type="button" (click)="switchMode()">
+    {{ mode === 'login' ? 'Register' : 'Login' }}
+  </button>
+</form>
+*/
+
+//----------------------------------------------------------------------//
+//__Implementing Signup Functionality | Authentication & Authorization__//
+
+/* 
+POST https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key={{API_KEY}}
+
+{
+  "email": "user@example.com",
+  "password": "password",
+  "returnSecureToken": true
+}
+ */
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  constructor(private http: HttpClient) { }
+
+  register(email: string, password: string): Observable<any> {
+    return this.http.post < AuthenticatorResponse > ('https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key={{API_KEY}}', {
+      email,
+      password,
+      returnSecureToken: true
+    });
+  }
+}
+
+//Пример регистрации пользователя
+{
+  this.authService.register('user@example.com', 'password').subscribe((res) => {
+    console.log(res);
+  });
+}
+
+//---------------------------------------------------------------------
+//__Handling Signup Error Response | Authentication & Authorization__//
+
+@Component({
+  selector: 'app-login',
+  template: `
+              <div *ngIf="isLoading">Loading...</div> 
+              <app-snagbar class="snagbar" *ngIf="errorMessage">{{ errorMessage }}</app-snagbar>
+  `,
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent implements OnInit {
+  isLoading = false;
+  errorMessage: string;
+
+  constructor(private authService: AuthService) { }
+
+  ngOnInit(): void {
+    this.authService.register('user@example.com', 'password').pipe(
+      catchError(error => {
+        this.errorMessage = error;
+      })
+    ).subscribe(() => {
+      this.isLoading = false;
+    });
+  }
+}
+
+//__
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  constructor(private http: HttpClient) { }
+
+  register(email: string, password: string): Observable<any> {
+    return this.http.post('https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key={{API_KEY}}', {
+      email,
+      password,
+      returnSecureToken: true
+    }).pipe(
+      catchError(error => {
+        switch (error.error.error.message) {
+          case 'EMAIL_EXISTS':
+            return throwError('Адрес электронной почты уже используется.');
+          case 'INVALID_EMAIL':
+            return throwError('Недействительный адрес электронной почты.');
+          // Обработка других ошибок
+        }
+
+        return throwError(error);
+      })
+    );
+  }
+}
+
+//-----------------------------------------------------------------------
+//__Implementing Login Functionality | Authentication & Authorization__//
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  constructor(private http: HttpClient) { }
+
+  login(email: string, password: string): Observable<any> {
+    return this.http.post('https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key={{API_KEY}}', {
+      email,
+      password,
+      returnSecureToken: true
+    }).pipe(
+      catchError(this.handleSubmit)
+    );
+
+    handleSubmit(error => {
+      switch (error.error.error.message) {
+        case 'EMAIL_EXISTS':
+          this.errorMessage = 'Адрес электронной почты уже используется.';
+          break;
+        case 'INVALID_EMAIL':
+          this.errorMessage = 'Недействительный адрес электронной почты.';
+          break;
+        // Обработка других ошибок
+      }
+
+      return throwError(error);
+    })
+  }
+}
+
+//__
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent implements OnInit {
+  errorMessage: string;
+
+  constructor(private authService: AuthService) { }
+
+  ngOnInit(): void {
+    this.authService.login('user@example.com', 'password').subscribe({
+      next: (res) => {
+        console.log(res);
+      },
+      error: (error) => {
+        this.errorMessage = error.message;
+      },
+      complete: () => {
+        console.log('Запрос выполнен.');
+      }
+    });
+  }
+}
+
+//-----------------------------------------------------------------------
+//__Creating User from Response Data | Authentication & Authorization__//
+
+//Пример пользовательской модели
+export class User {
+  constructor(
+    public email: string,
+    public id: string,
+    public token: string,
+    public expiresIn: number
+  ) { }
+
+  get token() {
+    return this._token;
+  }
+
+  set token(value: string) {
+    this._token = value;
+  }
+
+  get isLoggedIn() {
+    return !!this.token;
+  }
+}
+
+//__
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  private userSubject = new Subject < User > ();
+
+  constructor(private http: HttpClient) { }
+
+  register(email: string, password: string): Observable<any> {
+    return this.http.post('https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key={{API_KEY}}', {
+      email,
+      password,
+      returnSecureToken: true
+    }).pipe(
+      tap((res) => {
+        this.createUser(res)
+      })
+    );
+  }
+
+  //....
+
+  private createUser(res: any) {
+    const user = new User(
+      res.email,
+      res.localId,
+      res.idToken,
+      res.expiresIn
+    );
+
+    this.userSubject.next(user);
+  }
+}
+
+//---------------------------------------------------------------------
+//__Display Menu Links Dynamically | Authentication & Authorization__//
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  private userSubject = new Subject < boolean > ();
+
+  constructor() { }
+
+  login(): Observable<any> {
+    // ...
+    this.userSubject.next(true);
+  }
+
+  logout(): void {
+    this.userSubject.next(false);
+  }
+
+  getUser(): Observable<boolean> {
+    return this.userSubject.asObservable();
+  }
+}
+
+//__
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent implements OnInit {
+  constructor(private authService: AuthService, private router: Router) { }
+
+  ngOnInit(): void { }
+
+  onSubmit(): void {
+    this.authService.login().subscribe(() => {
+      this.router.navigate(['/dashboard']);
+    });
+  }
+}
+
+//__
+@Component({
+  selector: 'app-header',
+  templateUrl: './header.component.html',
+  styleUrls: ['./header.component.css']
+})
+export class HeaderComponent implements OnInit {
+  private userSubscription: Subscription;
+  isLoggedIn: boolean = false;
+
+  constructor(private authService: AuthService) { }
+
+  ngOnInit(): void {
+    this.userSubscription = this.authService.getUser().subscribe((isLoggedIn) => {
+      this.isLoggedIn = isLoggedIn;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.userSubscription.unsubscribe();
+  }
+}
+/* 
+<nav>
+  <ul>
+    <li *ngIf="isLoggedIn"><a routerLink="/dashboard">Панель мониторинга</a></li>
+    <li *ngIf="!isLoggedIn"><a routerLink="/login">Войти</a></li>
+  </ul>
+</nav>
+*/
+
+//--------------------------------------------------------------------------
+//__Sending Token with Outgoing Requests |Authentication & Authorization__//
+//Разрешение зарегистрированным пользователям извлекать и записывать данные в базу данных
+
+//Оператор take используется для получения последнего значения из наблюдаемого объекта и автоматически отписывается от него. Оператор take может быть использован для получения данных пользователя только один раз перед отправкой запроса.
+//switchMap полезен для ситуаций, когда необходимо отменить предыдущие запросы и выполнить новый запрос на основе последнего испускаемого значения
+
+@Injectable({
+  providedIn: 'root'
+})
+export class TaskService {
+  private userSubject: BehaviorSubject<any>;
+
+  constructor(private http: HttpClient, private authService: AuthService) {
+    this.userSubject = new BehaviorSubject(null);
+  }
+
+  getTasks(): Observable<any> {
+    return this.authService.getUser().pipe(
+      take(1),
+      switchMap((user) => {
+        return this.http.get('https://my-firebase-database.firebaseio.com/tasks.json?auth=' + user.token);
+      })
+    );
+  }
+}
+
+//---------------------------------------
+//__Implementing Logout Functionality__//
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  private userSubject: BehaviorSubject<any>;
+
+  constructor(private router: Router) {
+    this.userSubject = new BehaviorSubject(null);
+  }
+
+  logout() {
+    this.userSubject.next(null);
+    localStorage.removeItem('token');
+    this.router.navigate(['/login']);
+  }
+}
+
+//----------------------------------------------------------------------
+//__Adding Auto Login Functionality | Authentication & Authorization__//
+
+export class User {
+  constructor(
+    public email: string,
+    public id: string,
+    public token: string,
+    public tokenExpiration: number
+  ) { }
+}
+
+//__
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthenticationService {
+
+  constructor() { }
+
+  autoLogin() {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      if (user.token) {
+        this.setUser(user);
+      } else {
+        this.logout();
+      }
+    }
+  }
+
+  logout() {
+    localStorage.removeItem('user');
+  }
+
+  private setUser(user: User) {
+    localStorage.setItem('user', JSON.stringify(user));
+  }
+
+}
+
+//__{ AuthenticationService } from './authentication.service';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit {
+
+  constructor(private authService: AuthenticationService) { }
+
+  ngOnInit(): void {
+    this.authService.autoLogin();
+  }
+
+}
+
+//-----------------------------------------------------------------------
+//__Adding Auto Logout Functionality | Authentication & Authorization__//
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit, OnDestroy {
+
+  constructor(private authService: AuthenticationService) { }
+
+  ngOnInit(): void {
+    this.authService.autoLogin();
+    this.authService.autoLogout(3600000); // 1 hour
+  }
+}
+
+//__
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthenticationService {
+
+  constructor() { }
+
+  autoLogin() {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      if (user.token) {
+        this.setUser(user);
+        this.autoLogout(user.token - (new Date().getTime()));
+      } else {
+        this.logout();
+      }
+    }
+  }
+
+  logout() {
+    localStorage.removeItem('user');
+    this.currentUserSubject.next(null);
+    this.clearTimer()
+  }
+
+  autoLogout(expiration: number) {
+    this.logoutTimer = setTimeout(() => {
+      this.logout();
+    }, expiration);
+  }
+
+  clearTimer() {
+    if (this.logoutTimer) {
+      clearTimeout(this.logoutTimer);
+      this.logoutTimer = null;
+    }
+  }
+
+  private setUser(user: User) {
+    localStorage.setItem('user', JSON.stringify(user));
+    this.currentUserSubject.next(user);
+  }
+}
+
+//---------------------------------------------------------------------
+//__Adding CanActivate Route Guard | Authentication & Authorization__//
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate {
+
+  constructor(private authService: AuthenticationService, private router: Router) { }
+
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+    const currentUser = this.authService.currentUserValue;
+    if (currentUser) {
+      return true;
+    }
+
+    this.router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+    return false;
+  }
+
+}
+
+//__
+const routes: Routes = [
+  { path: '', component: DashboardComponent, canActivate: [AuthGuard] },
+  { path: 'login', component: LoginComponent },
+  { path: '**', redirectTo: '' }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+//---------------------------------------------
+//__
