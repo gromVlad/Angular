@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="angular.min.js"></script>
+    <script src="app.model.js"></script>
+</head>
+
+<body>
+
+    <body ng-app="NameCalculator">
+        <div ng-controller="NameCalculatorController">
+            <h1>Name Calculator</h1>
+            <input type="text" ng-model="name">
+            <button ng-click="getLenght(name)">Проверить, не слишком ли много</button>
+            <p>{{text}}</p>
+        </div>
+    </body>
+</body>
+
+</html>

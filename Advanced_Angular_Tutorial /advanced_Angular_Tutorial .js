@@ -723,9 +723,561 @@ export class CustomValidatorComponent implements OnInit {
 
   ngOnInit(): void {
     this.formGroup = this.fb.group({
-      comment: ['', [Validators.required, new NoSwearWordsValidator()]]
+      comment: ['', [Validators.required, NoSwearWordsValidator]]
     });
   }
 }
 //------------------------------------------------------------
 //__Change Detection | How Angular Tracks and Updates Data__//
+
+//Обнаружение изменений - это процесс, с помощью которого Angular отслеживает изменения в данных приложения и обновляет пользовательский интерфейс в соответствии с этими изменениями.
+
+//Angular запускает обнаружение изменений в ответ на определенные события, такие как:
+// События пользовательского интерфейса(например, щелчки, отправка форм)
+// Асинхронные операции(например, запросы к API, таймеры)
+// Каждый компонент в Angular имеет свой собственный детектор изменений.Обнаружение изменений запускается для каждого компонента сверху вниз в дереве компонентов.
+
+// Стратегии обнаружения изменений
+// Angular предоставляет две стратегии обнаружения изменений:
+// Стратегия по умолчанию: Эта стратегия запускает обнаружение изменений для всех компонентов при каждом событии.
+// Стратегия OnPush: Эта стратегия запускает обнаружение изменений для компонента только в том случае, если событие происходит в этом компоненте или в его дочерних компонентах.
+
+// Стратегия OnPush
+// Стратегия OnPush может быть использована для оптимизации производительности, поскольку она предотвращает ненужные запуски обнаружения изменений.Чтобы использовать стратегию OnPush, добавьте ChangeDetectionStrategy.OnPush в декоратор компонента:
+@Component({
+  selector: 'my-component',
+  template: '',
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+class app { }
+
+// Ручной запуск обнаружения изменений
+// Обнаружение изменений также можно запустить вручную с помощью следующих методов:
+// markForCheck(): Помечает компонент для проверки изменений.
+// detectChanges(): Запускает обнаружение изменений для компонента и его дочерних компонентов.
+
+// Преимущества обнаружения изменений
+// Обнаружение изменений в Angular обеспечивает ряд преимуществ:
+// Автоматическое обновление пользовательского интерфейса в ответ на изменения данных.
+// Возможность оптимизации производительности с помощью стратегии OnPush.
+// Упрощение тестирования, поскольку изменения данных легко отслеживаются и проверяются.
+
+//--------------------------------------------------------
+//__Angular Firebase Integration: A Step-by-Step Guide__//
+
+//Установка пакетов Firebase
+//ng add @angular/fire
+
+//В файле src/environments/environment.ts добавить свой ключ API Firebase
+export const environment = {
+  production: false,
+  firebase: {
+    apiKey: '...',
+    projectId: '...'
+  }
+};
+
+//В app.module.ts импортируйте модуль AngularFireModule и инициализируйте Firebase
+import { AngularFireModule } from '@angular/fire/compat';
+import { environment } from '../environments/environment';
+
+@NgModule({
+  imports: [
+    AngularFireModule.initializeApp(environment.firebase)
+  ]
+})
+export class AppModule { }
+
+//Аутентификация с помощью AngularFireAuth
+@Component({
+  selector: 'app-authentication',
+  template: '...'
+})
+export class AuthenticationComponent {
+  constructor(private afAuth: AngularFireAuth) { }
+
+  signInWithEmailAndPassword(email: string, password: string) {
+    this.afAuth.signInWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        const user = userCredential.user;
+        console.log('Пользователь вошел в систему:', user);
+      })
+      .catch(error => {
+        console.error('Ошибка входа:', error);
+      });
+  }
+}
+
+//Работа с Firestore с использованием AngularFirestore
+interface Item {
+  name: string;
+  quantity: number;
+}
+
+@Component({
+  selector: 'app-firestore',
+  template: '...'
+})
+export class FirestoreComponent {
+  private itemsCollection: AngularFirestoreCollection<Item>;
+
+  constructor(private afs: AngularFirestore) {
+    this.itemsCollection = afs.collection < Item > ('items');
+  }
+
+  saveItem(item: Item) {
+    this.itemsCollection.add(item)
+      .then(docRef => {
+        console.log('Данные успешно сохранены. ID документа:', docRef.id);
+      })
+      .catch(error => {
+        console.error('Ошибка при сохранении данных:', error);
+      });
+  }
+}
+
+//Загрузка изображений с использованием AngularFireStorage
+@Component({
+  selector: 'app-storage',
+  template: '...'
+})
+export class StorageComponent {
+  constructor(private storage: AngularFireStorage) { }
+
+  uploadImage(file: File) {
+    const filePath = 'images/' + file.name;
+    const fileRef = this.storage.ref(filePath);
+    const task = this.storage.upload(filePath, file);
+
+    task.snapshotChanges()
+      .pipe(finalize(() => {
+        fileRef.getDownloadURL().subscribe(downloadUrl => {
+          console.log('Изображение успешно загружено. URL:', downloadUrl);
+        });
+      }))
+      .subscribe();
+  }
+}
+
+//----------------------------------------------------
+//__A Step-by-Step Guide to Integrating ng2-charts__//
+
+//Установка диаграмм ng2 и Chart.js
+//npm install ng2-charts chart.js --save
+
+@NgModule({
+  imports: [
+    NgChartsModule
+  ]
+})
+export class AppModule { }
+
+//__
+@Component({
+  selector: 'app-my-chart',
+  templateUrl: './my-chart.component.html',
+  styleUrls: ['./my-chart.component.css']
+})
+export class MyChartComponent implements OnInit {
+
+  public lineChartData: ChartDataSets[] = [
+    { data: [65, 59, 80, 81, 56, 55, 40], label: 'Series A' },
+  ];
+  public lineChartLabels: Label[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
+  public lineChartOptions: ChartOptions = {
+    responsive: true,
+  };
+  public lineChartType: ChartType = 'line';
+  public lineChartLegend = true;
+  public lineChartPlugins = [];
+
+  constructor() { }
+
+  ngOnInit(): void {
+  }
+
+}
+/*
+<canvas baseChart
+  [datasets]="lineChartData"
+  [labels]="lineChartLabels"
+  [options]="lineChartOptions"
+  [chartType]="lineChartType"
+  [legend]="lineChartLegend"
+  [plugins]="lineChartPlugins">
+</canvas>
+*/
+
+//-------------------------------------------------------
+//__Angular Dashboard Creation: Step-by-Step Tutorial__//
+
+//Установка Angular High Charts
+//npm install angular-highcharts --save
+
+import { HighchartsChartModule } from 'angular-highcharts';
+
+@NgModule({
+  imports: [
+    HighchartsChartModule
+  ]
+})
+export class AppModule { }
+
+//__
+@Component({
+  selector: 'app-dashboard',
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.css']
+})
+export class DashboardComponent implements OnInit {
+
+  public Highcharts: typeof Highcharts = Highcharts;
+  public chartOptions: Highcharts.Options = {
+    chart: {
+      type: 'line'
+    },
+    title: {
+      text: 'My Chart'
+    },
+    series: [
+      {
+        data: [1, 2, 3, 4, 5]
+      }
+    ]
+  };
+
+  public transactions = [
+    { date: '2023-01-01', amount: 100 },
+    { date: '2023-01-02', amount: 200 },
+    { date: '2023-01-03', amount: 300 },
+    { date: '2023-01-04', amount: 400 },
+    { date: '2023-01-05', amount: 500 }
+  ];
+
+  constructor() { }
+
+  ngOnInit(): void {
+  }
+
+}
+/* 
+<div class="container">
+  <div class="widget">
+    <h2>Last Transactions</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let transaction of transactions">
+          <td>{{ transaction.date }}</td>
+          <td>{{ transaction.amount }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="widget">
+    <highcharts-chart [Highcharts]="Highcharts" [options]="chartOptions"></highcharts-chart>
+  </div>
+</div>
+*/
+
+//-----------------------------------------------------
+//__Angular User Notification: A Step-by-Step Guide__//
+
+//Использование SweetAlert в Angular
+//npm install ngx-sweetalert2 --save
+
+import { NgxSweetAlert2Module } from 'ngx-sweetalert2';
+
+@NgModule({
+  imports: [
+    NgxSweetAlert2Module
+  ]
+})
+export class AppModule {}
+
+//для отображения модального окна SweetAler
+Swal.fire({
+  title: 'Success!',
+  text: 'Your account has been created.',
+  icon: 'success'
+});
+
+//Использование Toastr в Angular
+//npm install ngx-toastr --save
+
+import { NgxToastrModule } from 'ngx-toastr';
+
+@NgModule({
+  imports: [
+    NgxToastrModule.forRoot({
+      timeOut: 3000,
+      positionClass: 'toast-top-right',
+      preventDuplicates: true
+    })
+  ]
+})
+export class AppModule { }
+
+import { ToastrService } from 'ngx-toastr';
+this.toastrService.success('Success!', 'Your account has been created.');
+
+//--------------------------------------------------------------
+//__Mastering ngFor: An In-Depth Guide to Powerful Directive__//
+
+//Распространенные ошибки
+// Использование ngFor в теге ul вместо li.
+// Использование "in" вместо "let" в ngFor.
+// Использование индекса вместо четного или нечетного значения.
+
+//Отображение только четных чисел с использованием ngIf
+/* 
+<ng-container *ngFor="let item of items">
+  <li *ngIf="item % 2 === 0">{{ item }}</li>
+</ng-container>
+*/
+
+/* 
+Использование контейнера ng для решения проблемы с ngIf
+<ng-container *ngFor="let item of items">
+  <ng-container *ngIf="item % 2 === 0">
+    <li>{{ item }}</li>
+  </ng-container>
+</ng-container>
+*/
+
+/* 
+//Использование ngClass для добавления классов на основе условий
+<ng-container *ngFor="let item of items">
+  <li [ngClass]="{'even': item % 2 === 0, 'odd': item % 2 !== 0}">{{ item }}</li>
+</ng-container>
+*/
+
+/* 
+//Использование ngStyle для изменения стилей элементов
+<ng-container *ngFor="let item of items">
+  <li [ngStyle]="{'color': item % 2 === 0 ? 'red' : 'blue'}">{{ item }}</li>
+</ng-container>
+*/
+
+//-------------------------------------------------------------------
+//__Carousel | Building a Dynamic Carousel Component from Scratch__//
+
+//npm install ng-bootstrap --save
+
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+
+@NgModule({
+  imports: [
+    NgbModule
+  ]
+})
+export class AppModule { }
+
+//__
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-carousel',
+  template: `
+    <ngb-carousel>
+      <ng-template ngbSlide *ngFor="let image of images">
+        <img [src]="image.src" alt="{{ image.title }}">
+        <div class="carousel-caption">
+          <h3>{{ image.title }}</h3>
+          <p>{{ image.caption }}</p>
+        </div>
+      </ng-template>
+    </ngb-carousel>
+  `,
+  styles: [`
+    .carousel {
+      height: 500px;
+    }
+
+    .carousel-caption {
+      color: white;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .carousel-indicators li {
+      background-color: red;
+    }
+
+    .carousel-control-prev, .carousel-control-next {
+      display: none;
+    }
+  `]
+})
+export class CarouselComponent {
+  images = [
+    {
+      title: 'Image 1',
+      caption: 'This is the first image.',
+      src: 'path/to/image1.jpg'
+    },
+    {
+      title: 'Image 2',
+      caption: 'This is the second image.',
+      src: 'path/to/image2.jpg'
+    },
+    {
+      title: 'Image 3',
+      caption: 'This is the third image.',
+      src: 'path/to/image3.jpg'
+    }
+  ];
+}
+
+//----------------------------------------------------------------
+//__Step-by-Step Guide: Integrating Payment Gateway in Angular__//
+
+//npm install ngx-paypal --save
+
+import { NgxPayPalModule } from 'ngx-paypal';
+
+@NgModule({
+  imports: [
+    NgxPayPalModule
+  ]
+})
+export class AppModule { }
+
+//__
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-paypal',
+  template: `
+    <div>
+      <h2>Оплата с помощью PayPal</h2>
+      <div *ngIf="totalAmount > 0">
+        <h3>Общая сумма: {{ totalAmount }}</h3>
+        <ngx-paypal
+          [clientId]="paypalClientId"
+          [amount]="totalAmount"
+          [currency]="'USD'"
+          [createOrderOnClient]="createOrder"
+          (onApprove)="onApprove($event)"
+        ></ngx-paypal>
+      </div>
+      <div *ngIf="totalAmount === 0">
+        <p>Нет товаров для оплаты.</p>
+      </div>
+    </div>
+  `
+})
+export class PaypalComponent {
+  paypalClientId = 'YOUR_PAYPAL_CLIENT_ID';
+  totalAmount = 0;
+
+  createOrder(data, actions) {
+    return actions.order.create({
+      purchase_units: [
+        {
+          amount: {
+            value: this.totalAmount,
+            currency_code: 'USD'
+          }
+        }
+      ]
+    });
+  }
+
+  onApprove(data, actions) {
+    return actions.order.capture().then(details => {
+      // Обработка успешной транзакции
+      console.log('Транзакция завершена:', details);
+      // Перенаправление пользователя на страницу подтверждения
+      // this.router.navigate(['/confirmation'], { queryParams: { transactionId: details.id } });
+    });
+  }
+}
+
+//-----------------------------------------------
+//__Mastering Dependency Injection in Angular__//
+
+// Иерархия инжекторов в Angular
+// В Angular существует иерархия инжекторов, которая представляет собой организованную структуру инжекторов, создаваемых и используемых в приложении.
+// Каждый компонент имеет свой собственный инжектор, который отвечает за предоставление зависимостей этому компоненту и его дочерним элементам.
+// Если зависимость не найдена в инжекторе компонента, инжектор будет искать ее в родительском инжекторе, а затем в корневом инжекторе.
+
+//-----------------------------------------------
+//__Mastering Resolution Modifiers in Angular__//
+
+//Модификаторы разрешения в Angular - это специальные аннотации, которые позволяют изменять стандартное разрешение зависимостей
+
+// @Optional: Используется для необязательных зависимостей, которые могут отсутствовать в некоторых случаях но ошибки не будет,функция не будет работать, так как значение будет установлено в null.
+// @Self: Используется для поиска зависимостей только в текущем компоненте, не ища их в родительских компонентах.
+// @SelfSkip: Используется для поиска зависимостей в родительских компонентах, пропуская текущий компонент.
+// @Host: Используется для поиска зависимостей в элементе host, не ища их в дочерних элементах.
+
+//-----------------------------------------------
+//__Mastering Dependency Providers in Angular__//
+
+//с помощью useClass, что означает, что новый экземпляр MyService будет создан каждый раз
+@Injectable({
+  providedIn: 'root',
+})
+export class MyService { }
+
+@Component({
+  providers: [
+    {
+      provide: MyService,
+      useClass: MyService,
+    },
+  ],
+})
+export class MyComponent { }
+
+//useExisting — позволяет использовать псевдоним маркера и ссылаться на любой существующий маркер
+//Использует существующий экземпляр другой зависимости
+//если мы запросим 'MyAliasService', Angular будет предоставлять существующий экземпляр MyService
+import { NgModule } from '@angular/core';
+import { MyService } from './my-service';
+
+@NgModule({
+  providers: [
+    MyService,
+    { provide: 'MyAliasService', useExisting: MyService }
+  ]
+})
+export class MyModule { }
+
+//useValue - Использует указанное значение для создания экземпляра
+import { NgModule } from '@angular/core';
+
+const config = {
+  apiUrl: 'https://api.example.com'
+};
+
+@NgModule({
+  providers: [
+    { provide: 'API_CONFIG', useValue: config }
+  ]
+})
+export class MyModule { }
+
+//Фабричная функция принимает массив зависимостей в качестве аргумента и возвращает экземпляр MyService. В этом случае фабричная функция принимает зависимость Config
+@Component({
+  providers: [
+    {
+      provide: MyService,
+      useFactory: (config: Config) => {
+        return new MyService(config);
+      },
+      deps: [Config],
+    },
+  ],
+})
+export class MyComponent { }
