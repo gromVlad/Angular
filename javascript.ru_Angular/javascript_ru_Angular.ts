@@ -1262,7 +1262,273 @@ export class AppModule {}
 // Для автоматической регистрации сервисов в корне приложения можно использовать @Injectable({ providedIn: 'root' }).
 // Также существует опция 'platform', которая создает синглтон в рамках платформы браузера.
 
+//---------------------------------------------------------------
+//__Сервисы, работа с сетью и внедрение зависимостей. часть 2__//
+
+//__Дополнения 
+//Метод asObservable() используется для преобразования этих объектов в обычные Observable. Это полезно, когда вы хотите предоставить доступ только для чтения к источнику данных и предотвратить его изменение извне
+import { Subject } from 'rxjs';
+
+const subject = new Subject<number>();
+
+const observable = subject.asObservable();
+
+observable.subscribe(value => {
+  console.log(value);
+});
+
+subject.next(1); // Значение 1 будет выведено в консоль
+//после преобразования в Observable вы не сможете вызвать методы next(), error() или complete() из исходного Subject, так как Observable предоставляет только возможность подписки и чтения данных
+
+//В большо проекте нам нужно стэйт машина так как если писать все на потоках данных можно запутаться и сложно подерживать такой код с принцами TRY и KISS
+
+//__ Cервис был синглтоном и доступным для всех модулей
+// Для того чтобы сервис был синглтоном и доступным для всех модулей в Angular, вы можете зарегистрировать его с помощью метода forRoot() в провайдере
+import { Injectable } from '@angular/core';
+
+@Injectable()
+export class MyService {
+  // ...
+}
+
+//Теперь сервис MyService будет доступен во всех модулях вашего приложения и будет являться синглтоном. Вы можете внедрять его в другие компоненты и сервисы, используя инжекцию зависимостей
+@NgModule({
+  imports: [HttpClientModule],
+  declarations: [AppComponent],
+})
+export class MyModule {
+  static forRoot(): ModuleWithProviders<MyModule> {
+    return {
+      ngModule: MyModule,
+      providers: [MyService]
+    };
+  }
+}
+
+//!!!Обратите внимание, что только модули, которые импортируют MyModule.forRoot(), получат один и тот же экземпляр сервиса MyService. Другие модули, которые импортируют MyModule без использования forRoot(), получат отдельные экземпляры сервиса  в данном случае imports: [HttpClientModule] и declarations: [AppComponent] без providers: [MyService]
+@NgModule({
+  imports: [
+    BrowserModule,
+    MyModule.forRoot()
+  ],
+  declarations: [/* ... */],
+  bootstrap: [/* ... */]
+})
+export class AppModule { }
+
+//__ComponentFactoryResolver 
+//ComponentFactoryResolver в Angular - это сервис, который используется для создания фабрик компонентов. Фабрика компонентов - это объект, который знает, как создать экземпляр компонента.
+//ComponentFactoryResolver используется для динамического создания компонентов во время выполнения. Это может быть полезно в следующих случаях:
+// Создание компонентов на основе данных, полученных с сервера.
+// Создание компонентов, которые могут быть повторно использованы в разных частях приложения.
+// Создание компонентов, которые могут быть настроены во время выполнения.
+//Реализация модального окна с помощью сервиса, который передает компонент, а мы его используем и отрисовываем с помощью ComponentFactoryResolver в основном компоненте
+//Создание сервиса модального окна
+@Injectable({
+  providedIn: 'root'
+})
+export class ModalService {
+
+  constructor(
+    private resolver: ComponentFactoryResolver,
+    private injector: Injector//Injector в Angular - это сервис, который используется для создания и управления зависимостями.
+  ) { }
+
+  open(component: any, data?: any) {
+    return {
+      component,
+      data
+    };
+  }
+}
+
+//Модальный компонент
+@Component({
+  selector: 'app-modal',
+  template: `<div>{{ data }}</div>`
+})
+export class ModalComponent {
+  @Input() data: any;
+}
+
+@Component({
+  selector: 'app-root',
+  template: `<div #modalContainer></div>`,
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit {
+  @ViewChild('modalContainer', { static: true }) modalContainer: ViewContainerRef;
+
+  constructor(private modalService: ModalService) {}
+
+  ngOnInit() {
+    const modalData = this.modalService.open(ModalComponent);//также можно сразу предать компонент и констектс ModalComponent, { data: 'Hello, world!' }
+
+    //также можно передать ,ленивый компонент - это компонент, который загружается только тогда, когда он необходим. Но нам нужно заимпортить либо модуль со всеми зависемостями либо standalone компоненту
+    // const { ModalComponent } = await import('./modal/modal.component');
+    // const modalData = this.modalService.open(ModalComponent, { data: 'Hello, world!' });
+
+    //также можно использовать injector
+
+    this.loadComponent(this.modalContainer, modalData.data);
+  }
+
+  loadComponent(viewContainerRef: ViewContainerRef, data: any) {
+    // Эта строка создает фабрику компонентов для модального компонента.
+    const componentFactory = this.resolver.resolveComponentFactory(ModalComponent);
+    // Эта строка очищает контейнер модального окна от любых существующих компонентов
+    viewContainerRef.clear();
+    // Эта строка создает экземпляр модального компонента с помощью фабрики компонентов.Пока компонент голый
+    const componentRef = viewContainerRef.createComponent(componentFactory);
+    //Эта строка устанавливает свойство data экземпляра компонента на переданные данные. Свойство data используется для передачи данных в модальное окно, мы передаем по простому т.к в контролере(app-modal) только свойство data, если бы было множество элементов то надо было проходить циклом и т.д.
+    componentRef.instance.data = data;
+  }
+}
+
+//__Другая реализация ComponentFactoryResolver
+@Injectable()
+export class ModalService {
+  #control$ = new Subject<IModalData | null>();
+
+  public open(data: IModalData | null): void {
+    this.#control$.next(data);
+  }
+
+  public close(): void {
+    this.#control$.next(null);
+  }
+
+  public get modalSequence$(): Observable<any> {
+    return this.#control$.asObservable();
+  }
+}
+
+//app-product-car
+@Component({
+  selector: 'app-product-card',
+  templateUrl: './product-card.component.html',
+  styleUrls: ['./product-card.component.css'],
+})
+export class ProductCardComponent {
+
+  @Input()
+  public product!: IProduct;
+
+  @Input()
+  public isOdd!: boolean;
+
+  constructor(
+    private readonly modalService: ModalService,
+    private store: Store<IState>
+  ) {
+  }
+
+  public async addToCart(): Promise<void> {
+    const {CardConfirmComponent} = await import('./card-confirm/card-confirm.component');
+    this.modalService.open({
+      component: CardConfirmComponent,
+      context: {
+        product: {...this.product},
+        save: () => {
+          this.store.dispatch(addProductToCart({product: this.product}));
+          this.modalService.close();
+        },
+        close: () => {
+          this.modalService.close();
+        }
+      }
+    });
+  }
+}
+
+//__
+export interface IModalData {
+  component: Type<any>;
+  context: any;
+}
 
 
+@Component({
+  selector: 'app-modal',
+  templateUrl: './modal.component.html',
+  styleUrls: ['./modal.component.css']
+})
+export class ModalComponent implements OnInit {
 
+  @ViewChild('modalContent', {read: ViewContainerRef})
+  private modalContent!: ViewContainerRef;
 
+  public isOpen = false;
+  public content!: any;
+  public componentFactory!: ComponentFactory<any>;
+  public modalContentRef!: ComponentRef<any>;
+
+  constructor(
+    private readonly modalService: ModalService,
+    private readonly cfr: ComponentFactoryResolver
+  ) {
+  }
+
+  ngOnInit(): void {
+    this.modalService.modalSequence$.subscribe((data: IModalData | null) => {
+      if (!data) {
+        this.close();
+        return;
+      }
+      const {component, context} = data;
+      this.isOpen = true;
+
+      this.componentFactory = this.cfr.resolveComponentFactory(component);
+      this.modalContentRef = this.modalContent.createComponent(this.componentFactory);
+/*
+ context = {
+   product: {},
+   save: (_)={}.
+   close: ()={}
+ }
+ */
+      Object.keys(context)
+        .forEach((key: string) => {
+          this.modalContentRef.instance[key] = context[key];
+        });
+
+    });
+  }
+
+  @HostListener('window:keyup', ['$event.keyCode'])
+  public close(code: number = 27): void {
+    if (code !== 27) {
+      return;
+    }
+    this.isOpen = false;
+    if (this.modalContentRef) {
+      this.modalContentRef.destroy();
+    }
+  }
+}
+
+//__Использование HostListener в компоненте над функцией
+//HostListener - это декоратор, который позволяет прослушивать события, происходящие на хост-элементе компонента. Хост-элемент - это элемент DOM, который представляет компонент в шаблоне.
+// Декоратор HostListener может использоваться только в методах компонента.
+// Методы HostListener не могут быть асинхронными (т. е. они не могут использовать async или await
+@HostListener('event', ['arguments'])
+methodName(args: any[]) {
+  // код метода
+}
+//event - это событие, которое нужно прослушивать (например, click, mouseenter, keydown).
+//arguments - это необязательный массив аргументов, которые будут переданы в метод при срабатывании события.
+@Component({
+  selector: 'my-component',
+  template: `<h1>My Component</h1>`
+})
+export class MyComponent {
+  @HostListener('click', ['$event'])
+  onClick(event: MouseEvent) {
+    console.log(`Component clicked at (${event.clientX}, ${event.clientY})!`);
+  }
+}
+
+//
+
+//-----------------
+//__08. Роутинг__//
