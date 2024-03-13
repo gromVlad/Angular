@@ -10,10 +10,10 @@
 // polyfills.ts: добавление полифилов для поддержки старых версий браузеров.
 // main.ts: точка входа в приложение, где выполняется загрузка главного модуля.
 
-// Сборка приложения
+//__Сборка приложения
 // ng build --prod: сборка приложения в режиме production.
 
-// Кастомизация сборки
+//__Кастомизация сборки
 // Использование кастомного билдера, например custom-webpack.
 // Создание собственного файла конфигурации сборки (extra-webpack.config.js).
 //extra-webpack.config.js
@@ -30,12 +30,12 @@ module.exports = {
 // В секции build мы указываем, что хотим использовать кастомный билдер custom-webpack:dev-server.
 // В опции extraWebpackConfig мы указываем путь к нашему файлу конфигурации сборки extra-webpack.config.js.
 
-// Компонентный подход
+//__Компонентный подход
 // Использование суффиксов *.component.js для обозначения компонентов.
 // Создание модулей, инкапсулирующих компоненты, директивы и сервисы.
 // Экспорт сущностей из модулей для их использования в других частях приложения.
 
-// Сущности Angular
+//__Сущности Angular
 // - Модули: аналог модулей в ES6, инкапсулируют компоненты, директивы и сервисы -  являются аналогом модулей в ES6 и служат для инкапсуляции компонентов, директив, сервисов и других сущностей приложения
 @NgModule({
   declarations: [AppComponent],
@@ -44,18 +44,17 @@ module.exports = {
   bootstrap: [AppComponent],
 })
 export class AppModule {}
+
 //CommonModule - это модуль, который экспортирует все общие директивы и пайпы, необходимые для работы в Angular. Он автоматически импортируется в BrowserModule, который, в свою очередь, импортируется в главный модуль приложения.
 // - Директивы: расширяют возможности HTML, могут использоваться для добавления поведения или изменения внешнего вида элементов.
 // - Пайпы: трансформируют данные перед их отображением в шаблоне.
 // - Сервисы: предоставляют логику и данные для компонентов.
-ыы
-// Дополнительные ресурсы
+
+//__Дополнительные ресурсы
 // Medium
 // Telegram-канал "Гидра Angular"
 
-import { platformBrowserDynamic } from "@angular/platform-browser-dynamic";
-import { AppModule } from "./app.module";
-
+//__platformBrowserDynamic
 platformBrowserDynamic()
   .bootstrapModule(AppModule)
   .catch((err) => console.error(err));
@@ -67,25 +66,25 @@ platformBrowserDynamic()
 //------------------------
 //__Часть 2 Компоненты__//
 
-// Интерполяция
+//__Интерполяция
 // Процесс вычисления выражения и приведения его к примитивному типу (обычной строке). <p>Hello, {{ name }}!</p>
 // Используется для отображения данных в шаблоне.
 // При использовании интерполяции следует учитывать, что вычисление происходит постоянно, что может привести к снижению производительности.
 // Для вычисления сложных выражений лучше использовать чистые пайпы или логику в TypeScript.
 
-// Связывание данных
+//__Связывание данных
 // Связывание данных позволяет синхронизировать данные между моделью и представлением.
 // Целью связывания может служить атрибут, свойство или директива.
 // Связывание атрибутов и свойств в тегах синхронизируется автоматически.
 // Для доступа к свойствам через стиль можно использовать [style.width.px].
 // Для вставки целого тега с содержимым можно использовать [innerHtml].
 
-//В HTML атрибуты и свойства являются разными понятиями. Атрибуты используются для настройки элемента, а свойства - для доступа к его состоянию.
+//__В HTML атрибуты и свойства являются разными понятиями. Атрибуты используются для настройки элемента, а свойства - для доступа к его состоянию.
 //В Angular атрибуты и свойства синхронизируются только в том случае, если они имеют одинаковое имя.
 //<img [src]="imageUrl">
 //Если имееться только атрибут то обращаемся к нему attr.src 
 
-//Можно через [innerHtml] вставлять целый тэг с контентом
+//__Можно через [innerHtml] вставлять целый тэг с контентом
 //Использование [innerHtml] следует использовать с осторожностью, так как оно может привести к уязвимостям безопасности, если вставляемый HTML не является надежным.
 // В компоненте
 @Component({
@@ -98,7 +97,7 @@ export class AppComponent {
   htmlContent = '<p>Hello, world!</p>';
 }
 
-// Безопасность
+//__Безопасность
 // Angular блокирует вставку стилей в строке кода для защиты от атак XSS.
 // Для внедрения тега в HTML можно использовать сервис санитайзер.
 //В этом примере мы используем сервис Sanitizer для обхода блокировки вставки стилей. Мы вызываем метод bypassSecurityTrustHtml(), чтобы пометить содержимое как безопасное для вставки.
@@ -119,7 +118,7 @@ export class AppComponent {
   }
 }
 
-// События
+//__События
 // События можно привязать к методам компонентов.
 // Для передачи объекта события можно использовать зарезервированное слово $event.
 //Пример передачи объекта события с помощью $event:
@@ -135,7 +134,7 @@ export class AppComponent {
   }
 }
 
-// Локальные ссылки
+//__Локальные ссылки
 // Для получения локальной ссылки на тег или элемент можно использовать префикс #.
 //Пример получения локальной ссылки на тег с помощью #:
 @Component({
@@ -152,17 +151,27 @@ export class AppComponent {
   }
 }
 
-// Связывание и интерполяция
+//__Связывание и интерполяция
 // Не следует путать связывание и интерполяцию.
 // Интерполяцию следует использовать только для отображения простых данных.
 // Для сложных данных следует использовать связывание.
 
 // Двусторонняя и односторонняя связь
 // Двусторонняя связь позволяет синхронизировать данные в обоих направлениях (из модели в представление и из представления в модель).
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <input type="text" [(ngModel)]="name">
+    <p>Привет, {{ name }}!</p>
+  `
+})
+export class MyComponent {
+  name: string = '';
+}
 // Односторонняя связь позволяет синхронизировать данные только в одном направлении (из модели в представление).
 // Для улучшения читабельности кода рекомендуется использовать одностороннюю связь.
 
-//Использования публичных и непубличных свойств и методов
+//__Использования публичных и непубличных свойств и методов
 @Component({
   selector: 'app-root',
   template: `
@@ -185,7 +194,7 @@ export class AppComponent {
 }
 //Публичные свойства и методы доступны извне компонента, в то время как непубличные свойства и методы доступны только внутри компонента.
 
-//Использования свойства readonly для сервиса
+//__Использования свойства readonly для сервиса
 //Свойство readonly не может быть изменено после инициализации
 @Injectable({
   providedIn: 'root'
@@ -194,18 +203,59 @@ export class MyService {
   readonly readonlyProperty = 'Readonly property';
 }
 
+//__Для обработки отписки в Angular компонентах можно использовать паттерн "отписки от подписок" (unsubscribe pattern). Этот паттерн позволяет избежать утечек памяти, связанных с подписками на Observable и другие ресурсы.
+@Component({
+  template: ''
+})
+export class UnsubscribeComponent implements OnDestroy {
+  //1 вариант
+  // private subscriptions: Subscription[] - в ней будем храниить приходящие данные
+
+  // ngOnDestroy(): void {
+  //   this.subscriptions.forEach(subscription => subscription.unsubscribe());
+  // }
+
+  //2 вариант
+  private unSubscriber$ = new Subject()
+
+  ngOnDestroy(): void {
+    this.unSubscriber$.next()
+    // complete() для unSubscriber$, чтобы полностью завершить поток. Это освобождает все ресурсы, связанные с Subject
+    this.unSubscriber$.complete()
+  }
+}
+//
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <p>This component will unsubscribe after 5 seconds.</p>
+  `
+})
+export class MyComponent extends UnsubscribeComponent implements OnDestroy {
+
+  ngOnInit() {
+    // Создаем поток, который будет испускать значения каждые 1000 миллисекунд
+    const interval$ = interval(1000);
+
+    // Подписываемся на поток и отписываемся после 5 секунд
+    interval$.pipe(
+      takeUntil(this.unSubscriber$)
+    ).subscribe(value => console.log(`Received value: ${value}`));
+  }
+}
+
 //__Часть 3 компоненты (продолжения)__//
 // Часть 3: Компоненты
 
-// Необходимость древовидной структуры компонентов
+//__Необходимость древовидной структуры компонентов
 // Компоненты организованы в древовидную структуру, где каждый компонент может содержать другие компоненты.
 // Это позволяет создавать сложные пользовательские интерфейсы из более мелких и управляемых компонентов.
 
-// Умные и тупые компоненты
+//__Умные и тупые компоненты
 // Умные компоненты содержат логику и состояние приложения.
 // Тупые компоненты являются простыми оболочками, которые отображают данные и взаимодействуют с пользователем.
 
-// Кастомные теги
+//__Кастомные теги
 // Кастомные теги позволяют определять собственные HTML-элементы для использования в компонентах.
 // Свойства кастомных тегов определяются в декораторе @Input().
 import { Component, Input } from "@angular/core";
@@ -218,15 +268,15 @@ export class ChildComponent {
   @Input() message: string;
 }
 
-// Переменные в компонентах
+//__Переменные в компонентах
 // Переменные в компонентах можно инициализировать значениями по умолчанию или использовать восклицательный знак (!) для указания того, что переменная не может быть null или undefined.
 //@Input() message!: string;
 
-// UI-киты
+//__UI-киты
 // UI-киты предоставляют готовые компоненты для создания пользовательских интерфейсов.
 // Для использования UI-китов обычно требуется использовать их собственные сборщики.
 
-// Общий модуль
+//__Общий модуль
 // Общий модуль содержит компоненты, директивы и сервисы, которые используются во всем приложении.
 //shared.module.ts
 @NgModule({
@@ -245,9 +295,9 @@ export class SharedModule {}
 export class AppModule {}
 
 
-//Все что принадлежит к компоненте должна лежать рядом с ним
+//__Все что принадлежит к компоненте должна лежать рядом с ним
 
-// @ViewChild
+//__@ViewChild
 // @ViewChild используется для получения ссылки на элемент или компонент в шаблоне.
 // Можно использовать @ViewChildren для получения ссылок на несколько элементов или компонентов.
 @Component({
@@ -315,7 +365,7 @@ export class MyComponent {
   }
 }
 
-// @Output и EventEmitter
+//__ @Output и EventEmitter
 // @Output используется для создания события, которое можно выпустить из компонента.
 // EventEmitter используется для выпуска событий.
 // В родительском компоненте
@@ -377,7 +427,7 @@ setTimeout(() => {
 }, 2000);
 
 
-// ng-content
+//__ng-content
 // ng-content позволяет проецировать контент в компонент.
 // В родительском компоненте
 @Component({
@@ -429,7 +479,7 @@ export class ChildComponent { }
 })
 export class ZippyMultislotComponent {}//Содержимое, использующее атрибут question, проецируется в элемент <ng-content> с атрибутом select=[question]
 
-// @ContentChild
+//__@ContentChild
 // @ContentChild используется для получения ссылки на компонент, который проецируется в компонент.
 // В родительском компоненте
 @Component({
@@ -450,7 +500,7 @@ export class ChildComponent {
 //Если нам нужна ссылка на проецируемый компонент во время инициализации компонента, мы можем использовать свойство static: true.
 @ContentChild('myProjectedContent', { static: true }) myProjectedContent: ElementRef;
 
-// Жизненный цикл компонента
+//__Жизненный цикл компонента
 // Конструктор: Вызывается при создании компонента.
 // ngOnChanges: Вызывается при изменении входных свойств компонента.
 // ngOnInit: Вызывается после инициализации компонента.
@@ -533,8 +583,686 @@ export class MyComponent implements OnInit, OnDestroy, OnChanges, DoCheck, After
   }
 }
 
-// Static в @ViewChild
+//__Static в @ViewChild
 // По умолчанию ссылки на элементы или компоненты, полученные с помощью @ViewChild, доступны после жизненного цикла AfterViewInit.
 // Установка static: true делает ссылки доступными после жизненного цикла OnInit.
 
-//__
+//--------------------------------
+//__Часть 4. Пайпы и директивы__//
+//Директивы из Common Module не будут доступны в этом модуле по умолчанию. Вам необходимо вручную импортировать Common Module в свой модуль.Browser Module - это встроенный модуль Angular, который предоставляет функциональность, необходимую для работы приложения в браузер и включает Common Module
+
+//__Директивы
+// Директивы позволяют изменять поведение элементов и добавлять дополнительную функциональность в шаблоны.
+// Директивы должны быть определены в модуле и экспортированы.
+// Выделяют три типа директив:
+// С собственным шаблоном, или по-другому компоненты (компоненты являются директивами);
+// Структурные, которые изменяют структуру DOM-дерева;
+// <div *ngIf="show">
+//   Hello, world!
+// </div>
+// Атрибуты, которые изменяют внешний вид или поведение по умолчанию элемента DOM-дерева
+// <p ngClass="{'text-red': isError}">
+//   This is a paragraph.
+// </p>
+//ngClass
+
+//__Структурные директивы
+// Начинаются со звездочки (*).
+// Изменяют структуру DOM, добавляя или удаляя элементы.
+// Примеры: *ngIf, *ngSwitch, *ngFor.
+// Директива *ngIf отображает первый блок только если переменная show имеет значение true.
+// Директива *ngSwitch отображает разные блоки в зависимости от значения переменной color.
+// Директива *ngFor отображает список элементов из массива items. В первом случае мы также выводим индекс элемента в списке.
+// Контейнер ng-container используется для группировки элементов, не создавая дополнительного элемента DOM.
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <div *ngIf="show">
+      This is shown only if the 'show' property is true.
+    </div>
+
+    <div *ngSwitch="color">
+      <div *ngCase="'red'">This is red.</div>
+      <div *ngCase="'green'">This is green.</div>
+      <div *ngCase="'blue'">This is blue.</div>
+      <div *ngDefault>This is the default case.</div>
+    </div>
+
+    <ul>
+      <li *ngFor="let item of items; index as i">
+        {{ i + 1 }}. {{ item }}
+      </li>
+    </ul>
+
+    <ng-container *ngFor="let item of items">
+      <div>{{ item }}</div>
+    </ng-container>
+  `
+})
+export class MyComponent {
+  show = true;
+  color = 'red';
+  items = ['Item 1', 'Item 2', 'Item 3'];
+}
+//Дополнительные параметры *ngFor
+// index as i: Добавляет индекс текущего элемента в список в переменную i.
+// trackBy: Указывает свойство элемента, которое будет использоваться для отслеживания изменений. Это повышает производительность, особенно для больших списков.
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <ul>
+      <li *ngFor="let item of items; trackBy: trackByFn">
+        {{ item }}
+      </li>
+    </ul>
+  `
+})
+export class MyComponent {
+  items = ['Item 1', 'Item 2', 'Item 3'];
+
+  trackByFn(index: number, item: string) {
+    return item;
+  }
+}
+//Директиву *ngFor также можно использовать для итерации по свойствам объекта.
+/* 
+<ng-container *ngFor="let key of object | keyvalue">
+  <div>{{ key }}: {{ object[key] }}</div>
+</ng-container>
+*/
+
+//__Атрибутивные директивы
+// Применяются к атрибутам элементов.
+// Изменяют поведение или внешний вид элемента.
+// Примеры: ngClass, ngStyle.
+//Директива ngClass позволяет динамически добавлять и удалять классы CSS из элемента. Она принимает объект, в котором ключи - это имена классов, а значения - логические выражения, определяющие, следует ли добавлять класс
+// Директива ngStyle позволяет динамически применять стили CSS к элементу. Она принимает объект, в котором ключи - это имена стилей, а значения - значения стилей.
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <p [ngClass]="{ 'text-red': isError, 'text-green': isSuccess }"
+       [ngStyle]="{ 'color': 'red', 'font-size': '20px' }">
+      This is a paragraph.
+    </p>
+  `
+})
+export class MyComponent {
+  isError = false;
+  isSuccess = true;
+}
+
+//__Pipe
+//Проблема с использованием обычных функций для фильтрации данных в компонентах -Когда мы используем обычную функцию для фильтрации данных в компоненте, эта функция будет вызываться каждый раз, когда происходит изменение данных. Это может привести к проблемам с производительностью, особенно для больших наборов данных.Пайпы - это оптимизированные функции, которые используются для преобразования или фильтрации данных в шаблонах компонентов. Они вызываются только тогда, когда изменяются их входные данные
+//Если входные данные пайпа не изменяются, пайп не будет вызываться повторно. Это означает, что пайпы очень эффективны для фильтрации данных, поскольку они не вызывают ненужных пересчетов
+//В этом примере функция filterItems будет вызываться каждый раз, когда изменяется значение filterString. Это может привести к проблемам с производительностью, если массив items большой
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <ul>
+      <li *ngFor="let item of items">{{ item }}</li>
+    </ul>
+  `
+})
+export class MyComponent {
+  items = ['Item 1', 'Item 2', 'Item 3'];
+
+  filterItems(filterString: string) {
+    return this.items.filter(item => item.includes(filterString));
+  }
+}
+//Теперь перепишем этот пример с использованием пайп
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <input type="text" [(ngModel)]="filterString">
+    <ul>
+      <li *ngFor="let item of items | filter: filterString">{{ item }}</li>
+    </ul>
+  `
+})
+export class MyComponent {
+  items = ['Item 1', 'Item 2', 'Item 3'];
+  filterString = '';
+}
+//FilterPipe будет вызываться только тогда, когда изменяется значение filterString. Это значительно повысит производительность, особенно для больших массивов
+@Pipe({
+  name: 'filter'
+})
+export class FilterPipe implements PipeTransform {
+  transform(value: any[], filterString: string): any[] {
+    if (!filterString) {
+      return value;
+    }
+
+    return value.filter(item => item.includes(filterString));
+  }
+}
+// Пайпы преобразуют данные в шаблоне.
+// Определяются с помощью декоратора @Pipe.
+// Примеры: json, async, date.
+// Пайп json: Преобразует объект data в строку JSON.
+// Пайп async: Подписывается на наблюдаемую asyncData и отображает ее значение, когда оно становится доступным. Отписываться от наблюдаемой не нужно, так как пайп async делает это автоматически.
+// Пайп date: Форматирует объект date в строку с указанным форматом даты.
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <p>{{ data | json }}</p>
+    <p>{{ asyncData | async }}</p>
+    <p>{{ date | date: 'dd/MM/yyyy' }}</p>
+  `
+})
+export class MyComponent {
+  data = { name: 'John Doe', age: 30 };
+  asyncData = new Observable(observer => {
+    setTimeout(() => {
+      observer.next('Async data');
+      observer.complete();
+    }, 1000);
+  });
+  date = new Date();
+}
+
+//__Рекомендации
+// - Использовать пайпы для преобразования данных: Пайпы хорошо оптимизированы и позволяют избежать ненужных пересчетов.
+//Пример кастомного пайпа для фильтрации массива
+//filter.pipe.ts
+@Pipe({
+  name: 'filter'
+})
+export class FilterPipe implements PipeTransform {
+  transform(value: any[], filterString: string): any[] {
+    if (!filterString) {
+      return value;
+    }
+
+    return value.filter(item => item.includes(filterString));
+  }
+}
+//использование
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <input type="text" [(ngModel)]="filterString">
+    <ul>
+      <li *ngFor="let item of items | filter: filterString">{{ item }}</li>
+    </ul>
+  `
+})
+export class MyComponent {
+  items = ['Item 1', 'Item 2', 'Item 3'];
+  filterString = '';
+}
+// - Разделять шаблоны на более мелкие части: Это улучшает читаемость и удобство обслуживания.
+// -  Отключать инкапсуляцию классов: Это может быть необходимо, если директивы или компоненты используют атрибуты, которые инкапсулированы по умолчанию.
+@Component({
+  selector: 'app-my-component',
+  template: `<p class="my-class">This is a paragraph.</p>`,
+  encapsulation: ViewEncapsulation.None
+})
+export class MyComponent { }//означает, что классы CSS, определенные в компоненте, могут применяться к элементам за пределами компонента
+// - Использовать функции в пайпах: Функции в пайпах не вызываются при каждом изменении, что повышает производительность.
+
+//__Отписка от асинхронных подписок
+// При использовании паттерна async отписка от асинхронных подписок не требуется.
+// Однако, если есть возможность использовать паттерн async, лучше использовать его, чтобы избежать необходимости отписываться вручную.
+
+//--------------------------------
+//__Часть 5: Пайпы и директивы__//
+
+//__Пайпы и RxJS
+// Используйте RxJS для непрерывной обработки и преобразования данных.
+// Используйте методы .pipe для фильтрации, преобразования и выделения нужных потоков данных.
+
+//__Логика в контроллере
+// Старайтесь размещать логику в контроллере, а не в шаблоне.
+
+//__Пайпы
+// Используйте декоратор pure: false в пайпах, которые необходимо постоянно пересчитывать.
+// Обычно используйте чистые пайпы.
+@Pipe({
+  name: 'myPipe',
+  pure: false
+})
+export class MyPipe implements PipeTransform {
+  transform(value: any): any {
+    // Логика преобразования, которая должна выполняться при каждом изменении входных данных
+    return value;
+  }
+}
+//В этом примере пайп MyPipe имеет pure: false, что означает, что он будет пересчитываться при каждом изменении входных данных. Это может быть полезно, если логика преобразования должна выполняться при каждом изменении, например, при отслеживании событий клика
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <button (click)="onClick()">Click me</button>
+    <p>{{ value | myPipe }}</p>
+  `
+})
+export class MyComponent {
+  value = 0;
+
+  onClick() {
+    this.value++;
+  }
+}
+
+//__Flex-layout
+// Используйте библиотеку Flex-layout для быстрого создания компоновки.
+/* 
+<div fxLayout="row" fxLayoutAlign="center">
+  <div fxFlex="30%">Item 1</div>
+  <div fxFlex="70%">Item 2</div>
+</div>
+*/
+
+//__Кастомные структурные директивы
+// Создавайте кастомные структурные директивы для повторного использования кода.
+// Принимайте ссылку на элемент и контейнер в качестве параметров.
+// Указывайте методы директивы в шаблоне с помощью as.
+// Удаляйте контейнер в OnDestroy с помощью метода destroy.
+@Directive({
+  selector: '[myStructuralDirective]'
+})
+export class MyStructuralDirective implements OnInit, OnDestroy {
+
+  @Input("myStructuralDirectiveFrom")  
+  public rates:any = [] // Параметр "from" то слова после которого я хочу иметь значения
+
+  @Input("myStructuralDirectiveAutoplay") 
+  public set playAuto (mode:"off" | "on"){
+
+  }
+
+  public context:any
+
+  constructor(
+    private templateRef: TemplateRef<any>,
+    private viewContainerRef: ViewContainerRef
+  ) {}
+
+  ngOnInit() {
+    this.context = {
+      //По умолчанию в контексте должны быть значения так работаю т все структурные директивы под капотом
+      $implicit: this.rates[0],// значения контекста, которые мы можем передать и использовать в шаблоне
+      controller:{
+        next:() => this.next(),
+        prev:() => this.prev()
+      } // методы которые мы можем передать и использовать в шаблоне
+    };
+    this.viewContainerRef.createEmbeddedView(this.templateRef, this.context);
+  }
+
+  ngOnDestroy() {
+    this.viewContainerRef.clear();
+  }
+
+  public next(){
+    console.log('next');
+  }
+
+  public prev(){
+    console.log('next');
+  }
+}
+//app-component.ts
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <div *myStructuralDirective="let rate from rates autoplay mode; controller as ctrl">
+      <p>{{ rate.age }}</p>
+      <p>{{ rate.name }}</p>
+      <span (click) ="ctrl.next()">click</span>
+    </div>
+  `
+})
+export class MyComponent {
+  rates = [
+    { name: 'John Doe', age: 30 },
+    { name: 'Jane Doe', age: 25 }
+  ];
+
+  mode:"off" | "on" = "off"
+}
+
+//__Директива hidden
+// Создавайте директиву hidden с помощью @Directive и @HostBinding.
+// Указывайте свойство, которое будет скрывать элемент в @HostBinding.
+// Используйте @HostListener для обработки событий.
+//Отписка происходит автоматический при разрушении компоненты к которой применена деректива
+@Directive({
+  selector: '[hidden]'
+})
+export class HiddenDirective implements OnInit, OnDestroy {
+
+  //свойство к которому мы хотим обратиться и применяеться к ней определенное значения
+  @HostBinding('style.display') 
+  public visibility:"visible" | "hidden" = 'hidden'
+
+  //также работать с событием и принимающем параметром $event(можно без) дальше работать с логикой
+  //дополнительно также можно указывать событие и виндов, window.click
+   @HostBinding('click',['$event']) 
+   public onclick (event){
+      console.log(event);
+   }
+
+  constructor() {}
+
+}
+// Получайте доступ к экземпляру директивы с помощью exportAs.Использование exportAs позволяет получить доступ к методам и свойствам директивы извне компонента, где она применяется
+@Directive({
+  selector: '[hidden]',
+  exportAs: 'hiddenDirective' // Имя для экспорта директивы
+})
+export class HiddenDirective implements OnInit, OnDestroy {
+
+  @HostBinding('style.display') 
+  public visibility:"visible" | "hidden" = 'hidden'
+
+   @HostBinding('click',['$event']) 
+   public onclick (event){
+      console.log(event);
+   }
+
+  constructor() {}
+
+}
+//app-component.ts
+@Component({
+  selector: 'app-my-component',
+  template: `
+    <div [hidden]="isHidden" #hiddenRef="hiddenDirective" (click)="hiddenRef.onClick($event)">Скрытый элемент</div>
+  `
+})
+export class MyComponent {
+  @ViewChild('hiddenRef') hiddenDirective!: HiddenDirective;
+
+  isHidden = true;
+
+  onClick(event: MouseEvent) {
+    console.log('Кликнули на скрытом элементе', event);
+  }
+}
+
+//---------------------------------------------------------------
+//__Сервисы, работа с сетью и внедрение зависимостей. часть 1__//
+//Наше приложения это древо компонент (огромный тэг состоящий из других тэгов)
+//У компонента есть свои зависемости
+
+//__Внедрение зависимостей (DI)
+// DI позволяет компонентам получать необходимые зависимости извне.
+// Angular использует инжектор для создания и управления зависимостями.
+
+//__Регистрация сервисов
+// Сервисы регистрируются в провайдерах.
+// Регистрация идет от родителя к детям (базовый принцип разрешения зависимостей).
+// Существует 4 способаы регистрации:
+// providers: [{ provide: Service, useClass: ServiceClass }] - полный синтаксис
+
+// 1) useClass - реализации указывается класс
+@Component({
+  providers: [
+    { provide: MyService, useClass: MyServiceImpl }
+  ]
+})
+export class MyComponent { }
+// providers: [Service] - сокращенный синтаксис (при условии, что ключ и значение одинаковы)
+@NgModule({
+  providers: [
+    MyService
+  ]
+})
+export class MyModule { }
+
+//2) useValue - конкретный экземпляр значения, которое может быть любым типом данных
+roviders: [
+  // число
+  { provide: 'VALUE_NUMBER', useValue: 1  },
+  // текст
+  { provide: 'VALUE_STRING', useValue: 'Текстовое значение' },
+  // функция
+  { provide: 'VALUE2_FUNCTION', useValue: () => { return 'что-то' } },
+  // объект
+  { provide: 'VALUE2_OBJECT', useValue: { id: 1, name: 'имя' } },
+  // массив
+  { provide: 'VALUE2_ARRAY', useValue: [1, 2, 3] } ,
+  // и т.д.
+  /* Другие провайдеры */
+]
+
+// 3) useFactory - когда мы сами создаем свой конструктор и хотим сами определить как возвращать что-то, например по какому либо условию хотим возвращать либо один либо другую сущность, логика получения , можно использовать зависимости с массиве deps от чего будет оталкиваться наша логика
+export interface ISettings
+{
+  /** URL к API для некоторого сервиса My */
+  apiUrlMy: string;
+} 
+
+/** Токен конфигурации */
+export const SETTINGS_TOKEN = new InjectionToken<Observable<ISettings>>('SETTINGS_TOKEN');
+/** Токен для получения URL API */
+export const API_URL_MY_TOKEN = new InjectionToken<Observable<string>>('API_URL_MY_TOKEN'); 
+
+providers: [
+  {
+    provide: SETTINGS_TOKEN,
+
+    useFactory: (http: HttpClient): Observable<ISettings> =>
+      http
+        .get<ISettings>('/assets/settings.json')
+        .pipe(shareReplay()),
+    deps: [HttpClient]
+  },
+  {
+    provide: API_URL_MY_TOKEN,
+    useFactory:
+      (injector: Injector) =>
+        injector.get(SETTINGS_TOKEN).pipe(map(s => s.apiUrlMy)),
+    deps: [Injector] //< -- использовали другой сервис в нашей логике
+  }, 
+  /* Другие провайдеры */
+]
+//app-component.ts
+@Component({
+  selector: 'app-your-component',
+  template: `
+    <div>{{ apiUrlMy$ | async }}</div>
+  `
+})
+export class YourComponent implements OnInit {
+  apiUrlMy$: Observable<string>;
+
+  constructor(private apiUrlMyToken: Observable<string>) {}
+
+  ngOnInit(): void {
+    this.apiUrlMy$ = this.apiUrlMyToken;
+  }
+}
+
+//4) useExisting - выбирается уже существующая зависимость.То есть определить провайдер который был определен до этого, типо использовать по ключу другого класса,или использовать alias для более удобного имени,
+providers: [
+  { provide: 'CarService1', useClass: CarService},
+  { provide: 'CarService2', useExisting: 'CarService1' }, // <_--CarService1 используем его
+  /* Другие провайдеры */
+]
+
+//__Объявление зависимостей в компонентах
+// Для объявления зависимостей в компонентах используются декораторы:
+// @Inject(ключ) - полная запись с указанием ключа
+// private service: Service - сокращенная запись (при использовании одинаковых ключа и значения в провайдере)
+// @Optional() - делает зависимость необязательной (не выбросит ошибку, если зависимость не найдена)
+// @Self() - ограничивает поиск зависимостью только текущим компонентом и root
+// @Host() - то же самао что и @Self только далее заставляет Angular искать зависимость в компоненте-хосте
+@Component({
+  selector: 'app-example',
+  template: '...',
+  providers: [{ provide: MY_SERVICE_TOKEN, useClass: MyService }]
+})
+export class ExampleComponent {
+  constructor(@Inject(MY_SERVICE_TOKEN) private myService: MyService) {
+    // Использование myService
+    //Angular будет искать провайдер, связанный с этим ключом в провайдерах компонента или его родительских компонентах.
+  }
+}
+
+// сокращенной записи для инъекции зависимости
+@Component({
+  selector: 'app-example',
+  template: '...',
+  providers: [MyService]
+})
+export class ExampleComponent {
+  constructor(private myService: MyService) {
+    // Использование myService
+  }
+}
+
+//@Optional для объявления необязательной зависимости (без ошибок)
+@Component({
+  selector: 'app-example',
+  template: '...',
+})
+export class ExampleComponent {
+  constructor(@Optional() private myService: MyService) {
+    // Использование myService (может быть null, если зависимость не найдена)
+  }
+}
+
+//@Self и @Host для ограничения области поиска зависимости
+//В этом примере мы используем @Self для ограничения поиска зависимости MyService только внутри текущего компонента. Затем мы используем @Host для продолжения поиска зависимости в компоненте-хосте (родительском компоненте). Это может быть полезно, если у нас есть несколько экземпляров MyService в разных компонентах, и нам нужно явно указать, какой экземпляр использовать в нашем компоненте.
+@Component({
+  selector: 'app-example',
+  template: '...',
+  providers: [MyService]
+})
+export class ExampleComponent {
+  constructor(@Self() private myService: MyService, @Host() private hostService: MyService) {
+    // Использование myService и hostService (соответствующие зависимости)
+  }
+}
+
+//__HttpClientModule
+// Экспортирует сервис HttpClient для работы с HTTP-запросами.
+@Injectable()
+export class DataService {
+  constructor(private http: HttpClient) {}
+
+  getData() {
+    return this.http.get('https://api.example.com/data');
+  }
+}
+
+//__Использование декоратора @Injectable()
+// Декоратор @Injectable() позволяет сервисам использовать другие зависимости.
+@Injectable()
+export class MyService {
+  constructor(private otherService: MyOtherService) {
+    // Использование otherService
+  }
+}
+
+//__Окружения
+// Значения окружения хранятся в файле environments.ts.
+// можем сделать сервис получения url (providers:"baseUrl",useclass:enveroments.url)
+// Для получения URL можно создать сервис, который будет использовать окружения:
+@NgModule({
+  imports: [BrowserModule],
+  declarations: [AppComponent],
+  providers: [
+    { provide: 'baseUrl', useValue: 'https://api.example.com/' },
+    UrlService
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppModule {}
+
+//_UrlService
+@Injectable({
+  providedIn: 'root'
+})
+export class UrlService {
+  constructor(@Inject('baseUrl') private baseUrl: string) {}
+
+  getUrl() {
+    return this.baseUrl;
+  }
+}
+
+//__Провайдеры с одинаковыми ключами
+// При наличии нескольких провайдеров с одинаковыми ключами будет использоваться последний.
+// Для получения массива зависимостей можно использовать флаг multi: true в провайдере,буду получать массив засемостей обоих сервисов. - дальше обращаемся к сервису url[0]
+export const MY_TOKEN = new InjectionToken<string>('myToken');
+
+@Injectable()
+export class FirstService {
+  constructor() {}
+}
+
+@Injectable()
+export class SecondService {
+  constructor() {}
+}
+
+@NgModule({
+  providers: [
+    { provide: MY_TOKEN, useClass: FirstService, multi: true },
+    { provide: MY_TOKEN, useClass: SecondService, multi: true }
+  ]
+})
+export class AppModule {}
+// и обращаться к нужному элементу массива, например, MY_TOKEN[0]
+
+//__Токены
+// Токены используются в качестве ключей для зависимостей, чтобы избежать конфликтов.
+// Для создания токенов используется класс InjectionToken.
+interface AppConfig {
+  apiUrl: string;
+  apiKey: string;
+}
+const APP_CONFIG = new InjectionToken<AppConfig>('appConfig');
+
+// Использование токена в провайдере
+providers: [
+  { provide: APP_CONFIG, useValue: { apiUrl: 'https://api.example.com', apiKey: '123456789' } }
+]
+
+//__Middleware (Interceptor)
+// Interceptor - это класс, который перехватывает HTTP-запросы и ответы и может их модифицировать.
+// Interceptor регистрируется в провайдерах с флагом multi: true при регистрации т.к пустой провайдер уже есть по умолчанию поэтому мы используем флаг.
+@Injectable()
+export class CustomInterceptor implements HttpInterceptor {
+  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // Добавляем заголовок 'Authorization' к каждому запросу
+    const modifiedRequest = request.clone({
+      setHeaders: {
+        Authorization: 'Bearer your_token_here'
+      }
+    });
+
+    return next.handle(modifiedRequest).pipe(
+      tap((event: HttpEvent<any>) => {
+        // Обработка события
+        if (event instanceof HttpResponse) {
+          // Обработка успешного ответа
+        }
+      })
+    );
+  }
+}
+//AppModule
+@NgModule({
+  imports: [HttpClientModule],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: CustomInterceptor, multi: true }
+  ]
+})
+export class AppModule {}
+
+//__Регистрация сервисов в корне приложения
+// Для автоматической регистрации сервисов в корне приложения можно использовать @Injectable({ providedIn: 'root' }).
+// Также существует опция 'platform', которая создает синглтон в рамках платформы браузера.
+
+
+
+
+
