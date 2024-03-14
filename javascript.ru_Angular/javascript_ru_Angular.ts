@@ -1430,7 +1430,6 @@ export class ProductCardComponent {
       context: {
         product: {...this.product},
         save: () => {
-          this.store.dispatch(addProductToCart({product: this.product}));
           this.modalService.close();
         },
         close: () => {
@@ -1480,13 +1479,13 @@ export class ModalComponent implements OnInit {
 
       this.componentFactory = this.cfr.resolveComponentFactory(component);
       this.modalContentRef = this.modalContent.createComponent(this.componentFactory);
-/*
- context = {
-   product: {},
-   save: (_)={}.
-   close: ()={}
- }
- */
+      /*
+      context = {
+        product: {},
+        save: (_)={}.
+        close: ()={}
+      }
+      */
       Object.keys(context)
         .forEach((key: string) => {
           this.modalContentRef.instance[key] = context[key];
@@ -1506,6 +1505,14 @@ export class ModalComponent implements OnInit {
     }
   }
 }
+/* 
+<div class="modal" [ngClass]="{open: isOpen}">
+  <div class="content">
+     <div class="modal-content" #modalContent>
+     </div>
+  </div>
+</div>
+*/
 
 //__Использование HostListener в компоненте над функцией
 //HostListener - это декоратор, который позволяет прослушивать события, происходящие на хост-элементе компонента. Хост-элемент - это элемент DOM, который представляет компонент в шаблоне.
@@ -1528,7 +1535,691 @@ export class MyComponent {
   }
 }
 
-//
-
 //-----------------
 //__08. Роутинг__//
+
+//__Подключение модуля RouterModule
+//где routes - это массив объектов конфигурации маршрутов.
+//ангуляр идет сверху вниз по карте состояние маршрута
+const routes: Routes = [
+  {
+    path: 'home',
+    component: HomeComponent
+  },
+  {
+    path: 'about',
+    component: AboutComponent
+  }
+];
+
+@NgModule({
+  imports: [
+    RouterModule.forRoot(routes)
+  ],
+  //...
+})
+export class AppModule { }
+
+//__Использование router-outlet
+// router-outlet - это директива, которая указывает место в шаблоне, куда будет подгружаться компонент, соответствующий текущему маршруту. Ее необходимо добавить в шаблон корневого компонента приложения
+//<router-outlet></router-outlet>
+
+//__Дочерние маршруты
+//Дочерние маршруты определяются внутри родительских маршрутов.
+//также не забывать вставлять router -outlet в родительскую компоненту
+// Каждый маршрут определяется объектом конфигурации, который содержит следующие свойства:
+// path: путь к маршруту (например, /home, /about).
+// component: компонент, который будет отображаться при переходе по этому пути.
+// redirectTo: путь, на который будет перенаправлен пользователь, если он перейдет по этому пути (например, для перенаправления на домашнюю страницу при переходе по пути /).
+// children: массив дочерних маршрутов (если есть).
+const routes: Routes = [
+  {
+    path: 'home',
+    component: HomeComponent,
+    children: [
+      {
+        path: 'profile',
+        component: ProfileComponent
+      },
+      {
+        path: 'settings',
+        component: SettingsComponent
+      }
+    ]
+  }
+];
+
+//__Обработка неизвестных путей
+//если неизвестный путь чтобы не было ошибки используем путь "**"
+const routes: Routes = [
+  {
+    path: '**',
+    component: NotFoundComponent
+  }
+];
+
+//__Программная навигаци и декларативная
+//можем писать декларативно или програмно навигацию с помощью routerLink декларативно, а програмно с помощью сервиса Router и далее router.navigate['/...']
+//Программная навигация
+@Component({
+  //...
+})
+export class MyComponent {
+  constructor(private router: Router) { }
+
+  navigateToHome() {
+    this.router.navigate(['/home']);
+  }
+}
+
+//Декларативной навигации:
+// Директива routerLink
+// Директива routerLink имеет следующие параметры:
+// routerLink: Путь, на который нужно перейти.
+// queryParams: Объект с параметрами запроса, которые нужно добавить к URL-адресу.
+// fragment: Фрагмент URL-адреса, на который нужно перейти.
+// preserveQueryParams: Флаг, указывающий, следует ли сохранять текущие параметры запроса при переходе на новый путь.
+// preserveFragment: Флаг, указывающий, следует ли сохранять текущий фрагмент при переходе на новый путь.
+// skipLocationChange: Флаг, указывающий, следует ли пропускать обновление истории браузера при переходе на новый путь.
+// replaceUrl: Флаг, указывающий, следует ли заменить текущий URL-адрес новым URL-адресом в истории браузера.
+//<a routerLink="/product/123" [queryParams]="{ page: 2 }" fragment="reviews">Product Details</a>
+
+//Дополнительные параметры:
+// routerLinkActive: Класс CSS, который будет добавлен к элементу, когда он активен (т. е. когда соответствующий путь является текущим).
+// routerLinkActiveOptions: Объект с дополнительными параметрами для управления поведением класса routerLinkActive.
+//<a routerLink="/product/123" routerLinkActive="active-link">Product Details</a>
+
+//__Location
+//C помощью cервиса Location мы можем переходить назад и врепед относительно текущей страницы например с помощью метода back()
+//Переход назад и вперед
+import { Location } from '@angular/common';
+
+@Component({
+  //...
+})
+export class MyComponent {
+  constructor(private location: Location) { }
+
+  goBack() {
+    this.location.back();
+  }
+
+  goForward() {
+    this.location.forward();
+  }
+}
+
+//__Ленивая загрузка
+//Для ленивой загрузки модулей с маршрутами необходимо создать отдельный модуль для каждого маршрута и использовать метод forChild() вместо forRoot()
+const routes: Routes = [
+  {
+    path: 'lazy',
+    component: LazyComponent
+  }
+];
+
+@NgModule({
+  imports: [
+    RouterModule.forChild(routes)
+  ],
+  declarations: [
+    LazyComponent
+  ]
+})
+export class LazyModule { }
+
+//__Основной модуль
+const routes: Routes = [
+  {
+    path: 'lazy',
+    loadChildren: () => import('./lazy.module').then(m => m.LazyModule)
+  }
+];
+
+//AppModul
+@NgModule({
+  imports: [
+    RouterModule.forRoot(routes)
+  ],
+  //...
+})
+export class AppModule { }
+
+//__Универсальный SharedModule
+//Также делаем shared модуль универсальный там где нужно он будет прокидывать только INTERCEPTORS по умолчанию а рутовом модуле мы также будем подключать и providers чтобы они были доступны c помощью вызова метода forRoot()
+//SharedModule
+@NgModule({
+  exports: [
+    CommonModule,
+    MatToolbarModule,
+    MatIconModule,
+    MatButtonModule,
+  ],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: CustomInterceptorService,
+      multi: true,
+    },
+  ]
+})
+export class SharedModule {
+  public static forRoot(): ModuleWithProviders<any> {
+    return  {
+      ngModule: SharedModule,
+      providers: [
+        {
+          provide: BASE_URL_TOKEN,
+          useValue: baseUrl,
+          multi: true
+        },
+        AuthGuard,
+        PreloadService
+      ]
+    }
+  }
+}
+
+//AppModule
+@NgModule({
+  declarations: [
+    AppComponent,
+  ],
+  imports: [
+    BrowserModule,
+    SharedModule.forRoot(),// <----
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppModule {}
+
+//__Guard
+//с помощью guard мы запрещаем или разрешаем подгружать состояние роутов
+
+//CanActivate используется для защиты родительского маршрута
+@Injectable()
+export class AuthGuard implements CanActivate {
+  constructor(
+    private router: Router
+  ) {
+  }
+
+  canActivate(
+    _: ActivatedRouteSnapshot,
+    {url}: RouterStateSnapshot): Observable<boolean> {
+    return of(true)
+      .pipe(
+        switchMap((isLogged: boolean) => {
+          if (!isLogged && (url === '/login' || url === '/signup')) {
+            return of(true);
+          }
+          if (isLogged && (url === '/login' || url === '/signup')) {
+            this.router.navigate(['/main']);
+            return of(false);
+          }
+          if (!isLogged) {
+            this.router.navigate(['/login']);
+          }
+
+          return of(isLogged);
+        })
+      );
+  }
+
+}
+/* 
+{
+    path: 'login',
+    loadChildren: () => import('./content/login/login.module')
+      .then(mod => mod.LoginModule),
+    canActivate: [AuthGuard]
+  },
+*/
+
+//CanActivateChild Guard
+//Используется для защиты дочерних маршрутов родительского маршрута. Он работает так же, как CanActivate Guard, но вызывается для каждого дочернего маршрута.
+@Injectable()
+export class ChildGuard implements CanActivateChild {
+  constructor(private authService: AuthService) {}
+
+  canActivateChild(
+    childRoute: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot): Observable<boolean | UrlTree> {
+    // Логика проверки авторизации или других условий
+    const isLoggedIn = this.authService.isLoggedIn();
+
+    if (!isLoggedIn) {
+      // Перенаправление на страницу входа, если пользователь не авторизован
+      return this.router.createUrlTree(['/login']);
+    }
+
+    // Разрешение доступа к дочернему маршруту, если пользователь авторизован
+    return of(true);
+  }
+}
+/* 
+const routes: Routes = [
+  {
+    path: 'parent',
+    component: ParentComponent,
+    canActivate: [AuthGuard],
+    canActivateChild: [ChildGuard],
+    children: [
+      {
+        path: 'child1',
+        component: Child1Component
+      },
+      {
+        path: 'child2',
+        component: Child2Component
+      }
+    ]
+  }
+];
+*/
+
+//CanDeactivate Guard
+//Используется для проверки, может ли пользователь покинуть текущий маршрут. Он вызывается перед тем, как Angular перейдет к новому маршруту
+@Injectable()
+export class DeactivateGuard implements CanDeactivate<MyComponent> {
+  canDeactivate(
+    component: MyComponent,
+    currentRoute: ActivatedRouteSnapshot,
+    currentState: RouterStateSnapshot,
+    nextState: RouterStateSnapshot): Observable<boolean | UrlTree> {
+    // Логика проверки, может ли пользователь покинуть компонент
+    if (component.hasUnsavedChanges) {
+      // Возвращаем подтверждение, чтобы пользователь мог подтвердить выход
+      return confirm('Вы уверены, что хотите покинуть страницу? Ваши изменения не будут сохранены.');
+    }
+
+    // Разрешаем выход из компонента
+    return of(true);
+  }
+}
+/* 
+const routes: Routes = [
+  {
+    path: 'my-component',
+    component: MyComponent,
+    canDeactivate: [DeactivateGuard]
+  }
+];
+*/
+
+// CanLoad Guard
+// Используется для защиты лениво загружаемых модулей. Он вызывается перед загрузкой модуля.
+@Injectable()
+export class LoadGuard implements CanLoad {
+  constructor(private router: Router) {}
+
+  canLoad(route: Route, segments: UrlSegment[]): Observable<boolean> {
+    // Логика проверки, может ли модуль быть загружен
+    const isLoggedIn = this.authService.isLoggedIn();
+
+    if (!isLoggedIn) {
+      // Перенаправление на страницу входа, если пользователь не авторизован
+      this.router.navigate(['/login']);
+      return of(false);
+    }
+
+    // Разрешение загрузки модуля, если пользователь авторизован
+    return of(true);
+  }
+}
+/* 
+const routes: Routes = [
+  {
+    path: 'lazy-module',
+    loadChildren: () => import('./lazy-module/lazy-module.module')
+      .then(mod => mod.LazyModuleModule),
+    canLoad: [LoadGuard]
+  }
+];
+*/
+
+//__Получение параметров маршрута
+//__Для получения параметров маршрута в Angular мы можем использовать сервис ActivatedRoute. Этот сервис предоставляет доступ к информации о текущем активированном маршруте, включая его параметры
+const routes: Route[] = [
+  {
+    path: '',
+    component: ProductsComponent
+  },
+  {
+    path: ':id',
+    component: OneProductComponent,
+    data: {
+      title: 'Products Page'
+    },
+  }
+];
+
+@NgModule({
+  imports: [
+    RouterModule.forChild(routes)
+  ],
+  exports: [
+    RouterModule
+  ]
+})
+export class ProductsRoutingModule {
+}
+
+/* 
+ <img mat-card-image [src]="product.img" [alt]="product.title"
+   [routerLink]="['/backoffice', product._id]"
+  >
+*/
+
+//Получение параметров маршрута без подписки
+@Component({
+  selector: 'app-one-product',
+  templateUrl: './one-product.component.html',
+  styleUrls: ['./one-product.component.css']
+})
+export class OneProductComponent implements OnInit {
+  id: string;
+
+  constructor(private activatedRoute: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    this.id = this.activatedRoute.snapshot.params['id'];
+  }
+}
+
+//Получение параметров маршрута с помощью подписки
+//метод возвращает Observable, который испускает объект с параметрами маршрута всякий раз, когда они изменяются
+@Component({
+  selector: 'app-one-product',
+  templateUrl: './one-product.component.html',
+  styleUrls: ['./one-product.component.css']
+})
+export class OneProductComponent implements OnInit {
+  id: string;
+
+  constructor(private activatedRoute: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    this.activatedRoute.params.subscribe(params => {
+      this.id = params['id'];
+    });
+  }
+}
+
+//Получение динамических данных из маршрута
+//Помимо параметров маршрута, мы также можем передавать динамические данные в маршрут с помощью свойства data. Свойство data объекта конфигурации маршрута может содержать любые дополнительные данные, которые нам нужны
+/* 
+const routes: Route[] = [
+  {
+    path: ':id',
+    component: OneProductComponent,
+    data: {
+      title: 'Product Details'
+    }
+  }
+];
+*/
+@Component({
+  selector: 'app-one-product',
+  templateUrl: './one-product.component.html',
+  styleUrls: ['./one-product.component.css']
+})
+export class OneProductComponent implements OnInit {
+  title: string;
+
+  constructor(private activatedRoute: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    this.activatedRoute.data.subscribe(data => {
+      this.title = data['title'];
+    });
+  }
+}
+
+//__Получения queryParametrs
+//
+
+//__Переходы относительно пути
+// Query parameters - это пары ключ-значение, которые добавляются к URL после вопросительного знака (?). Они используются для передачи дополнительных данных в маршрут.
+// В Angular мы можем получить query parameters с помощью сервиса ActivatedRoute. Этот сервис предоставляет доступ к информации о текущем активированном маршруте, включая его query parameters.
+//https://example.com/products?page=2&size=10 - > this.queryParams.page; // 2 | this.queryParams.size; // 10
+@Component({
+  selector: 'app-component',
+  templateUrl: './component.html',
+  styleUrls: ['./component.css']
+})
+export class Component implements OnInit {
+  queryParams: any;
+
+  constructor(private activatedRoute: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    //this.queryParams = this.activatedRoute.snapshot.queryParams; -  без подписки
+    this.activatedRoute.queryParams.subscribe(params => {
+      this.queryParams = params;
+    });
+  }
+}
+
+//__Resolve
+//__До момента инициализации пути компонента мы можем совершить какое то действие, в плане чтобы не переходили например на несуществующий id (тут получаем продукты с сервера если получили то переходим на страницу и подгружаем данные с date которые возврощает resolve или если отсутствует данные то переходим на главную )
+@Injectable()
+export class ProductResolverService implements Resolve<IProduct | null> {
+
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) {
+  }
+
+  public resolve(
+    activatedRouteSnapshot: ActivatedRouteSnapshot,
+    _state: RouterStateSnapshot): Observable<IProduct | null> {
+    const id = activatedRouteSnapshot.paramMap.get('id');
+    return this.http.get<IProduct>(`/products/${id}`)
+      .pipe(
+        map((product: IProduct | null) => {
+          if (!product) {
+            this.router.navigate(['/backoffice']);
+          }
+          return product;
+        }),
+        catchError(() => {
+          this.router.navigate(['/backoffice']);
+          return of(null);
+        })
+      );
+  }
+
+}
+/* 
+{
+    path: ':id',
+    component: OneProductComponent,
+    data: {
+      title: 'Products Page'
+    },
+    resolve: {product: ProductResolverService}
+  }
+*/
+
+//далее берем наши продукты с date
+@Component({
+  selector: 'app-one-product',
+  templateUrl: './one-product.component.html',
+  styleUrls: ['./one-product.component.css']
+})
+export class OneProductComponent implements OnInit {
+
+  public product$: Observable<IProduct> = this.activatedRoute.data.pipe(
+    pluck('product')
+  );
+
+  constructor(
+    private activatedRoute: ActivatedRoute,
+  ) {
+  }
+
+  ngOnInit(): void {
+  }
+
+}
+/* 
+<pre>
+  {{product$ | async | json}}
+</pre>
+*/
+
+//__Именованные Outlet
+//Именованные outlet позволяют создавать несколько областей содержимого в одном шаблоне маршрута. Это полезно, когда нам нужно отображать несколько компонентов или представлений одновременно.
+//Допустим, у нас есть приложение для управления заказами. Мы можем использовать именованные outlet для отображения списка заказов в одном outlet и формы редактирования заказа в другом outlet
+//OrdersListComponent
+@Component({
+  selector: 'app-orders-list',
+  templateUrl: './orders-list.component.html',
+  styleUrls: ['./orders-list.component.css']
+})
+export class OrdersListComponent implements OnInit {
+  orders: Order[];
+
+  constructor(private orderService: OrderService) { }
+
+  ngOnInit(): void {
+    this.orders = this.orderService.getOrders();
+  }
+}
+
+//OrderDetailsComponent
+@Component({
+  selector: 'app-order-details',
+  templateUrl: './order-details.component.html',
+  styleUrls: ['./order-details.component.css']
+})
+export class OrderDetailsComponent implements OnInit {
+  order: Order;
+
+  constructor(private orderService: OrderService, private activatedRoute: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    const id = this.activatedRoute.snapshot.params['id'];
+    this.order = this.orderService.getOrder(id);
+  }
+}
+/* 
+const routes: Routes = [
+  {
+    path: 'orders',
+    component: OrdersComponent,
+    children: [
+      {
+        path: '',
+        component: OrdersListComponent,
+        outlet: 'ordersListOutlet'
+      },
+      {
+        path: ':id',
+        component: OrderDetailsComponent,
+        outlet: 'orderDetailsOutlet'
+      }
+    ]
+  }
+];
+*/
+// <div class="orders-container">
+//   <router-outlet name="ordersListOutlet"></router-outlet>
+//   <router-outlet name="orderDetailsOutlet"></router-outlet>
+// </div>
+
+//Допустим, у нас есть приложение для управления заказами. Мы можем использовать именованные outlet для отображения списка заказов в одном outlet и формы редактирования заказа в другом outlet.
+
+//__Стратегия загрузки
+//Стратегия загрузки в Angular определяет, как и когда загружаются лениво загружаемые модули. Angular предоставляет несколько встроенных стратегий
+// PreloadAllModulesStrategy: Загружает все лениво загружаемые модули при запуске приложения.
+// NoPreloadingStrategy: Не загружает лениво загружаемые модули при запуске приложения. Модули загружаются только тогда, когда пользователь переходит к соответствующему маршруту.
+// CustomPreloadingStrategy: Пользовательская стратегия загрузки, которая позволяет нам определять собственные правила загрузки модулей.
+import { PreloadAllModulesStrategy } from '@angular/router';
+
+const routes: Routes = [
+  // ...
+];
+RouterModule.forRoot(routes, {preloadingStrategy: PreloadAllModulesStrategy});
+
+//Создание пользовательской стратегии загрузки
+//PreloadService
+@Injectable()
+export class PreloadService implements PreloadAllModules {
+
+  public preload(route: Route, fn: () => Observable<any>): Observable<any> {
+    return of(route)
+      .pipe(
+        delay(5000),
+        mergeMap(() => {
+          return fn();
+        })
+      );
+  }
+
+}
+
+//SharedModule
+@NgModule({
+  exports: [
+    
+    MatBadgeModule
+  ],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: CustomInterceptorService,
+      multi: true,
+    },
+  ]
+})
+export class SharedModule {
+  public static forRoot(): ModuleWithProviders<any> {
+    return  {
+      ngModule: SharedModule,
+      providers: [
+        {
+          provide: BASE_URL_TOKEN,
+          useValue: baseUrl,
+          multi: true
+        },
+        AuthGuard,
+        PreloadService
+      ]
+    }
+  }
+}
+
+//AppRoutingModule
+const routes: Route[] = [
+  {path: '', redirectTo: 'backoffice', pathMatch: 'full'},
+  //....
+];
+
+@NgModule({
+  declarations: [],
+  imports: [
+    RouterModule.forRoot(routes, {preloadingStrategy: PreloadService})
+  ],
+  exports: [
+    RouterModule
+  ]
+})
+export class AppRoutingModule {
+}
+
+//__Процессы перехода
+//можна работать с процессами перехода, мониторить их и гибка работать
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  constructor(private router:Router){
+    this.router.events.subscribe((e) => e)
+  }
+}
+
