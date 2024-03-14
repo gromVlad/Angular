@@ -1535,6 +1535,16 @@ export class MyComponent {
   }
 }
 
+//__@Injectable(модуль) 
+//В этом примере мы импортируем сервис MyService в модуль MyModule. Сервис будет доступен для всех компонентов и других сервисов в модуле MyModule.
+//осторожно использовать этот подход т.к. может получиться колизия что мы вызываем уже этот сервис в части модуля,чтобы избежать коллизий, необходимо убедиться, что сервис добавляется в список провайдеров только в одном модуле но не используеться в нем лучше использовать подход  providedIn: 'root'
+@NgModule({
+  providers: [
+    MyService
+  ]
+})
+export class MyModule { }
+
 //-----------------
 //__08. Роутинг__//
 
@@ -2223,3 +2233,426 @@ export class AppComponent {
   }
 }
 
+//----------------------------------
+//__09. Формы и валидация данных__//
+
+//Формы в Angular — бывают двух типов. Реактивные формы и формы на основе шаблонов. Шаблонные формы используют модуль — FormsModule, а реактивные — ReactiveFormsModule.
+// FormControl — FormControl отслеживает значение каждого элемента формы отдельно.
+// FormGroup — FormGroup отслеживает целиком группу состоящую из контроллеров (FormControl).
+// FormArray — FormArray отслеживает массив состоящий из групп контроллеров (FormGroup, FormControl)
+// ControlValueAccessor — создает «мост» между FormControl и элементами DOM.
+
+//__Шаблонные формы
+// Шаблонные формы используют неявную модель присваивания
+// Можно по умолчанию писать вот так предворительно добавить FormModule 
+//Здесь ключевое [(ngModel)]="name", ngModel — отвечает за привязку, а name — это обычная переменная
+//<input type='text' [ngModel] = 'value' (ngModelChange) = 'value === $event'>
+//{{value}} 
+//тот же самый синтаксиси только совмещенный <input type='text' [(ngModel)] = 'value' >
+//по ссылке получаем доступ к форме
+//<input type='text' ngModel #c="ngModel">
+//{{c.value}} <--- можем полноцено работать с формами
+
+//Пример Стандартных (Template-driven) на основе шаблонов
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent  {
+
+  public login(_formValue: any): void {
+
+  }
+}
+/* 
+<div class="auth-content">
+  <mat-card>
+    <mat-card-content>
+
+      // #myForm — это имя нашей формы, "ngForm" — это привязка к шаблонным формам Angular. Так мы говорим ангуляру, что теперь ему нужно следить за этой формой.
+      <form #f="ngForm" (ngSubmit)="login(f.value)">
+        <p>Login to continue</p>
+        <mat-form-field appearance="fill">
+          <input matInput placeholder="Username" type="text" ngModel
+                 name="username" required  minlength="5" appUserValidator #c="ngModel"> //< --- используем appUserValidator
+          <mat-error *ngIf="c.errors?.onlyLetters">{{c.errors.onlyLetters}}</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+          <input matInput placeholder="Password" type="password" ngModel
+                 name="password" required>
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="submit" [disabled]="f.invalid">Log In</button>
+        <a mat-button [routerLink]="['/signup']">Sign Up</a>
+      </form>
+    </mat-card-content>
+  </mat-card>
+  <pre>{{c.errors | json}}</pre>
+</div>
+*/
+
+//пишем валидатор на основе дерективы
+//можно валидатор распологать где угодна и использовать как и деректива и как функция
+@Directive({
+  selector: '[appUserValidator]',
+  providers: [
+    {
+      //NG_VALIDATORS - стандартный резервированный ключ для валидаторов
+      provide: NG_VALIDATORS,
+      useValue: validate,
+      multi: true
+    }
+  ]
+})
+export class UserValidatorDirective {}
+
+function validate(control: FormControl): ValidationErrors | null {
+  const isValid: boolean = /^[a-zA-Z]*$/.test(control.value);
+  return isValid ? null : {
+    //ошибку которую будем получать при неволидной форме 
+    'onlyLetters': 'You should use only letters'
+  };
+}
+
+//__Реактивные формы
+//импортировать ReactiveFormsModule
+//myForm — название нашей формы, которая принадлежит классу FormGroup, new FormGroup — сразу же «на месте» создаем новую форму.
+//В шаблонных формах они создаются неявно, здесь это происходит явно
+// myForm: FormGroup = new FormGroup({
+//   name: new FormControl(''),
+//   age: new FormControl(''),
+//   profession: new FormControl(''),
+// });
+
+@Component({
+  selector: 'app-signup',
+  templateUrl: './signup.component.html',
+  styleUrls: ['./signup.component.css']
+})
+export class SignupComponent implements OnInit {
+  public validators = [Validators.required];
+  public signupForm!: FormGroup;
+
+  constructor(
+    private router: Router,
+    private fb: FormBuilder,
+    private http: HttpClient,
+  ) {
+  }
+
+  ngOnInit(): void {
+    //используем FormBuilder для простоты обращения (не через new Form...)
+    this.signupForm = this.fb.group({
+      username: ['', this.validators, this.uniqUserName.bind(this)],//bind чтобы не потерять контекст
+      male: [false],
+      password: this.fb.group({
+        password: ['', this.validators],
+        cpassword: ['', this.validators]
+      }, {
+        validators: [this.equalValidator]
+      })
+    });
+  }
+
+  public goToLogin(): void {
+    this.router.navigate(['/login']);
+  }
+
+  public signup(_formValue: any): void {
+
+  }
+
+  //используем ваидатор написанный прямо в контролере
+  public equalValidator(control: FormGroup): ValidationErrors | null {
+    const [password, cpassword] = Object.values(control.value);
+    return password === cpassword ? null : {
+      'nonEqual': 'Passwords are not equal'
+    };
+  }
+
+  //асинхронный валидатор
+  public uniqUserName({value: username}: FormControl): Observable<ValidationErrors | null> {
+    // TODO debounce
+    return this.http.post('/auth/checkUsername', {username});
+  };
+
+}
+/* 
+<div class="auth-content">
+  <mat-card>
+    <mat-card-content>
+      <div [formGroup]="signupForm">
+        <p>Sign Up to continue</p>
+        <mat-form-field appearance="fill">
+          <input matInput placeholder="Username" type="text"
+                 formControlName="username" appUserValidator>
+        </mat-form-field>
+        <div formGroupName="password">
+          <mat-form-field appearance="fill">
+            <input matInput placeholder="Password" type="password" formControlName="password">
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <input matInput placeholder="Confirm Password" type="password" formControlName="cpassword">
+          </mat-form-field>
+        </div>
+        <button mat-raised-button color="primary" (click)="signup(signupForm.value)"
+                [disabled]="signupForm.invalid || signupForm.pending">Sign Up
+        </button> // <--signupForm.pendin форма будет не валидна
+        <a mat-button [routerLink]="['/login']">Sign Up</a>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  {{signupForm.pending}}
+</div>
+*/
+
+//__Методы patchValue() и setValue() в Angular
+//Методы patchValue() и setValue() используются для обновления состояния формы в реактивных формах Angular.
+
+//Метод patchValue() обновляет только определенные свойства в объекте формы
+this.myForm.patchValue({
+  name: 'John Doe',
+  email: 'johndoe@example.com'
+});
+
+//Метод setValue() перезаписывает все свойства в объекте формы.
+this.myForm.setValue({
+  name: 'John Doe',
+  email: 'johndoe@example.com',
+  password: 'password'
+});
+
+//__Валидация ввода формы в Angular
+//Встроенные валидаторы
+// required: Проверяет, не пусто ли значение.
+// email: Проверяет, является ли значение действительным адресом электронной почты.
+// minLength: Проверяет, не меньше ли длина значения указанного минимума.
+// maxLength: Проверяет, не больше ли длина значения указанного максимума.
+// pattern: Проверяет, соответствует ли значение указанному регулярному выражению.
+// min: Проверяет, не меньше ли значение указанного минимума.
+// max: Проверяет, не больше ли значение указанного максимума.
+@Component({
+  selector: 'app-form-validation',
+  templateUrl: './form-validation.component.html',
+  styleUrls: ['./form-validation.component.css']
+})
+export class FormValidationComponent implements OnInit {
+  myForm: FormGroup;
+
+  constructor(private fb: FormBuilder) { }
+
+  ngOnInit(): void {
+    this.myForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(3)]],
+      email: ['', [Validators.required, Validators.email]]
+    });
+  }
+
+  onSubmit(): void {
+    console.log(this.myForm.value);
+  }
+}
+/* 
+<div *ngIf="myForm.controls.name.errors?.required">
+  Name is required.
+</div>
+*/
+
+//Пользовательские валидаторы
+//Пользовательские валидаторы могут использоваться для проверки более сложных требований
+export function passwordValidator(control: AbstractControl): ValidationErrors | null {
+  if (control.value !== 'password') {
+    return { password: true };
+  }
+  return null;
+}
+// this.myForm = this.fb.group({
+//   password: ['', [Validators.required, passwordValidator]]
+// });
+
+//Асинхронная валидация
+//Асинхронная валидация может использоваться для проверки требований, которые требуют доступа к серверу или другим внешним ресурсам
+export function uniqueUsernameValidator(control: AbstractControl): Observable<ValidationErrors | null> {
+  return of(null).pipe(
+    delay(500),
+    map(() => {
+      if (control.value === 'john.doe') {
+        return { uniqueUsername: true };
+      }
+      return null;
+    })
+  );
+}
+// this.myForm = this.fb.group({
+//   username: ['', [Validators.required, uniqueUsernameValidator]]
+// });
+
+//__Динамические формы
+//Динамические формы позволяют создавать формы на лету, добавляя и удаляя элементы управления формы программно. Это может быть полезно, когда структура формы неизвестна заранее или когда необходимо создать форму на основе данных, полученных из внешнего источника
+@Component({
+  selector: 'app-dynamic-form',
+  templateUrl: './dynamic-form.component.html',
+  styleUrls: ['./dynamic-form.component.css']
+})
+export class DynamicFormComponent implements OnInit {
+  myForm: FormGroup;
+
+  constructor(private fb: FormBuilder) { }
+
+  ngOnInit(): void {
+    this.myForm = this.fb.group({
+      name: [''],
+      hobbies: this.fb.array([])
+    });
+  }
+
+  addHobby(): void {
+    const hobbies = this.myForm.get('hobbies') as FormArray;
+    hobbies.push(this.fb.control(''));
+  }
+
+  removeHobby(index: number): void {
+    const hobbies = this.myForm.get('hobbies') as FormArray;
+    hobbies.removeAt(index);
+  }
+
+  onSubmit(): void {
+    console.log(this.myForm.value);
+  }
+}
+/* 
+<form [formGroup]="myForm" (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" class="form-control" formControlName="name">
+  </div>
+  <div class="form-group" *ngFor="let hobby of myForm.get('hobbies').controls; let i = index">
+    <label for="hobby">Hobby {{i + 1}}</label>
+    <input type="text" class="form-control" [formControlName]="i">
+    <button type="button" class="btn btn-danger" (click)="removeHobby(i)">Remove</button>
+  </div>
+  <button type="button" class="btn btn-primary" (click)="addHobby()">Add Hobby</button>
+  <button type="submit" class="btn btn-success">Submit</button>
+</form>
+*/
+
+//еще дополнительный пример
+@Component({
+  selector: 'app-signup',
+  templateUrl: './signup.component.html',
+  styleUrls: ['./signup.component.css']
+})
+export class SignupComponent implements OnInit {
+  public signupForm!: FormGroup;
+   public validators = [Validators.required];
+
+  constructor(
+    private router: Router,
+    private fb: FormBuilder,
+    private http: HttpClient,
+  ) {
+  }
+
+  ngOnInit(): void {
+    this.signupForm = this.fb.group({
+      emails: this.fb.array([this.fb.control('', [...this.validators, Validators.email ])]),
+    
+    });
+  }
+
+  public signup(_formValue: any): void {}
+
+  public getControls(control: FormGroup, path: string): FormControl[] {
+    //получаем по названию поля контролы и уточняем что это FormArray)
+    //.controls - это метод который возврощает массив контролов(такой же метод как и push и т.д.)
+    return (control.get(path) as FormArray).controls as FormControl[];
+  }
+
+  public addEmail(): void {
+    (this.signupForm.get('emails') as FormArray).push(this.fb.control('', [...this.validators, Validators.email ]));
+  }
+
+  public removeEmail(index: number): void {
+    (this.signupForm.get('emails') as FormArray).removeAt(index);
+  }
+}
+/* 
+<div [formGroup]="signupForm">
+  <div fxLayout="column" formArrayName="emails">
+  <div fxLayout="row"
+       *ngFor="let fCtrl of getControls(signupForm, 'emails') as controls; index as i; first as f ">
+    <mat-form-field appearance="fill" fxFlex="90">
+      <input matInput placeholder="Email" type="email"
+             [FormControl]="fCtrl"> // <--- тут итерируемся по самим контролам
+    </mat-form-field>
+    <div fxFlex="10" fxLayout="row">
+      <mat-icon (click)="addEmail()" *ngIf="f">add</mat-icon>
+      <mat-icon *ngIf="controls.length > 1" (click)="removeEmail(i)">delete</mat-icon>
+    </div>
+  </div>
+</div>
+</div>
+*/
+
+//__Интересный другой кейс 
+//есть кастомная компонента и мы хотим ее передать в структру нашей формы уже созданной
+//switcher-base - делаем базе имплеминтацию ControlValueAccessor 
+@Injectable()
+export class SwitcherBaseComponent implements ControlValueAccessor {
+  public internalValue!: boolean;
+  protected onChangeCb!: (checked: boolean) => void;
+
+  public toggle(): void {
+    this.internalValue = !this.internalValue;//boolean
+    this.onChangeCb(this.internalValue);//передаем к нашу функцию
+  }
+ 
+  public internalValue!: boolean;
+
+  //(ControlValueAccessor) передает значения 
+  public writeValue(checked: boolean): void {
+    this.internalValue = checked;
+  }
+
+  //регистрирует изменения (ControlValueAccessor)
+  public registerOnChange(fn: (checked: boolean) => void): void {
+    this.onChangeCb = fn;//возврощаем новую функцию
+  }
+
+  //регистрирует если затронут (ControlValueAccessor)
+  public registerOnTouched(_fn: any): void {
+  }
+}
+
+//switcher
+@Component({
+  selector: 'app-switcher',
+  templateUrl: './switcher.component.html',
+  styleUrls: ['./switcher.component.css'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: SwitcherComponent,
+      multi: true
+    }
+  ]
+})
+export class SwitcherComponent extends SwitcherBaseComponent {
+
+  @HostListener('click')
+  public toggle(): void {
+    super.toggle();
+  }
+}
+
+//и далее уже используем
+// ngOnInit(): void {
+//     this.signupForm = this.fb.group({
+//       male: [false],
+//     });
+//   }
+//<app-switcher formControlName="male"></app-switcher>
+  
+
+//-------------------------------
+//__10. NGRX(Store, Effects)__//
