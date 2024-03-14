@@ -2656,3 +2656,153 @@ export class SwitcherComponent extends SwitcherBaseComponent {
 
 //-------------------------------
 //__10. NGRX(Store, Effects)__//
+// NgRx работает на основе следующих основных принципов:
+// State: Состояние приложения хранится в неизменяемых объектах. Это означает, что состояние никогда не изменяется напрямую, а вместо этого создается новый объект состояния.
+// Reduser: которые обновляют состояние, являются чистыми функциями. Это означает, что они не имеют побочных эффектов и всегда возвращают одинаковый результат для одинакового входного состояния.
+// Actions: Действия - это объекты, которые представляют изменения состояния. Они отправляются в хранилище, которое затем вызывает соответствующий редуктор для обновления состояния.
+// State: Хранилище - это централизованный объект, который хранит текущее состояние приложения и обрабатывает действия.
+// Effects: Эффекты - это функции, которые могут выполнять побочные эффекты, такие как сетевые запросы или взаимодействие с DOM. Они вызываются действиями и могут отправлять новые действия в хранилище.
+
+// Схема работы NgRx выглядит следующим образом:
+// Пользователь взаимодействует с приложением, что приводит к отправке действия в хранилище.
+// Хранилище вызывает соответствующий редуктор для обновления состояния приложения на основе действия.
+// Новое состояние передается всем подписчикам хранилища, которые обновляют свои представления соответственно.
+// Если действие вызывает побочные эффекты, такие как сетевой запрос, то эффект вызывается и может отправлять новые действия в хранилище.
+
+//__Actions в NgRx 
+//это объекты, которые представляют изменения состояния приложения. Они отправляются в хранилище NgRx, которое затем вызывает соответствующий редуктор для обновления состояния.
+// type: Строка, идентифицирующая тип действия.
+// payload: Необязательный объект, содержащий любые дополнительные данные, необходимые для обработки действия.
+//Actions отправляются в хранилище NgRx с помощью метода dispatch. Компоненты, службы и другие части приложения могут отправлять действия в ответ на события пользователя, сетевые запросы или другие изменения состояния
+export const getProductsPending = createAction(
+  '[Products] Get products pending'
+);
+
+export const getProductsSuccess = createAction(
+  '[Products] Get products success',
+  props<{ products: IProduct[] }>()
+);
+
+export const getProductsError = createAction(
+  '[Products] Get products error'
+);
+
+//__Reducer
+//Чистые функции, которые обновляют состояние приложения в ответ на действия. Они используются для определения того, как состояние приложения изменяется с течением времени
+//Хранилище вызывает соответствующий редуктор для каждого действия, отправленного в него.
+//имеет следующую структуру:
+// state: Текущее состояние приложения.
+// action: Действие, которое вызвало вызов редуктора.
+// newState: Новое состояние приложения, возвращаемое редуктором.
+const initialState: { items: IProduct[], loading: boolean } = {
+  items: [],
+  loading: false
+};
+
+//Создание 
+// Начальное состояние: Объект, представляющий начальное состояние приложения.
+// Массив обработчиков действий: Массив объектов, каждый из которых определяет, как редуктор должен обрабатывать определенное действие
+const scoreboardReducer = createReducer(
+  initialState,
+  on(getProductsSuccess, (_state, action) => {
+    return {
+      items: action.products,
+      loading: false
+    };
+  }),
+  on(getProductsPending, (_state) => {
+    return {
+      ..._state,
+      loading: true
+    };
+  }),
+);
+
+export default function reducer(state: any, action: Action): any {
+  return scoreboardReducer(state, action);
+}
+
+//Reducer регистрируются в модуле приложения
+@NgModule({
+  imports: [
+    StoreModule.forRoot(reducers),
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppModule {
+}
+
+//__Effect
+//Effect в NgRx - это функции, которые могут выполнять побочные эффекты, такие как сетевые запросы или взаимодействие с DOM. Они вызываются действиями и могут отправлять новые действия в хранилище.
+@Injectable()
+export class ProductsEffects {
+
+  getProducts$ = createEffect(() => this.actions$.pipe(
+    ofType(getProductsPending),
+    mergeMap(() => this.productsService.getProducts()
+      .pipe(
+        map((products) => getProductsSuccess({products})),
+        catchError(() => EMPTY)
+      ))
+    )
+  );
+
+  constructor(
+    private actions$: Actions,
+    private productsService: ProductsService
+  ) {
+  }
+}
+
+export const effects = [ProductsEffects];
+//Эффекты регистрируются в модуле приложения с помощью функции EffectsModule.forRoot. Это позволяет эффектам прослушивать действия и выполнять побочные эффекты.
+@NgModule({
+  imports: [
+    StoreModule.forRoot(reducers),
+    EffectsModule.forRoot(effects)
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppModule {
+}
+
+//__Dispatch и Select
+//dispatch - это метод, который используется для отправки действий в хранилище NgRx
+//select - это оператор RxJS, который используется для выбора части состояния из хранилища NgRx
+@Component({
+  selector: 'app-products',
+  templateUrl: './products.component.html',
+  styleUrls: ['./products.component.css']
+})
+export class ProductsComponent implements OnInit {
+
+//  export interface IState {
+//     products: {
+//       items: IProduct[],
+//       loading: boolean
+//     }
+//   }
+  
+  public products$: Observable<IProduct[]> = this.store.select('products', 'items');
+  public loading$: Observable<boolean> = this.store.select('products', 'loading');
+
+  public constructor(
+    private store: Store<IState>
+  ) {
+  }
+
+  public ngOnInit(): void {
+    this.store.dispatch(getProductsPending());
+  }
+
+}
+/* 
+<div class="loader-container" *ngIf="loading$ | async">
+  <mat-spinner></mat-spinner>
+</div>
+ <mat-grid-tile
+    *ngFor="let product of products$ | async >
+    <app-product-card [product]="product"></app-product-card>
+  </mat-grid-tile>
+*/
+
