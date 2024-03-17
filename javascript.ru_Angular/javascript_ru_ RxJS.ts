@@ -550,9 +550,12 @@ fromEvent(el, "input")
 
 //-----------
 //__Swipe__//
-import { fromEvent, iif, merge, Observable, of, zip } from "rxjs";
-import { map, pluck, switchMap } from "rxjs/operators";
+//swipe для вычисления направления смахивания
+import { fromEvent, merge, Observable, zip } from "rxjs";
+import { map } from "rxjs/operators";
 
+//Создание потоков событий касания и мыши
+//zip: Объединяет несколько потоков в один поток, испуская значения из всех исходных потоков в виде кортежей.
 swipe(
   zip(
     getX(
@@ -565,6 +568,7 @@ swipe(
     )
   )
 ).subscribe((direction) => {
+  //Определение направления смахивания
   if (direction < 0) {
     console.log("Swipe Left");
     return;
@@ -572,18 +576,14 @@ swipe(
   console.log("Swipe Right");
 });
 
+//Извлечение координаты X из событий
+//merge: Объединяет несколько потоков в один поток, испуская значения из всех исходных потоков вперемешку.
 function getX(
   source1$: Observable<TouchEvent>,
   source2$: Observable<MouseEvent>
 ) {
+  //возвращает новый поток, который объединяет эти два поток
   return merge(source1$, source2$).pipe(
-    // switchMap((event: TouchEvent | MouseEvent) => {
-    //     return iif(
-    //         () => event instanceof TouchEvent,
-    //         of(event as TouchEvent).pipe(pluck('changedTouches', 0, 'clientX')),
-    //         of(event as MouseEvent).pipe(pluck('clientX')),
-    //     )
-    // })
     map((event: TouchEvent | MouseEvent) => {
       if (event instanceof TouchEvent) {
         return event.changedTouches[0].clientX;
@@ -593,8 +593,314 @@ function getX(
   );
 }
 
+//Создание потока смещения по оси X
+////map: Преобразует каждое значение в потоке с помощью указанной функции
 function swipe(source$: Observable<[number, number]>) {
   return source$.pipe(map(([x, y]) => y - x));
 }
 
-//2.50
+//------------
+//__Slider__//
+//реализация слайдера
+
+//Создание потоков событий для ползунков
+const quality$ = getValue(fromEvent($("#quality").slider(), "change"));
+const rating$ = getValue(fromEvent($("#rating").slider(), "change"));
+const actual$ = getValue(fromEvent($("#actual").slider(), "change"));
+
+//Объединение потоков и вычисление среднего значения
+//combineLatest: Объединяет несколько потоков в один поток, испуская кортежи из последних испущенных значений из всех исходных потоков
+//map: Преобразует каждое значение в потоке с помощью указанной функции
+const slideSequence$ = combineLatest([quality$, rating$, actual$]).pipe(
+  map(([quality, rating, actual]) => {
+    return Math.round(((quality + rating + actual) / 3) * 10);
+  })
+);
+
+//Вывод среднего значения в консоль
+//Оператор fromEvent создает поток событий для нажатий кнопки
+//withLatestFrom: Объединяет поток с другим потоком (вклинивает значения)
+fromEvent<MouseEvent>(
+  document.querySelector("#send-result") as HTMLButtonElement,
+  "click"
+)
+  .pipe(withLatestFrom(slideSequence$))
+  .subscribe(([_e, value]) => {
+    console.log(value);
+  });
+
+//Извлечение значения из событий ползунка
+//pluck: Извлекает указанное свойство из каждого испускаемого значения
+//startWith: Устанавливает начальное значение для потока
+function getValue(source$: Observable<any>) {
+  return source$.pipe(
+    map(
+      ({
+        delegateTarget: { previousElementSibling },
+        value: { newValue },
+      }: any) => {
+        return {
+          element: previousElementSibling,
+          value: newValue,
+        };
+      }
+    ),
+    tap(redrawSlider),
+    pluck("value"),
+    startWith(5)
+  );
+}
+
+
+function redrawSlider({ element, value }: any) {
+  const sliderTrack = element.querySelector(".slider-track");
+  const v = value * 10;
+  sliderTrack.classList.remove("bad", "warn", "good");
+  if (v < 40) {
+    sliderTrack.classList.add("bad");
+    return;
+  }
+  if (v > 40 && v < 70) {
+    sliderTrack.classList.add("warn");
+    return;
+  }
+  sliderTrack.classList.add("good");
+}
+
+//------------------------------
+//__Кастомные операторы RxJS__//
+//Для создания кастомных операторов RxJS используется функция pipe. Она принимает функцию высшего порядка, которая возвращает функцию, принимающую поток в качестве аргумента и возвращающую новый потока
+// Оператор, который добавляет префикс к каждому значению в потоке
+const addPrefix = (prefix: string) => pipe(
+  (source: Observable<string>) => new Observable(subscriber => {
+    source.subscribe({
+      next: (value) => subscriber.next(prefix + value),
+      error: (err) => subscriber.error(err),
+      complete: () => subscriber.complete()
+    });
+  })
+);
+
+// Использование кастомного оператора
+const source$ = Observable.from(['a', 'b', 'c']);
+const prefixed$ = source$.pipe(addPrefix('prefix-'));
+
+prefixed$.subscribe(console.log); // Выведет: 'prefix-a', 'prefix-b', 'prefix-c'
+
+//Оператор, который отфильтровывает значения, не являющиеся числам
+const isNumber = pipe(
+  (source: Observable<any>) =>
+    new Observable((subscriber) => {
+      source.subscribe({
+        next: (value) => {
+          if (typeof value === "number") {
+            subscriber.next(value);
+          }
+        },
+        error: (err) => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+    })
+);
+
+//Оператор, который задерживает испускание значений на указанное количество миллисекунд
+const delay = (ms: number) =>
+  pipe(
+    (source: Observable<any>) =>
+      new Observable((subscriber) => {
+        source.subscribe({
+          next: (value) => setTimeout(() => subscriber.next(value), ms),
+          error: (err) => subscriber.error(err),
+          complete: () => subscriber.complete(),
+        });
+      })
+  );
+
+//__Создание кастомных операторов RxJS без использования pipe требует немного больше кода, но все же возможно
+//Интерфейс Operator
+interface Operator<T, R> {
+  call(subscriber: Subscriber<R>, source: Observable<T>): TeardownLogic;
+}
+// T - тип значений во входном потоке.
+// R - тип значений в выходном потоке.
+// Subscriber - объект, который будет получать значения из выходного потока.
+// TeardownLogic - функция, которая будет вызвана для очистки любых ресурсов, используемых оператором
+
+import { Observable, Subscriber, TeardownLogic } from 'rxjs';
+
+// Оператор, который добавляет префикс к каждому значению в потоке
+class AddPrefixOperator implements Operator<string, string> {
+  constructor(private prefix: string) {}
+
+  call(subscriber: Subscriber<string>, source: Observable<string>): TeardownLogic {
+    return source.subscribe({
+      next: (value) => subscriber.next(this.prefix + value),
+      error: (err) => subscriber.error(err),
+      complete: () => subscriber.complete()
+    });
+  }
+}
+
+// Использование кастомного оператора
+const source$ = Observable.from(['a', 'b', 'c']);
+const prefixed$ = source$.lift(new AddPrefixOperator('prefix-'));
+
+prefixed$.subscribe(console.log); // Выведет: 'prefix-a', 'prefix-b', 'prefix-c'
+
+//Метод lift используется для применения кастомного оператора к потоку. Он принимает оператор в качестве аргумента и возвращает новый поток, который применяет этот оператор к исходному потоку.
+
+//Оператор, который отфильтровывает значения, не являющиеся числами
+class IsNumberOperator implements Operator<any, number> {
+  call(subscriber: Subscriber<number>, source: Observable<any>): TeardownLogic {
+    return source.subscribe({
+      next: (value) => {
+        if (typeof value === "number") {
+          subscriber.next(value);
+        }
+      },
+      error: (err) => subscriber.error(err),
+      complete: () => subscriber.complete(),
+    });
+  }
+}
+
+//Оператор, который задерживает испускание значений на указанное количество миллисекунд
+class DelayOperator implements Operator<any, any> {
+  constructor(private ms: number) {}
+
+  call(subscriber: Subscriber<any>, source: Observable<any>): TeardownLogic {
+    return source.subscribe({
+      next: (value) => setTimeout(() => subscriber.next(value), this.ms),
+      error: (err) => subscriber.error(err),
+      complete: () => subscriber.complete(),
+    });
+  }
+}
+
+//---------------------------------------
+//__Observable высшего порядка в RxJS__//
+//Observable высшего порядка в RxJS - это Observable, который испускает другие Observable. Это мощный инструмент, который позволяет создавать сложные потоки данных и выполнять операции над ними
+
+// Observable высшего порядка, который испускает Observable чисел от 1 до 10
+const source$ = Observable.create((observer) => {
+  for (let i = 1; i <= 10; i++) {
+    observer.next(of(i));
+  }
+  observer.complete();
+});
+
+// Подписка на Observable высшего порядка
+source$.subscribe((innerObservable) => {
+  // Подписка на каждый внутренний Observable
+  innerObservable.subscribe(console.log);
+});
+
+//Операторы высшего порядка:
+//RxJS предоставляет несколько встроенных операторов высшего порядка, основные
+//mergeAll: Оператор высшего порядка, который объединяет все внутренние Observable в один поток.
+//switchAll: Оператор высшего порядка, который испускает значения только из последнего внутреннего Observable.
+//concatAll: Оператор высшего порядка, который испускает значения из внутренних Observable последовательно, гарантирует порядок
+//exhaust: Оператор высшего порядка, который испускает значения только первого Observable (работает противоположно switchAll)
+const inputEl = document.querySelector("input") as HTMLInputElement;
+const sequence = fromEvent(inputEl, "input")
+  .pipe(
+    map((e) => {
+      const value = (e.target as HTMLInputElement).value;
+      return ajax(
+        `http://learn.javascript.ru/courses/groups/api/participants?key=dsodaf`
+      );
+    }),
+    exhaust(),
+    // map + mergeALl = mergeMap
+    // map + switchAll = switchMap
+    // map + concatAll = concatMap
+    // map + exhaust = exhaustMap
+    pluck("response")
+  )
+  .subscribe((value) => {
+    console.log(value);
+  });
+
+//--------------------
+//__Принцип работа RxJS__//
+//Потоки данных в RxJS можно представить как потоки воды, которые текут через трубы. Операторы RxJS - это как клапаны, фильтры и другие устройства, которые можно использовать для управления потоком воды.
+
+// Основные принципы работы RxJS:
+// Потоки данных: Потоки данных в RxJS представляют собой последовательности значений, которые испускаются во времени. Потоки могут быть созданы из различных источников, таких как события, массивы, обещания и т.д.
+// Наблюдаемые: Наблюдаемые - это объекты, которые испускают потоки данных. Наблюдаемые могут быть "холодными" или "горячими". Холодные наблюдаемые испускают значения только тогда, когда на них подписаны. Горячие наблюдаемые испускают значения независимо от того, подписаны они или нет.
+// Подписчики: Подписчики - это объекты, которые получают значения из потока данных. Подписчики могут быть созданы с помощью метода subscribe() наблюдаемого.
+// Операторы: Операторы - это функции, которые можно применять к потокам данных для их преобразования, фильтрации и объединения. Операторы позволяют создавать сложные потоки данных из более простых.
+
+//----------------------
+//__реализация live-search__//
+
+export interface IResult {
+  name: string;
+  description: string;
+  owner: {
+    avatar_url: string;
+  };
+}
+
+//debounceTime - задерживает испускание значений на 300 миллисекунд после последнего события. Это предотвращает выполнение запросов при каждом нажатии клавиши
+//pluck('target', 'value'): Извлекает значение свойства value из события клавиатуры
+//distinctUntilChanged(): Пропускает повторяющиеся значения
+export function liveSearch(
+  source$: Observable<KeyboardEvent>,
+  request: (text: string) => Observable<any>
+) {
+  return source$.pipe(
+    debounceTime(300),
+    pluck<KeyboardEvent, string>("target", "value"),
+    map((value) => value.trim()),
+    filter((value: string) => value.length > 3),
+    distinctUntilChanged(),
+    switchMap(request)
+  );
+}
+
+//bufferCount(3): Группирует элементы по 3 в массив
+//catchError((err) => { ... }): Обрабатывает ошибки и возвращает пустую строку
+//concatAll: Объединяет все внутренние Observable в один поток поочередно
+export function request(source$: Observable<any>) {
+  return source$.pipe(
+    pluck<any, IResult[]>("response", "items"),
+    concatAll(),
+    map(createCart),
+    bufferCount(3),
+    reduce((resultStr: string, htmlStrs: string[]) => {
+      return (resultStr += createRow(htmlStrs));
+    }, ""),
+    map((htmlStr) => htmlStr.trim().replace(/\s+(<)/g, "<")),
+    catchError((err) => {
+      console.log("CATCH err", err);
+      return "";
+    })
+  );
+}
+
+export function createCart({
+  name,
+  description,
+  owner: { avatar_url },
+}: IResult) {
+  return `
+     <div class="col-md-4">
+        <div class="card">
+          <img class="card-img-top" src=${avatar_url} alt=${name} />
+          <div class="card-body">
+                <h5 class="card-title">${name}</h5>
+                <p class="card-text">${description}</p>
+          </div>
+        </div>
+     </div>
+  `;
+}
+
+export function createRow(htmlStrings: string[]) {
+  return `
+      <div class="row">
+       ${htmlStrings.join(" ")}
+      </div>
+   `;
+}
