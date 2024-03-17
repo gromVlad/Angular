@@ -2806,3 +2806,785 @@ export class ProductsComponent implements OnInit {
   </mat-grid-tile>
 */
 
+//---------------------------
+//__NgRx |
+
+//__Entity в NgRx
+// Entity - это специальная коллекция в NgRx, которая абстрагирует работу с данными. Она предоставляет набор определенных действий для управления данными, таких как добавление, обновление, удаление и получение элементов
+
+//Как использовать Entity
+//Чтобы использовать Entity, необходимо создать класс сущности, который расширяет класс Entity. Этот класс должен иметь свойства для идентификатора и других атрибутов сущности
+export class Product implements Entity {
+  id: string;
+  name: string;
+  price: number;
+}
+
+//Состояние сущности
+interface EntityState<V> {
+  //Массив всех первичных идентификаторов в коллекции
+  ids: string[] | number[];
+  // Словарь сущностей в коллекции, проиндексированных по первичному идентификатору
+  entities: { [id: string | id: number]: V };
+}
+
+//Расширьте этот интерфейс, чтобы предоставить дополнительные свойства для состояния сущности
+export interface User {
+  id: string;
+  name: string;
+}
+
+export interface State extends EntityState<User> {
+  selectedUserId: string | null;
+}
+
+//EntityAdapter<T>
+//Предоставляет интерфейс общего типа для предоставленного адаптера сущности. Адаптер сущности предоставляет множество методов сбора для управления состоянием сущности
+export const adapter: EntityAdapter<User> = createEntityAdapter<User>();
+
+//selectId: Метод для выбора первичного идентификатора для коллекции. Необязателен, если сущность имеет первичный ключ id
+//sortComparer: Функция сравнения, используемая для сортировки коллекции необязательно
+export function selectUserId(a: User): string {
+  return a.id;
+}
+
+export function sortByName(a: User, b: User): number {
+  return a.name.localeCompare(b.name);
+}
+
+export const adapter: EntityAdapter<User> = createEntityAdapter<User>({
+  selectId: selectUserId,
+  sortComparer: sortByName,
+});
+
+//getInitialState
+//Возвращает начальное состояние для состояния сущности на основе предоставленного типа
+export interface User {
+  id: string;
+  name: string;
+}
+
+export interface State extends EntityState<User> {
+  selectedUserId: string | null;
+}
+
+export const initialState: State = adapter.getInitialState({
+  selectedUserId: null,
+});
+
+//Методы коллекции адаптера
+//Эти методы могут изменять от одной до многих записей за раз
+//user.reducer.ts
+export const loadUsers = createAction('[User/API] Load Users', props<{ users: User[] }>());
+export const addUser = createAction('[User/API] Add User', props<{ user: User }>());
+
+export interface State extends EntityState<User> {
+  selectedUserId: string | null;
+}
+
+export const adapter: EntityAdapter<User> = createEntityAdapter<User>();
+
+export const initialState: State = adapter.getInitialState({
+  selectedUserId: null,
+});
+
+export const userReducer = createReducer(
+  initialState,
+   on(UserActions.loadUsers, (state, { users }) => {
+    return adapter.setAll(users, state);
+  }),
+   on(UserActions.addUser, (state, { user }) => {
+    return adapter.addOne(user, state)
+  }),
+)
+
+export const getSelectedUserId = (state: State) => state.selectedUserId;
+
+// get the selectors
+const {
+  selectIds,
+  selectEntities,
+  selectAll,
+  selectTotal,
+} = adapter.getSelectors();
+
+// select the array of user ids
+export const selectUserIds = selectIds;
+
+// select the dictionary of user entities
+export const selectUserEntities = selectEntities;
+
+// select the array of users
+export const selectAllUsers = selectAll;
+
+// select the total user count
+export const selectUserTotal = selectTotal;
+
+//Обновление сущностей
+//При обновлении сущностей с помощью адаптера сущностей следует помнить о нескольких предостережениях updateOne и updateMany поддерживает частичные обновления
+//upsertOne и upsertMany выполняют вставку или обновление. Эти методы не поддерживают частичные обновления
+
+//Селекторы сущностей
+//Метод getSelectors, возвращаемый созданным адаптером сущности, предоставляет функции для выбора информации из сущности.
+import * as fromUser from './user.reducer';
+
+export interface State {
+  users: fromUser.State;
+}
+
+export const reducers: ActionReducerMap<State> = {
+  users: fromUser.reducer,
+};
+
+export const selectUserState = createFeatureSelector<fromUser.State>('users');
+
+export const selectUserEntities = createSelector(
+  selectUserState,
+  fromUser.selectUserEntities
+);
+
+export const selectCurrentUserId = createSelector(
+  selectUserState,
+  fromUser.getSelectedUserId
+);
+
+export const selectCurrentUser = createSelector(
+  selectUserEntities,
+  selectCurrentUserId,
+  (userEntities, userId) => userId && userEntities[userId]
+);
+
+//Можно добавить дополнительные свойства в состояние, расширяемое из EntityState. Эти свойства должны обновляться вручную
+export const reducer = createReducer(
+  initialState,
+  on(UserActions.selectUser, (state, { userId }) => {
+    return { ...state, selectedUserId: userId };
+  }),
+  on(UserActions.loadUsers, (state, { users }) => {
+    return adapter.addMany(users, { ...state, selectedUserId: null });
+  })
+);
+
+//__ngrx/data
+//Упрощает управление данными сущностей и уменьшая количество явных данных.
+//С помощью NgRx Data вы можете быстро разрабатывать большие модели сущностей, используя очень мало кода и не зная NgRx вообще.
+//NgRx Data - это абстракция над Store, Effects и Entity
+//ngrx/data лучше всего подходит для работы с данными, которые можно представить в виде сущностей. 
+//Сущность - это объект с уникальным идентификатором и набором свойств.
+//В NgRx Data мы сохраняем идентичность объекта сущности с помощью его первичного ключа
+export class Product implements Entity {
+  id: string;
+  name: string;
+  price: number;
+}
+//Коллекция сущностей
+const productCollection: EntityCollection<Product> = {
+  entities: {
+    '1': { id: '1', name: 'Product 1', price: 100 },
+    '2': { id: '2', name: 'Product 2', price: 150 }
+  },
+  ids: ['1', '2'],
+  loaded: true,
+  loading: false
+};
+
+//Определение сущностей
+//EntityMetadataMap сообщает NgRx Data о ваших сущностях
+//Свойство pluralNames используется для указания множественного числа имен сущностей. Это необходимо, потому что множественное число некоторых имен сущностей нерегулярно (например, множественное число от "герой" - "герои", а не "герои")
+//entity-metadata.ts
+import { EntityMetadataMap } from '@ngrx/data';
+
+const entityMetadata: EntityMetadataMap = {
+  Hero: {},
+  Villain: {}
+};
+
+const pluralNames = { Hero: 'Heroes' };
+
+export const entityConfig = {
+  entityMetadata,
+  pluralNames
+};
+
+//Регистрация хранилища сущностей
+//После создания конфигурации сущности необходимо поместить ее в корневое хранилище для NgRx. Это делается путем импорта entityConfig и передачи его в функцию EntityDataModule.forRoot().
+//!!!порядок важен 
+//app.module.ts
+@NgModule({
+  imports: [
+    HttpClientModule,
+    StoreModule.forRoot({}),
+    EffectsModule.forRoot([]),
+    EntityDataModule.forRoot(entityConfig)
+  ]
+})
+export class AppModule {}
+
+//Создание служб данных сущностей
+//EntityCollectionServiceBase - это базовый класс для сервисов сущностей в NgRx Data. Он предоставляет методы для создания, получения, обновления и удаления данных на сервере
+//EntityCollectionServiceElementsFactory - это фабрика, которая создает экземпляры EntityCollectionServiceElement
+//EntityCollectionServiceElement - это класс, который представляет элемент коллекции сущностей.
+//hero.service.ts
+import { Injectable } from '@angular/core';
+import {
+  EntityCollectionServiceBase,
+  EntityCollectionServiceElementsFactory
+} from '@ngrx/data';
+import { Hero } from '../core';
+
+// export class Hero implements Entity {
+//   id: string;
+//   name: string;
+// }
+
+@Injectable({ providedIn: 'root' })
+export class HeroService extends EntityCollectionServiceBase<Hero> {
+  constructor(serviceElementsFactory: EntityCollectionServiceElementsFactory) {
+    //'Hero' - это имя сущности, которой управляет сервис.
+    super('Hero', serviceElementsFactory);
+  }
+}
+
+//__Использование данных NgRx в компонентах
+//Чтобы получить доступ к данным сущности, компоненты должны инжектировать службы данных сущности
+import { Component, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
+import { Hero } from '../../core';
+import { HeroService } from '../hero.service';
+
+@Component({
+  selector: 'app-heroes',
+  template: `
+      <div *ngIf="loading$ | async">Загрузка...</div>
+      <ul *ngIf="heroes$ | async as heroes">
+        <li *ngFor="let hero of heroes">
+          {{ hero.name }}
+          <button (click)="delete(hero)">Удалить</button>
+          <button (click)="update(hero)">Обновить</button>
+        </li>
+      </ul>
+      <button (click)="add(new Hero())">Добавить нового героя</button>       
+    `,
+  styleUrls: ['./heroes.component.scss']
+})
+export class HeroesComponent implements OnInit {
+  loading$: Observable<boolean>;
+  heroes$: Observable<Hero[]>;
+
+  constructor(private heroService: HeroService) {
+    this.heroes$ = heroService.entities$;
+    this.loading$ = heroService.loading$;
+  }
+
+  ngOnInit() {
+    this.getHeroes();
+  }
+
+  add(hero: Hero) {
+    this.heroService.add(hero);
+  }
+
+  delete(hero: Hero) {
+    this.heroService.delete(hero.id);
+  }
+
+  getHeroes() {
+    this.heroService.getAll();
+  }
+
+  update(hero: Hero) {
+    this.heroService.update(hero);
+  }
+}
+
+//__trackBy
+// При изменениях происходит перерасчет, и чтобы отслеживать и менять именно те значения, что поменялись при *ngFor, используем функцию trackBy. До этого было дерганье элементов при обновлениях.
+//Функция trackBy принимает два аргумента: индекс элемента и сам элемент. Она возвращает уникальный идентификатор для каждого элемента. Angular использует этот идентификатор для отслеживания изменений в массиве и обновления только тех элементов, которые изменились.
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-heroes',
+  template: `
+    <ul>
+      <li *ngFor="let hero of heroes; trackBy: trackByHeroId">
+        {{ hero.name }}
+      </li>
+    </ul>
+  `,
+  styleUrls: ['./heroes.component.scss']
+})
+export class HeroesComponent implements OnInit {
+  heroes: Hero[];
+
+  ngOnInit() {
+    this.heroes = [
+      { id: 1, name: 'Супермен' },
+      { id: 2, name: 'Бэтмен' },
+      { id: 3, name: 'Чудо-женщина' }
+    ];
+  }
+
+  trackByHeroId(index: number, hero: Hero) {
+    return hero.id;
+  }
+}
+
+//__Тестирование
+// Для тестирования pipe используем Karma и Jasmine.
+// Karma - это фреймворк для тестирования JavaScript, который запускает тесты в браузере.
+// Jasmine - это фреймворк для написания тестов в стиле BDD (поведенческое описание).
+// Также используем жизненные циклы теста, например beforeEach - настраиваем тестовое окружение
+
+//Тестирование pipe
+//import { ProductsFilterPipe } from './products-filter.pipe';
+
+let mockedProducts = [
+  {
+    '_id': '5f7f4475b5d4d253aac2d21b',
+    'title': 'Product 111',
+    'img': 'assets/img/product-4.jpg',
+    'price': 2345,
+    'author': 'Igor',
+    'isFavorite': false
+  },
+]
+describe('Products filter', () => {
+  //объявляет переменную
+  let productsFilterPipe: ProductsFilterPipe;
+
+  beforeEach(() => {
+    //создает новый экземпляр пайпа ProductsFilterPipe и присваивает его переменной productsFilterPipe
+    productsFilterPipe = new ProductsFilterPipe();
+  });
+
+  //название теста
+  it('Should work in right way', () => {
+    //равен исходному массиву
+    expect(productsFilterPipe.transform(mockedProducts, '')).toEqual(mockedProducts);
+    //Результат вызова метода transform сравнивается с массивом, содержащим только один продукт 
+    expect(productsFilterPipe.transform(mockedProducts, '111')).toEqual([mockedProducts[0]]);
+    //проверяется длина результата
+    expect(productsFilterPipe.transform(mockedProducts, '', true).length).toEqual(1);
+  });
+});
+
+// Настройки Karma  ["ChromeHadless"] - использовать тесты без графической оболочки.
+// SingleRun: true - запускать тесты один раз.
+//Puppeteer - это библиотека Node.js, которая позволяет управлять браузером Chrome без графического интерфейса. Puppeteer можно использовать для написания автоматизированных тестов, которые взаимодействуют с веб-страницами так же, как это делает реальный пользователь
+// karma.conf.js
+module.exports = function (config) {
+  config.set({
+    // ... другие настройки Karma
+
+    // Настройки Puppeteer
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox']
+      }
+    },
+    browsers: ['ChromeHeadlessNoSandbox']
+  });
+};
+
+
+//Тест дерективы
+//hidden.directive.ts
+import { Directive, HostBinding } from '@angular/core';
+
+@Directive({
+  selector: '[appHidden]',
+  exportAs: 'hiddenControl'
+})
+export class HiddenDirective {
+
+  @HostBinding('style.visibility')
+  public visibility: 'visible' | 'hidden' = 'hidden';
+
+  public show(): void {
+    this.visibility = 'visible';
+  }
+
+  public hide(): void {
+    this.visibility = 'hidden';
+  }
+
+}
+
+//hidden.directive.spec.ts
+import { Component } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HiddenDirective } from './hidden.directive';
+import { By } from '@angular/platform-browser';
+
+@Component({
+  selector: 'app-test',
+  template: `
+    <div appHidden #cH="hiddenControl"></div>
+    <span class="hide" (click)="cH.hide()"></span>
+    <span class="show" (click)="cH.show()"></span>
+  `
+})
+export class TestComponent {
+}
+
+describe('Hidden Directive', () => {
+  //переменная будет содержать экземпляр компонента TestComponent.
+  let fixture: ComponentFixture<TestComponent>;
+  beforeEach(() => {
+    //настраивает модуль тестирования
+    TestBed.configureTestingModule({
+      //Эта строка указывает TestBed, что необходимо объявить компоненты TestComponent и HiddenDirective в модуле тестирования
+      declarations: [TestComponent, HiddenDirective]
+    });
+    //создает экземпляр компонента TestComponent 
+    fixture = TestBed.createComponent(TestComponent);
+    // вызывает метод detectChanges для обновления представления компонента
+    fixture.detectChanges();
+  });
+  it('should show and hide element', () => {
+    // получает элемент <div> с директивой HiddenDirective из шаблона компонента
+    const element = fixture.debugElement.query(By.directive(HiddenDirective));
+    //получает элемент <span> с классом hide из шаблона компонента
+    const hidenCntrl = fixture.debugElement.query(By.css('.hide'));
+    // получает элемент <span> с классом show из шаблона компонента
+    const showCntrl = fixture.debugElement.query(By.css('.show'));
+    //проверяет, что элемент <div> с директивой HiddenDirective определен
+    expect(element).toBeDefined();
+    //проверяет, что элемент <span> с классом hide определен
+    expect(hidenCntrl).toBeDefined();
+    //проверяет, что элемент <span> с классом show определен
+    expect(showCntrl).toBeDefined();
+    //вызывает событие click для элемента <span> с классом hide. Это вызывает метод hide() директивы HiddenDirective
+    hidenCntrl.triggerEventHandler('click', null);
+    //метод detectChanges для обновления представления компонента
+    fixture.detectChanges();
+    expect(element.styles.visibility).toEqual('hidden');
+    //проверяет, что стиль visibility элемента <div> равен hidden
+    showCntrl.triggerEventHandler('click', null);
+    fixture.detectChanges();
+    expect(element.styles.visibility).toEqual('visible');
+  });
+});
+
+
+//Тестирование компоненты Card-product.
+@Component({
+  selector: 'app-cart-product',
+  templateUrl: './cart-product.component.html',
+  styleUrls: ['./cart-product.component.css']
+})
+export class CartProductComponent {
+  @Input()
+  public product!: ICartProduct;
+
+  @Output()
+  public remove = new EventEmitter();
+
+  @Output()
+  public increment = new EventEmitter();
+
+  @Output()
+  public decrement = new EventEmitter();
+
+}
+/* 
+<div fxLayout="row" fxLayoutAlign="space-around center">
+  <img [src]="product?.img" [alt]="product?.title">
+  <div fxLayout="row" fxLayoutAlign="space-between center">
+    <mat-icon class="decrement" (click)="decrement.emit()">remove</mat-icon>
+    {{product?.count}}
+    <mat-icon class="increment"  (click)="increment.emit()">add</mat-icon>
+  </div>
+  <span>{{product?.price | number: '1.0-0'}}</span>
+  <mat-icon class="remove"  (click)="remove.emit()">delete</mat-icon>
+</div>
+*/
+
+//cart-product.component.spec.ts
+const product = {
+  '_id': '5f7f4475b5d4d253aac2d223',
+  'title': 'Product 234',
+  'img': 'assets/img/product-3.jpg',
+  'price': 333,
+  'author': 'Igor',
+  'isFavorite': true,
+  count: 2
+};
+describe('Cart product component ', () => {
+  //будет содержать экземпляр компонента CartProductComponent
+  let component: CartProductComponent;
+  let fixture: ComponentFixture<CartProductComponent>;
+  beforeEach(() => {
+    //настраивает модуль тестирования
+    TestBed.configureTestingModule({
+      declarations: [CartProductComponent],
+      imports: [MatIconModule]
+    });
+
+    // создает экземпляр компонента CartProductComponent
+    fixture = TestBed.createComponent(CartProductComponent);
+    //получить прямой доступ к экземпляру компонента,это позволяет нам проверять свойства и вызывать методы компонента, как если бы мы работали с реальным экземпляром компонента в приложении
+    component = fixture.componentInstance;
+    // присваивает данные о продукте
+    component.product = product;
+    //для обновления представления компонента
+    fixture.detectChanges();
+
+    //создает шпион для события remove
+    spyOn(component.remove, 'emit').and.callThrough();
+
+    spyOn(component.increment, 'emit').and.callThrough();
+
+    spyOn(component.decrement, 'emit').and.callThrough();
+  });
+
+  it('should decrement', () => {
+    //получает элемент с классом decrement из шаблона компонента
+    const el = fixture.debugElement.query(By.css('.decrement'));
+    //вызывает событие click для элемента с классом decrement
+    el.triggerEventHandler('click', null);
+    //проверяет, что событие decrement было вызвано один раз
+    expect(component.decrement.emit).toHaveBeenCalledTimes(1);
+    //проверяет, что событие increment не было вызвано
+    expect(component.increment.emit).not.toHaveBeenCalled();
+    //проверяет, что событие increment не было вызвано
+    expect(component.remove.emit).not.toHaveBeenCalled();
+  });
+
+  it('should increment', () => {
+    const el = fixture.debugElement.query(By.css('.increment'));
+    el.triggerEventHandler('click', null);
+    expect(component.increment.emit).toHaveBeenCalledTimes(1);
+    expect(component.decrement.emit).not.toHaveBeenCalled();
+    expect(component.remove.emit).not.toHaveBeenCalled();
+  });
+
+  it('should increment', () => {
+    const el = fixture.debugElement.query(By.css('.remove'));
+    el.triggerEventHandler('click', null);
+    expect(component.remove.emit).toHaveBeenCalledTimes(1);
+    expect(component.decrement.emit).not.toHaveBeenCalled();
+    expect(component.increment.emit).not.toHaveBeenCalled();
+  });
+});
+
+//__Тестирование interseptor
+//custom-interceptor.service.ts
+@Injectable()
+export class CustomInterceptorService implements HttpInterceptor {
+
+  constructor(@Inject(BASE_URL_TOKEN) private baseUrl: string) {}
+
+  public intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    const headers: HttpHeaders = req.headers.append('Content-Type', 'application/json')
+      .append('Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImluZXBpcGVua28iLCJpYXQiOjE2MDA3MDg1MzJ9.Uch-jamBl7U9XF_m1riA9APROi_lO-mkDmnjjuv8Kv8');
+
+    const jsonReq = req.clone({
+      url: `${this.baseUrl}${req.url}`,
+      headers
+    });
+
+    return next.handle(jsonReq)
+      .pipe(
+        filter(this._isHttpResponse),
+        map((res) => {
+          return res.clone({body: res.body?.data});
+        }));
+   
+  }
+
+  private _isHttpResponse(event: HttpEvent<any>): event is HttpResponse<any> {
+    return event instanceof HttpResponse;
+  }
+
+}
+//custom-interceptor.service.spec.ts
+const productsRes = {
+  'data': [
+    {
+      '_id': '5f7f4475b5d4d253aac2d21b',
+      'title': 'Product 111',
+      'img': 'assets/img/product-4.jpg',
+      'price': 2345,
+      'author': 'Igor',
+      'isFavorite': false
+    }
+  ]
+}
+describe('Interceptor', () => {
+  //содержать экземпляр, будет использоваться для проверки HTTP-запросов
+  let httpMocked: HttpTestingController;
+  //определяет строку authHeader
+  const authHeader = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImluZXBpcGVua28iLCJpYXQiOjE2MDA3MDg1MzJ9.Uch-jamBl7U9XF_m1riA9APROi_lO-mkDmnjjuv8Kv8';
+  beforeEach(() => {
+    //настраивает модуль тестирования
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [
+        {
+          provide: HTTP_INTERCEPTORS,
+          useClass: CustomInterceptorService,
+          multi: true,
+        },
+        {
+          provide: BASE_URL_TOKEN,
+          useValue: baseUrl,
+          multi: true
+        },
+        ProductsService
+      ]
+    });
+    // внедряет экземпляр HttpTestingController в переменную httpMocked
+    httpMocked = TestBed.inject(HttpTestingController);
+  });
+
+  //определяет функцию, которая будет выполняться в тесте
+  it('should have auth header', inject([HttpClient, BASE_URL_TOKEN],
+    (http: HttpClient, baseUrl: string) => {
+      http.get('/auth').subscribe();
+
+      //ожидает один HTTP-запрос, соответствующий указанным критериям
+      const httpReq = httpMocked.expectOne({
+        method: 'GET',
+        url: `${baseUrl}/auth`
+      });
+      //проверяет, что запрос содержит заголовок Authorization
+      expect(httpReq.request.headers.has('Authorization')).toBeTruthy();
+      //Authorization совпадает с ожидаемым значением authHeader
+      expect(httpReq.request.headers.get('Authorization')).toEqual(authHeader);
+    }));
+  
+  //Аргументы функции - это внедренные значения BASE_URL_TOKEN и ProductsService
+  it('should transform ', inject([BASE_URL_TOKEN, ProductsService],
+    (baseUrl: string, productsService: ProductsService) => {
+      productsService.getProducts().subscribe((res) => {
+          expect(res).toEqual(productsRes.data);
+        });
+
+      const httpReq = httpMocked.expectOne({
+        method: 'GET',
+        url: `${baseUrl}/products`
+      });
+
+      //строка эмулирует ответ сервера на HTTP-запрос, передавая объект productsRes в качестве тела ответа
+      httpReq.flush(productsRes);
+    }));
+});
+
+
+//__Ng-zone
+//NgZone - это сервис в Angular, который предоставляет механизм для автоматизации обнаружения изменений. Он отслеживает асинхронные действия, такие как события, обещания и интервалы, и вызывает метод tick() для запуска проверки изменений, когда эти действия завершаются.
+
+//Как работает NgZone
+//NgZone оборачивает все события и асинхронные действия в приложении Angular. Когда происходит асинхронное действие, NgZone отслеживает его и добавляет в очередь. Когда действие завершается, NgZone вызывает метод tick(), который запускает проверку изменений для всех компонентов и директив в приложении.
+
+//Использование NgZone
+//Обычно NgZone работает автоматически и не требует вмешательства разработчика. Однако в некоторых случаях может потребоваться вручную вызвать tick() или отключить NgZone.
+//runOutsideAngular(), который отключает NgZone. Это предотвращает автоматическое обнаружение изменений и улучшает производительность приложения
+platformBrowserDynamic().bootstrapModule(AppModule)
+  .then(() => {
+    const ngZone: NgZone = injector.get(NgZone);
+    ngZone.runOutsideAngular(() => {});
+  })
+  .catch(err => console.error(err));
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  //ApplicationRef - это сервис в Angular, который предоставляет доступ к корневому инжектору приложения и позволяет манипулировать жизненным циклом приложения
+  constructor(private appRef: ApplicationRef) {
+    setTimeout(() => {
+      this.appRef.tick();
+    }, 7000);
+  }
+}
+
+//Вручную вызвать tick()
+//В редких случаях может потребоваться вручную вызвать tick() для запуска проверки изменений. Это можно сделать, внедрив NgZone в компонент или директиву и вызвав ngZone.run() или ngZone.runOutsideAngular().
+import { Component, NgZone } from '@angular/core';
+
+@Component({
+  selector: 'my-component',
+  template: `
+    <p>Count: {{ count }}</p>
+    <button (click)="increment()">Increment</button>
+  `
+})
+export class MyComponent {
+  count = 0;
+
+  constructor(private ngZone: NgZone) {}
+
+  increment() {
+    this.count++;
+    // Вручную вызываем tick() для запуска проверки изменений
+    this.ngZone.run(() => {});
+  }
+}
+
+//Отключение NgZone
+//В некоторых случаях может потребоваться отключить NgZone для улучшения производительности. Это можно сделать, установив стратегию обнаружения изменений для компонента или директивы на OnPush. Стратегия OnPush предотвращает автоматическое обнаружение изменений, и изменения будут применяться только при явном вызове метода detectChanges().
+//Преимущества OnPush - компонент или директива редко изменяются,необходимо иметь больший контроль над обнаружением изменения / как бы имутабельно только будет отлеживать изменения
+@Component({
+  selector: 'my-component',
+  template: `
+    <p>Count: {{ count }}</p>
+    <button (click)="increment()">Increment</button>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class MyComponent implements AfterViewInit {
+  count = 0;
+
+  increment() {
+    this.count++;
+  }
+
+  ngAfterViewInit() {
+    // Явно вызываем detectChanges() для применения изменений
+    this.detectChanges();
+  }
+}
+
+//__ChangeDetectorRef | NgZone
+//Некоторые сторонние библиотеки и API не доступны в зоне NgZone, потому что они не отслеживаются механизмом обнаружения изменений Angular.
+@Component({
+  selector: 'app-default',
+  templateUrl: './default.component.html',
+  styleUrls: ['./default.component.css']
+})
+export class DefaultComponent implements OnInit {
+
+  @Input()
+  public user!: Person;
+
+  constructor(
+    //ChangeDetectorRef - это класс в Angular, который предоставляет доступ к механизму обнаружения изменений для компонента или директивы
+    private cdr: ChangeDetectorRef,
+     private zone: NgZone,
+  ) {
+
+    //detach(): отключает компонент или директиву от дерева обнаружения изменений
+    this.cdr.detach();
+    setTimeout(() => {
+      //запускает проверку изменений для компонента или директивы
+      this.cdr.detectChanges();
+    }, 11000);
+
+    vk.getUser((user) => {
+      //оборачивает код в зону NgZone
+      //Чтобы обойти эту проблему, можно обернуть код, который использует сторонние библиотеки или API
+      this.zone.run(() => {
+        //Оборачивание кода в зону NgZone гарантирует, что изменения в свойстве user будут обнаружены и применены к представлению компонента. Без зоны NgZone изменения не будут обнаружены автоматически, и представление компонента не будет обновлено
+        this.user = user;
+      });
+    });
+  }
+
+  ngOnInit(): void {
+  }
+}
