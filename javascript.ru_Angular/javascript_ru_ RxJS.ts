@@ -904,3 +904,474 @@ export function createRow(htmlStrings: string[]) {
       </div>
    `;
 }
+
+//---------------
+//__drag-drop__//
+//функцию перетаскивания элемента box с помощью мыши.
+
+//takeUntil: Завершает поток событий mousemove, когда происходит событие mouseup
+export function drag(
+  source1$: Observable<MouseEvent>,
+  source2$: Observable<MouseEvent>,
+  source3$: Observable<MouseEvent>
+) {
+  return source1$.pipe(
+    concatMap((startEvent) => {
+      return source2$.pipe(
+        map((moveEvent) => {
+          moveEvent.preventDefault();
+          return {
+            left: moveEvent.clientX - startEvent.offsetX,
+            top: moveEvent.clientY - startEvent.offsetY,
+          };
+        }),
+        takeUntil(source3$)
+      );
+    })
+  );
+}
+
+const box = document.querySelector(".draggable") as HTMLDivElement;
+const mousedown$ = fromEvent<MouseEvent>(box, "mousedown");
+const mousemove$ = fromEvent<MouseEvent>(document, "mousemove");
+const mouseup$ = fromEvent<MouseEvent>(box, "mouseup");
+
+drag(mousedown$, mousemove$, mouseup$).subscribe((pos) => {
+  box.style.left = `${pos.left}px`;
+  box.style.top = `${pos.top}px`;
+});
+
+//-----------
+//__Error__//
+//empty
+//Завершает поток без испускания каких-либо значений
+//Используется для указания того, что поток завершился с ошибкой или без значений
+
+//never
+// Никогда не завершает поток и не испускает никаких значений.
+// Используется для создания потока, который никогда не завершается.
+
+// throw
+// Немедленно завершает поток с указанной ошибкой.
+// Используется для явного создания ошибки в потоке.
+
+//catchError 
+// Перехватывает ошибки в потоке и возвращает новый поток, который испускает указанное значение или поток.
+// Используется для обработки ошибок и продолжения потока
+
+//retry 
+// Повторяет поток указанное количество раз, если он завершается с ошибкой.
+// Используется для автоматической повторной попытки операции, если она завершается с ошибкой.
+
+//retryWhen
+// Повторяет поток на основе указанного потока уведомлений.
+// Используется для более гибкого управления повторными попытками, например, для экспоненциального увеличения интервалов между попытками.
+
+//можно использовать switchMap (он создает под поток и мы его закрываем если что при ошибке, основной поток будет дальше работать) ключевое после switchMap  должен идти pipe чтобы создать подпоток и там уже получаем значения через map и ловим ошибки с помощью catchError
+
+const sequence1$ = interval(1000);
+const sequence2$ = of('1', '2', '3', 4, '5', '6', '7');
+
+const sequence = zip(sequence1$, sequence2$);
+
+fromEvent(document, 'click')
+    .pipe(
+        switchMap(()=>{
+             return sequence
+                 .pipe(
+                     // map(([_x, y]: [number, number | string]) => {
+                     //     // try {
+                     //     //     return (y as any).toUpperCase()
+                     //     // } catch (err) {
+                     //     //     console.log(err);
+                     //     //     return '0';
+                     //     // }
+                     //     return (y as any).toUpperCase()
+                     // }),
+                     switchMap(([_x, y]: [number, number | string]) => {
+                         return of(y)
+                             .pipe(
+                                 map((y) => {
+                                     return (y as any).toUpperCase()
+                                 }),
+                                 catchError((err) => err))
+                     }),
+                     // tap(() => {
+                     //     console.log('without error')
+                     // }),
+                     //retry(3),
+                     // retryWhen(errObs => errObs.pipe(delay(5000))),
+                     // catchError((err) => {
+                     //     console.log('CATCH err', err);
+                     //     return EMPTY
+                     // }),
+                     // tap(() => {
+                     //     console.log('AFTER CATCH error')
+                     // }),
+                 )
+        }),
+        catchError((err) => {
+            console.log('CATCH err', err);
+            return EMPTY
+        }),
+    )
+
+    .subscribe((v) => {
+        console.log(v);
+    }, (err) => {
+        console.log(' ERR', err);
+    }, () => {
+        console.log('completed')
+    })
+
+
+// const pingEpic = action$ => action$.pipe(
+//     filter(action => action.type === 'LOGIN'),
+//     switchMap((user)=> service.login(user)
+//         .pipe(
+//             mergeMap(()=> [JWTLocalStorage, SetUser, LoginSuccess, GO]),
+//             catchError(()=>EMPTY)
+//         )
+//     ),
+// );
+
+//-------------
+//__Subject__//
+//Subject = Observable + Subscriber
+//Subject - это гибрид Observable и Subscriber. Он может как испускать значения, так и подписываться на другие Observable.
+//горячая последовательность - то что будет до подписки мы потеряем
+// Создаем Subject
+const subject = new Subject();
+
+// Подписываемся на Subject
+subject.subscribe((value) => {
+  console.log(`Подписчик 1 получил значение: ${value}`);
+});
+
+// Испускаем значения в Subject
+subject.next(1);
+subject.next(2);
+subject.next(3);
+
+// Отменяем подписку первого подписчика
+subject.unsubscribe();
+
+// Подписываемся на Subject снова
+subject.subscribe((value) => {
+  console.log(`Подписчик 2 получил значение: ${value}`);
+});
+
+// Испускаем еще одно значение в Subject
+subject.next(4);
+
+//BehaviorSubject - это Subject, который имеет инициализационное значение и кэширует последнее испущенное значение.
+const subject = new BehaviorSubject(0);
+
+subject.subscribe((value) => {
+  console.log(`Подписчик 1 получил значение: ${value}`);
+});
+
+subject.next(1);
+
+subject.subscribe((value) => {
+  console.log(`Подписчик 2 получил значение: ${value}`);
+});
+
+subject.next(2);
+
+//ReplaySubject - это Subject, который кэширует указанное количество последних испущенных значений.
+const subject = new ReplaySubject(2);
+
+subject.next(1);
+subject.next(2);
+
+subject.subscribe((value) => {
+  console.log(`Подписчик 1 получил значение: ${value}`);
+});
+
+subject.next(3);
+
+subject.subscribe((value) => {
+  console.log(`Подписчик 2 получил значение: ${value}`);
+});
+
+
+//AsyncSubject - это Subject, который кэширует последнее испущенное значение и испускает его только после завершения потока.
+const subject = new AsyncSubject();
+
+subject.next(1);
+subject.next(2);
+
+subject.subscribe((value) => {
+  console.log(`Подписчик 1 получил значение: ${value}`);
+});
+
+subject.complete();
+
+subject.subscribe((value) => {
+  console.log(`Подписчик 2 получил значение: ${value}`);
+});
+
+// const sequence = new AsyncSubject();
+// sequence.subscribe((v)=>{
+//     console.log('Sub 1', v)
+// })
+//
+// sequence.next('Hi all');
+// sequence.next('Rx JS');
+// sequence.next('Redux');
+// sequence.next('Node');
+//
+// setTimeout(()=>{
+//     sequence.complete();
+//     sequence.subscribe((v)=>{
+//         console.log('Sub 2', v)
+//     })
+// },5000)
+function getItems(url: string) {
+    let subject: AsyncSubject<any>;
+    return new Observable((subscriber) => {
+        if (!subject) {
+            subject = new AsyncSubject();
+            ajax(url).subscribe(subject)
+        }
+        return subject.subscribe(subscriber)
+    })
+}
+const items = getItems('http://learn.javascript.ru/courses/groups/api/participants?key=dsodaf')
+items.subscribe((v)=>{
+    console.log('User 1', v);
+})
+setTimeout(()=>{
+    items.subscribe((v)=>{
+        console.log('User 2', v);
+    })
+}, 5000)
+
+//------------------
+//__multicasting__//
+
+// multicast(control)
+// Преобразует холодный поток в горячий поток. Горячий поток испускает значения независимо от того, есть ли подписчики. control - это Subject, который используется для управления потоком. Когда control испускает значение, горячий поток начинает испускать значения. Когда control завершается, горячий поток завершается.sequence.connect() - подключает горячий поток. После подключения поток начинает испускать значения.
+
+// publish()
+// Создает новый Subject и применяет к нему оператор multicast. Это эквивалентно вызову multicast(new Subject()).Без connect()
+
+// refCount()
+// Подсчитывает количество подписчиков на поток. Когда количество подписчиков становится равным 0, поток завершается. Это гарантирует, что поток будет завершен, когда все подписчики отпишутся от него.
+
+// share()
+// Создает новый Subject и применяет к нему оператор multicast. Однако, в отличие от refCount(), share() не завершает поток, когда все подписчики отписываются от него. Вместо этого он продолжает испускать значения, пока не будет завершен исходный поток.Работа всех оператор выше в одном
+
+//const control = new ReplaySubject(2);
+const sequence = interval(1000)
+    .pipe(
+        //multicast(control)
+        //publish(), //new Subject + multicast(control)
+        // refCount()
+        share()
+    ) //as ConnectableObservable<any>;
+// sequence.connect();
+const sub1 = sequence.subscribe((v) => {
+    console.log('Sub 1', v);
+})
+setTimeout(() => {
+    sub1.unsubscribe();
+}, 3000)
+
+setTimeout(() => {
+    sequence.subscribe((v) => {
+        console.log('Sub 2', v);
+    })
+}, 5000)
+
+setTimeout(() => {
+    sequence.subscribe((v) => {
+        console.log('Sub 3', v);
+    })
+}, 7000)
+
+//------------
+//___forms__//
+//Оператор toArray() преобразует поток в массив всех испущенных значений. Он завершает поток после того, как все значения были испущены
+
+// shareReplay()
+// Оператор shareReplay() преобразует холодный поток в горячий поток и кэширует все испущенные значения. Это означает, что новые подписчики получат все ранее испущенные значения, даже если они подписались на поток после того, как эти значения были испущены.
+const source$ = interval(1000).pipe(take(5));
+
+const shared$ = source$.pipe(shareReplay());
+
+shared$.subscribe((value) => {
+  console.log(`Подписчик 1 получил значение: ${value}`);
+});
+
+setTimeout(() => {
+  shared$.subscribe((value) => {
+    console.log(`Подписчик 2 получил значение: ${value}`);
+  });
+}, 2000);
+// Подписчик 1 получил значение: 0
+// Подписчик 1 получил значение: 1
+// Подписчик 1 получил значение: 2
+// Подписчик 1 получил значение: 3
+// Подписчик 1 получил значение: 4
+// Подписчик 2 получил значение: 0
+// Подписчик 2 получил значение: 1
+// Подписчик 2 получил значение: 2
+// Подписчик 2 получил значение: 3
+// Подписчик 2 получил значение: 4
+
+class UserService {
+  private uniqueNameSequence$: Observable<any>;
+
+  public getNames() {
+    if (!this.uniqueNameSequence$) {
+      // this.uniqueNameSequence$ = ajax('http://learn.javascript.ru/courses/groups/api/participants?key=dsodaf')
+      //     .pipe(
+      //         pluck('response'),
+      //         concatAll(),
+      //         map((user: any) => user.profileName),
+      //         toArray(),
+      //         shareReplay()
+      //     )
+      this.uniqueNameSequence$ = timer(0, 16000).pipe(
+        switchMap(() => {
+          return ajax(
+            "http://learn.javascript.ru/courses/groups/api/participants?key=dsodaf"
+          ).pipe(
+            pluck("response"),
+            concatAll(),
+            map((user: any) => user.profileName),
+            toArray(),
+            shareReplay()
+          );
+        }),
+        shareReplay()
+      );
+    }
+    return this.uniqueNameSequence$;
+  }
+}
+
+export const userService = new UserService();
+
+//----------------------
+//__EventLoop c RxJs__//
+//Микрозадачи - это задачи, которые выполняются немедленно после того, как они были запланированы. Они создаются с помощью методов Promise.resolve() и queueMicrotask().
+
+//Макрозадачи - это задачи, которые выполняются после того, как все микрозадачи были выполнены. Они создаются с помощью методов setTimeout(), setInterval() и requestAnimationFrame().
+
+console.log("Начало");
+
+setTimeout(() => {
+  console.log("Макрозадача 1");
+}, 0);
+
+Promise.resolve().then(() => {
+  console.log("Микрозадача 1");
+});
+
+console.log("Середина");
+
+queueMicrotask(() => {
+  console.log("Микрозадача 2");
+});
+
+setTimeout(() => {
+  console.log("Макрозадача 2");
+}, 0);
+
+console.log("Конец");
+
+// Начало
+// Середина
+// Микрозадача 1
+// Конец
+// Микрозадача 2
+// Макрозадача 1
+// Макрозадача 2
+
+//asap - делает оператор из последовательного потока в асинхронный
+console.log('start');
+of(1, 2, 3, 4, asap )
+    .subscribe((v) => {
+        console.log(v);
+    });
+console.log('end');
+
+const a$ = from([1, 2], asap);
+const b$ = of(10);
+
+const c$ = combineLatest([a$, b$])
+    .pipe(map(([a, b]) => a + b));
+
+c$.subscribe((v) => {
+    console.log(v);
+})
+
+// Оператор observeOn(queue) в RxJS используется для изменения планировщика, на котором выполняются наблюдаемые. По умолчанию наблюдаемые выполняются на планировщике, предоставленном средой выполнения (например, setTimeout в браузере).
+// Оператор observeOn(queue) позволяет изменить планировщик на другой, например, queue, который является планировщиком с очередью задач. Это означает, что наблюдаемые будут выполняться в порядке их поступления в очередь, а не сразу.
+const signal = new Subject<number>();
+let count = 0;
+const calc = (count: number) => console.log('do some calc ', count)
+console.log('start');
+signal.pipe(
+    observeOn(queue),
+    take(1600),
+
+)
+    .subscribe((v: number) => {
+        calc(v);
+        signal.next(v++);
+    })
+signal.next(count++);
+console.log('end');
+
+//---------------
+//__Animation__//
+//Планировщик animationFrame
+//Планировщик animationFrame - это специальный планировщик, который выполняет задачи в конце каждого кадра анимации. Это означает, что задачи, запланированные с помощью animationFrame, будут выполняться плавно и без блокировки потока.
+
+interval(0, animationFrame)
+    .subscribe((v) => {
+        div.style.transform = `translate3d(0,${v}px,0)`
+    })
+
+//-----------
+//__Тесты__//
+
+describe("RxJS", () => {
+  // объявляет переменную testScheduler типа TestScheduler
+  let testScheduler: TestScheduler;
+
+  beforeEach(() => {
+    //TestScheduler - это инструмент для тестирования потоков RxJS
+    //функция обратного вызова, которая будет вызываться TestScheduler для сравнения фактических испущенных значений с ожидаемыми значениями. В данном случае она использует функцию expect из библиотеки Jest для проверки равенства
+    testScheduler = new TestScheduler((actual, expected) => {
+      expect(actual).toEqual(expected);
+    });
+  });
+
+  it("delay should work ", () => {
+    // запускает тест с использованием предоставленного TestScheduler и вспомогательных функций cold и expectObservable
+    //cold - холодный поток
+    testScheduler.run(({ cold, expectObservable }) => {
+      //Создает холодный поток с помощью функции cold. Холодный поток имитирует последовательность испущенных значений во времени. В данном случае поток испускает значения "a" (2), "b" (2) и "c" (10) с интервалом в одну временную единицу.
+      const sequence1 = cold("-a--b--c---|", {
+        a: 2,
+        b: 2,
+        c: 10,
+      });
+
+      //Определяет ожидаемую последовательность испущенных значений. В данном случае поток испускает значения "a" (4), "b" (4) и "c" (100) через 9 временных единиц после начала потока.
+      const sequence = "              9s -a--b--c---|";
+      //Проверяет, что фактическая последовательность испущенных значений соответствует ожидаемой последовательности
+      expectObservable(
+        sequence1.pipe(
+          delay(9000),
+          map((x) => x ** 2)
+        )
+      ).toBe(sequence, { a: 4, b: 4, c: 100 });
+    });
+  });
+});
